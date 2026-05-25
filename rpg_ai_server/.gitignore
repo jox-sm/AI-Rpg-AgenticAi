@@ -1,0 +1,37 @@
+# Environment
+.env
+.env.local
+.env.production
+.env.development
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Redis dump
+dump.rdb
+
+# API keys / secrets
+**/secrets/
+**/credentials/

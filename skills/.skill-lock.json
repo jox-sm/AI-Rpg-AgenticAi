@@ -1,0 +1,167 @@
+{
+  "version": 3,
+  "skills": {
+    "deep-agents-core": {
+      "source": "langchain-ai/langchain-skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/langchain-ai/langchain-skills.git",
+      "skillPath": "config/skills/deep-agents-core/SKILL.md",
+      "skillFolderHash": "9e46674077d75bcdf5f0cf174357ac9024e744bb",
+      "installedAt": "2026-05-25T16:21:03.966Z",
+      "updatedAt": "2026-05-25T16:21:03.966Z"
+    },
+    "deep-agents-memory": {
+      "source": "langchain-ai/langchain-skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/langchain-ai/langchain-skills.git",
+      "skillPath": "config/skills/deep-agents-memory/SKILL.md",
+      "skillFolderHash": "3b4f2f07c1ae04f68763c101844e704c5555381b",
+      "installedAt": "2026-05-25T16:21:03.982Z",
+      "updatedAt": "2026-05-25T16:21:03.982Z"
+    },
+    "deep-agents-orchestration": {
+      "source": "langchain-ai/langchain-skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/langchain-ai/langchain-skills.git",
+      "skillPath": "config/skills/deep-agents-orchestration/SKILL.md",
+      "skillFolderHash": "3f34bdfaee45686ec98e8630c96ec02adfcde549",
+      "installedAt": "2026-05-25T16:21:03.989Z",
+      "updatedAt": "2026-05-25T16:21:03.989Z"
+    },
+    "framework-selection": {
+      "source": "langchain-ai/langchain-skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/langchain-ai/langchain-skills.git",
+      "skillPath": "config/skills/framework-selection/SKILL.md",
+      "skillFolderHash": "bd727c0dae71a11ccd8a16ddeb9aedf631507c84",
+      "installedAt": "2026-05-25T16:21:03.996Z",
+      "updatedAt": "2026-05-25T16:21:03.996Z"
+    },
+    "langchain-dependencies": {
+      "source": "langchain-ai/langchain-skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/langchain-ai/langchain-skills.git",
+      "skillPath": "config/skills/langchain-dependencies/SKILL.md",
+      "skillFolderHash": "ebdb8abc2c1ee9cea5da98f08043ce01e55a2b43",
+      "installedAt": "2026-05-25T16:21:04.002Z",
+      "updatedAt": "2026-05-25T16:21:04.002Z"
+    },
+    "langchain-fundamentals": {
+      "source": "langchain-ai/langchain-skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/langchain-ai/langchain-skills.git",
+      "skillPath": "config/skills/langchain-fundamentals/SKILL.md",
+      "skillFolderHash": "64d425535583b9bd96a434be24986bca192e45f6",
+      "installedAt": "2026-05-25T16:21:04.006Z",
+      "updatedAt": "2026-05-25T16:21:04.006Z"
+    },
+    "langchain-middleware": {
+      "source": "langchain-ai/langchain-skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/langchain-ai/langchain-skills.git",
+      "skillPath": "config/skills/langchain-middleware/SKILL.md",
+      "skillFolderHash": "fc36a1097394fb462a22d6f015450771a653b099",
+      "installedAt": "2026-05-25T16:21:04.010Z",
+      "updatedAt": "2026-05-25T16:21:04.010Z"
+    },
+    "langchain-rag": {
+      "source": "langchain-ai/langchain-skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/langchain-ai/langchain-skills.git",
+      "skillPath": "config/skills/langchain-rag/SKILL.md",
+      "skillFolderHash": "99d950a67fa1ec31321b9074dc208ab6cef35229",
+      "installedAt": "2026-05-25T16:21:04.014Z",
+      "updatedAt": "2026-05-25T16:21:04.014Z"
+    },
+    "langgraph-cli": {
+      "source": "langchain-ai/langchain-skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/langchain-ai/langchain-skills.git",
+      "skillPath": "config/skills/langgraph-cli/SKILL.md",
+      "skillFolderHash": "51f0eaa1322bf31014dab8de84084f2e5a28710d",
+      "installedAt": "2026-05-25T16:21:04.017Z",
+      "updatedAt": "2026-05-25T16:21:04.017Z"
+    },
+    "langgraph-fundamentals": {
+      "source": "langchain-ai/langchain-skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/langchain-ai/langchain-skills.git",
+      "skillPath": "config/skills/langgraph-fundamentals/SKILL.md",
+      "skillFolderHash": "aa046661cdbb0752743d797676e25c9a0401f7c0",
+      "installedAt": "2026-05-25T16:21:04.020Z",
+      "updatedAt": "2026-05-25T16:21:04.020Z"
+    },
+    "langgraph-human-in-the-loop": {
+      "source": "langchain-ai/langchain-skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/langchain-ai/langchain-skills.git",
+      "skillPath": "config/skills/langgraph-human-in-the-loop/SKILL.md",
+      "skillFolderHash": "b8ba56b3d8a2a148731c4ca136f4bdcbc4144dc5",
+      "installedAt": "2026-05-25T16:21:04.023Z",
+      "updatedAt": "2026-05-25T16:21:04.023Z"
+    },
+    "langgraph-persistence": {
+      "source": "langchain-ai/langchain-skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/langchain-ai/langchain-skills.git",
+      "skillPath": "config/skills/langgraph-persistence/SKILL.md",
+      "skillFolderHash": "78329e3bc968c16282b186a265e04eaa01ca8fbd",
+      "installedAt": "2026-05-25T16:21:04.025Z",
+      "updatedAt": "2026-05-25T16:21:04.025Z"
+    },
+    "managed-deep-agents": {
+      "source": "langchain-ai/langchain-skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/langchain-ai/langchain-skills.git",
+      "skillPath": "config/skills/managed-deep-agents/SKILL.md",
+      "skillFolderHash": "4bc8725d611c4c7d49c2ee3ec5caa2f2a592da89",
+      "installedAt": "2026-05-25T16:21:04.028Z",
+      "updatedAt": "2026-05-25T16:21:04.028Z"
+    },
+    "swarm": {
+      "source": "langchain-ai/langchain-skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/langchain-ai/langchain-skills.git",
+      "skillPath": "config/skills/swarm/SKILL.md",
+      "skillFolderHash": "950e45031949394172d3612e425054c00c82861b",
+      "installedAt": "2026-05-25T16:21:04.030Z",
+      "updatedAt": "2026-05-25T16:21:04.030Z"
+    },
+    "redis-development": {
+      "source": "redis/agent-skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/redis/agent-skills.git",
+      "skillPath": "skills/redis-development/SKILL.md",
+      "skillFolderHash": "2c9b11db1c4755a1ba653d1af64a09091181356c",
+      "installedAt": "2026-05-25T16:25:00.348Z",
+      "updatedAt": "2026-05-25T16:25:00.348Z"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/vercel-labs/skills.git",
+      "skillPath": "skills/find-skills/SKILL.md",
+      "skillFolderHash": "3013fdeb8a11b10b1eb795ec3ae8bfca38f7c26d",
+      "installedAt": "2026-05-25T16:25:09.576Z",
+      "updatedAt": "2026-05-25T16:25:09.576Z"
+    }
+  },
+  "dismissed": {
+    "findSkillsPrompt": true
+  },
+  "lastSelectedAgents": [
+    "amp",
+    "antigravity",
+    "cline",
+    "codex",
+    "cursor",
+    "deepagents",
+    "dexto",
+    "firebender",
+    "gemini-cli",
+    "github-copilot",
+    "kimi-cli",
+    "opencode",
+    "warp"
+  ]
+}
