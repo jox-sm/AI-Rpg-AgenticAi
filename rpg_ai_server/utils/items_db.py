@@ -3,13 +3,25 @@ from __future__ import annotations
 import json
 import math
 import os
+import re
 from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+try:
+    from nltk.corpus import stopwords
+    _STOPWORDS = set(stopwords.words("english"))
+except LookupError:
+    import nltk
+    nltk.download("stopwords", quiet=True)
+    from nltk.corpus import stopwords
+    _STOPWORDS = set(stopwords.words("english"))
 
-def _char_bigrams(text: str) -> Counter:
-    t = f"  {text.lower().strip()}  "
+_WORD_RE = re.compile(r"[a-zA-Z]{2,}")
+
+
+def _char_bigrams(text: str, pad: int = 2) -> Counter:
+    t = f"{' ' * pad}{text.lower().strip()}{' ' * pad}"
     return Counter(t[i:i+2] for i in range(len(t)-1))
 
 
@@ -67,6 +79,8 @@ class ItemsDB:
         self._type_index: Dict[str, list[Dict[str, Any]]] = {}
         self._rarity_index: Dict[str, list[Dict[str, Any]]] = {}
         self._bigram_index: list[tuple[Counter, int]] = []
+        self._name_bigram_index: list[tuple[Counter, int]] = []
+        self._max_name_words: int = 1
         self._query_cache: Dict[str, list[Dict[str, Any]]] = {}
         self.load()
 
@@ -95,6 +109,13 @@ class ItemsDB:
                 search_text = f"{item.get('name', '')} {item.get('Description', '')} {item.get('Effect', '')} {item.get('Special Effect', '')}"
                 bg = _char_bigrams(search_text)
                 self._bigram_index.append((bg, len(self._flat) - 1))
+
+                name_bg = _char_bigrams(item.get("name", ""), pad=1)
+                self._name_bigram_index.append((name_bg, len(self._flat) - 1))
+
+                name_word_count = len(item.get("name", "").split())
+                if name_word_count > self._max_name_words:
+                    self._max_name_words = name_word_count
 
     def search(self, query: str, limit: int = 10) -> list[Dict[str, Any]]:
         q = query.lower().strip()
@@ -147,6 +168,57 @@ class ItemsDB:
         final = [item for _, item in results[:limit]]
         self._query_cache[q] = final
         return final
+
+    def extract_items(
+        self,
+        text: str,
+        scope: Optional[list[str | Dict[str, Any]]] = None,
+        threshold: float = 0.65,
+    ) -> list[Dict[str, Any]]:
+        if not text or not text.strip():
+            return []
+
+        raw = text.lower().strip()
+        tokens = [w for w in _WORD_RE.findall(raw) if w not in _STOPWORDS]
+        if not tokens:
+            return []
+
+        candidates: list[str] = []
+        for n in range(1, min(self._max_name_words, len(tokens)) + 1):
+            for i in range(len(tokens) - n + 1):
+                candidates.append(" ".join(tokens[i:i+n]))
+
+        if scope:
+            name_bg_index: list[tuple[Counter, Dict[str, Any]]] = []
+            for entry in scope:
+                name = entry if isinstance(entry, str) else entry.get("name", "")
+                if name:
+                    item = entry if isinstance(entry, dict) else (self._name_index.get(name.lower(), [None])[0] or {"name": name})
+                    name_bg_index.append((_char_bigrams(name, pad=1), item))
+        else:
+            name_bg_index = [(bg, self._flat[idx]) for bg, idx in self._name_bigram_index]
+
+        matched: dict[str, tuple[float, Dict[str, Any]]] = {}
+        for phrase in candidates:
+            phrase_bg = _char_bigrams(phrase, pad=1)
+            best_score = 0.0
+            best_item = None
+            for name_bg, item in name_bg_index:
+                score = _cosine_sim(phrase_bg, name_bg)
+                if score > best_score:
+                    best_score = score
+                    best_item = item
+
+            if best_score >= threshold and best_item:
+                item_name = best_item.get("name", "")
+                phrase_chars = len(phrase.replace(" ", ""))
+                item_chars = len(item_name.replace(" ", ""))
+                if phrase_chars < item_chars * 0.4:
+                    continue
+                if item_name not in matched or best_score > matched[item_name][0]:
+                    matched[item_name] = (best_score, best_item)
+
+        return [item for _, item in sorted(matched.values(), key=lambda x: -x[0])]
 
     def get_by_name(self, name: str) -> Optional[Dict[str, Any]]:
         results = self.search(name, limit=1)
