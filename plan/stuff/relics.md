@@ -1,0 +1,617 @@
+# Relics & Artifacts
+
+## Weapon Relics
+
+### Sword of Eternity
+- **ID**: sword_of_eternity
+- **Type**: Weapon
+- **Rarity**: Legendary
+- **Power**: Deals infinite damage to undead; ignores armor completely
+- **Curse**: The wielder slowly loses memories over time
+- **Origin**: Forged in the dying breath of a god
+- **Required Level**: 50
+- **Description**: A blade of pure white light that hums with ancient power, its edge never dulling
+
+### Hammer of Gods
+- **ID**: hammer_of_gods
+- **Type**: Weapon
+- **Rarity**: Mythic
+- **Power**: Summons divine lightning on impact; stuns enemies for 5 turns
+- **Curse**: Each strike shortens the wielder's lifespan by one year
+- **Origin**: Dropped from the heavens during the War of Ascension
+- **Required Level**: 60
+- **Description**: A massive golden warhammer crackling with storm energy, too heavy for mortals
+
+### Dagger of Shadows
+- **ID**: dagger_of_shadows
+- **Type**: Weapon
+- **Rarity**: Legendary
+- **Power**: Guarantees critical hits from stealth; inflicts poison that cannot be cured
+- **Curse**: The wielder cannot stand in sunlight without taking damage
+- **Origin**: Crafted by the Shadow Weaver in the Plane of Darkness
+- **Required Level**: 40
+- **Description**: A black blade that seems to absorb light, leaving darkness in its wake
+
+### Bow of the Windrunner
+- **ID**: bow_of_windrunner
+- **Type**: Weapon
+- **Rarity**: Legendary
+- **Power**: Arrows travel infinitely; can hit targets around corners
+- **Curse**: The wielder can never stay in one place for more than a day
+- **Origin**: Gifted to the Windrunner Elves at the dawn of time
+- **Required Level**: 45
+- **Description**: A longbow of living wood that whispers with the voices of the wind
+
+### Staff of the Archmage
+- **ID**: staff_of_archmage
+- **Type**: Weapon
+- **Rarity**: Legendary
+- **Power**: Amplifies all magic by 300%; allows casting two spells simultaneously
+- **Curse**: Random spells trigger when the wielder sleeps
+- **Origin**: The personal weapon of the First Archmage
+- **Required Level**: 55
+- **Description**: A tall obsidian staff topped with a swirling orb of pure magical energy
+
+### Axe of the Berserker King
+- **ID**: axe_of_berserker_king
+- **Type**: Weapon
+- **Rarity**: Mythic
+- **Power**: Increases damage as health decreases; lifesteal on every hit
+- **Curse**: The wielder becomes consumed by rage, attacking allies randomly
+- **Origin**: Blood-soaked relic of the Berserker Throne
+- **Required Level**: 48
+- **Description**: A double-headed axe dripping with perpetually fresh blood
+
+### Spear of the Dragon Slayer
+- **ID**: spear_of_dragon_slayer
+- **Type**: Weapon
+- **Rarity**: Legendary
+- **Power**: Deals triple damage to dragon-type enemies; ignores magical immunity
+- **Curse**: Dragons will hunt the wielder relentlessly
+- **Origin**: Forged from the fang of the last Elder Dragon
+- **Required Level**: 42
+- **Description**: A gleaming silver spear with dragon-scale wrapping along the shaft
+
+### Mace of the Heavens
+- **ID**: mace_of_heavens
+- **Type**: Weapon
+- **Rarity**: Mythic
+- **Power**: Stuns all enemies in a 50-foot radius; deals holy damage
+- **Curse**: The wielder cannot harm demons or undead directly
+- **Origin**: Blessed by the Celestial Council
+- **Required Level**: 58
+- **Description**: A radiant mace of solidified starlight, warm to the touch
+
+### Scythe of the Reaper
+- **ID**: scythe_of_reaper
+- **Type**: Weapon
+- **Rarity**: Mythic
+- **Power**: Instantly kills enemies below 20% health; harvests souls for power
+- **Curse**: The wielder sees the moment of death for everyone they meet
+- **Origin**: Borrowed from Death itself
+- **Required Level**: 65
+- **Description**: A bone-handled scythe with a blade of solidified shadow
+
+### Rapier of the Duelist
+- **ID**: rapier_of_duelist
+- **Type**: Weapon
+- **Rarity**: Legendary
+- **Power**: Guaranteed first strike in combat; counters all parried attacks
+- **Curse**: The wielder must accept every challenge of combat
+- **Origin**: The weapon of the undefeated Duelist of the Silver Court
+- **Required Level**: 35
+- **Description**: An elegant silver rapier with a guard shaped like a coiled serpent
+
+### Warhammer of Earthshaker
+- **ID**: warhammer_of_earthshaker
+- **Type**: Weapon
+- **Rarity**: Legendary
+- **Power**: Creates earthquakes on impact; chance to stun all ground enemies
+- **Curse**: The wielder's footsteps cause minor tremors, alerting enemies
+- **Origin**: Used to forge the first mountains
+- **Required Level**: 50
+- **Description**: A massive stone hammer etched with runes of tectonic power
+
+### Crossbow of the Huntmaster
+- **ID**: crossbow_of_huntmaster
+- **Type**: Weapon
+- **Rarity**: Legendary
+- **Power**: Arrows home to targets; can fire through walls
+- **Curse**: The wielder becomes obsessed with the hunt, ignoring other duties
+- **Origin**: Commissioned by the Beastmasters of the Northern Wastes
+- **Required Level**: 38
+- **Description**: A sleek darkwood crossbow with silver mechanical components
+
+### Katana of the Storm
+- **ID**: katana_of_storm
+- **Type**: Weapon
+- **Rarity**: Legendary
+- **Power**: Each hit charges a lightning attack; chains to nearby enemies
+- **Curse**: The wielder attracts storms wherever they travel
+- **Origin**: Forged during a thousand-year thunderstorm in the East
+- **Required Level**: 44
+- **Description**: A curved blade that crackles with static, its edge glowing blue
+
+### Flail of Torment
+- **ID**: flail_of_torment
+- **Type**: Weapon
+- **Rarity**: Legendary
+- **Power**: Inflicts psychological damage; can cause enemies to flee in terror
+- **Curse**: The wielder hears the screams of those struck by the weapon
+- **Origin**: Created by the Torturer Kings of the Abyss
+- **Required Level**: 46
+- **Description**: A black iron flail with a skull-shaped head that moans when swung
+
+### Wand of Wildfire
+- **ID**: wand_of_wildfire
+- **Type**: Weapon
+- **Rarity**: Legendary
+- **Power**: Casts unquenchable fire that spreads to nearby flammable objects
+- **Curse**: The wielder is perpetually warm and suffers in cold climates
+- **Origin**: Born from the ashes of the Phoenix Nest
+- **Required Level**: 40
+- **Description**: A wand of petrified wood that glows with inner embers
+
+---
+
+## Armor Relics
+
+### Shield of Ages
+- **ID**: shield_of_ages
+- **Type**: Armor
+- **Rarity**: Legendary
+- **Power**: Reflects 50% of all magical damage back at attackers
+- **Curse**: The wielder ages at twice the normal rate
+- **Origin**: Carved from the shell of the World Turtle
+- **Required Level**: 45
+- **Description**: A round shield covered in ancient runes that shift and change
+
+### Crown of Wisdom
+- **ID**: crown_of_wisdom
+- **Type**: Armor
+- **Rarity**: Legendary
+- **Power**: Grants omniscience; reveals all hidden secrets and traps
+- **Curse**: The bearer knows too much and suffers constant migraines
+- **Origin**: Worn by the Oracle of the First Age
+- **Required Level**: 50
+- **Description**: A delicate golden crown set with a single all-seeing sapphire
+
+### Plate of the Immortal
+- **ID**: plate_of_immortal
+- **Type**: Armor
+- **Rarity**: Mythic
+- **Power**: Renders the wearer immune to all physical damage for one hour per day
+- **Curse**: During immunity, the wearer cannot move or act
+- **Origin**: Forged for the last Immortal King before his fall
+- **Required Level**: 55
+- **Description**: Full plate armor of gleaming white metal that never tarnishes
+
+### Helm of the Seer
+- **ID**: helm_of_seer
+- **Type**: Armor
+- **Rarity**: Legendary
+- **Power**: Grants perfect foresight; dodge all attacks for 3 turns
+- **Curse**: The wearer sees multiple possible futures, causing indecision
+- **Origin**: Created by the Time Weavers
+- **Required Level**: 48
+- **Description**: A silver helm with a visor of shimmering crystal
+
+### Boots of Shadowstep
+- **ID**: boots_of_shadowstep
+- **Type**: Armor
+- **Rarity**: Legendary
+- **Power**: Allows teleportation between shadows; silent movement
+- **Curse**: The wearer casts no shadow, unsettling allies
+- **Origin**: Gifted by the Shadow Court to their assassins
+- **Required Level**: 42
+- **Description**: Soft black boots that seem to blend into any darkness
+
+### Gauntlets of Might
+- **ID**: gauntlets_of_might
+- **Type**: Armor
+- **Rarity**: Legendary
+- **Power**: Multiplies physical strength by ten; can shatter any material
+- **Curse**: The wearer crushes everything they touch, including allies
+- **Origin**: Worn by the Titan Warriors of old
+- **Required Level**: 50
+- **Description**: Massive iron gauntlets covered in runes of strength
+
+### Cloak of Invisibility
+- **ID**: cloak_of_invisibility
+- **Type**: Armor
+- **Rarity**: Legendary
+- **Power**: Grants perfect invisibility; undetectable by any means
+- **Curse**: The wearer slowly fades from reality, eventually becoming a ghost
+- **Origin**: Woven from the threads of nothingness by the Void Weavers
+- **Required Level**: 55
+- **Description**: A shimmering cloak that seems to be made of transparent silk
+
+### Breastplate of the Phoenix
+- **ID**: breastplate_of_phoenix
+- **Type**: Armor
+- **Rarity**: Mythic
+- **Power**: Revives the wearer once per day with full health
+- **Curse**: Each revival burns away a portion of the wearer's soul
+- **Origin**: Forged from the feathers of the last Phoenix
+- **Required Level**: 60
+- **Description**: A breastplate of golden scales that radiates warmth and light
+
+### Pauldrons of the Warlord
+- **ID**: pauldrons_of_warlord
+- **Type**: Armor
+- **Rarity**: Legendary
+- **Power**: Boosts army morale; allies fight with double strength
+- **Curse**: The wearer becomes addicted to conquest and war
+- **Origin**: Taken from the fallen Warlord of the Iron Legion
+- **Required Level**: 50
+- **Description**: Massive spiked pauldrons engraved with battle scenes
+
+### Leggings of the Wind
+- **ID**: leggings_of_wind
+- **Type**: Armor
+- **Rarity**: Legendary
+- **Power**: Grants flight for short bursts; increases movement speed by 500%
+- **Curse**: The wearer can never walk normally, always floating slightly
+- **Origin**: Woven by the Wind Spirits of the upper atmosphere
+- **Required Level**: 46
+- **Description**: Light, form-fitting leggings that ripple like clouds
+
+### Belt of the Giant
+- **ID**: belt_of_giant
+- **Type**: Armor
+- **Rarity**: Legendary
+- **Power**: Increases carrying capacity infinitely; grants giant strength
+- **Curse**: The wearer grows one size category larger every month
+- **Origin**: From the waist of the fallen Giant King
+- **Required Level**: 44
+- **Description**: A thick leather belt with a buckle shaped like a mountain
+
+### Helm of the Berserker
+- **ID**: helm_of_berserker
+- **Type**: Armor
+- **Rarity**: Legendary
+- **Power**: Damage increases as health decreases; fear effect on enemies
+- **Curse**: The wearer cannot distinguish friend from foe when enraged
+- **Origin**: Forged in the blood of the Berserker Clan
+- **Required Level**: 40
+- **Description**: A horned iron helm splattered with ancient blood
+
+### Bracers of the Elementalist
+- **ID**: bracers_of_elementalist
+- **Type**: Armor
+- **Rarity**: Legendary
+- **Power**: Grants immunity to all elemental damage; absorbs elements for attacks
+- **Curse**: The wearer's body slowly crystallizes into elemental form
+- **Origin**: Created by the Council of Elements
+- **Required Level**: 52
+- **Description**: Crystal bracers that shift color based on the dominant element nearby
+
+### Robes of the Archmage
+- **ID**: robes_of_archmage
+- **Type**: Armor
+- **Rarity**: Mythic
+- **Power**: Provides unlimited mana regeneration; all spells cost zero mana
+- **Curse**: The wearer becomes bound to the magical weave and cannot die naturally
+- **Origin**: The ceremonial robes of the First Archmage
+- **Required Level**: 60
+- **Description**: Flowing robes of deep blue fabric embroidered with constellations
+
+### Greaves of the Earth
+- **ID**: greaves_of_earth
+- **Type**: Armor
+- **Rarity**: Legendary
+- **Power**: Anchors the wearer to the ground; immune to knockback and displacement
+- **Curse**: The wearer becomes heavy and slow in water
+- **Origin**: Carved from the bedrock of the world's first mountain
+- **Required Level**: 42
+- **Description**: Stone greaves that pulse with the heartbeat of the earth
+
+---
+
+## Accessory Relics
+
+### Ring of Power
+- **ID**: ring_of_power
+- **Type**: Accessory
+- **Rarity**: Mythic
+- **Power**: Grants dominion over lesser beings; commands obedience from all creatures below level 30
+- **Curse**: The wearer becomes increasingly corrupt and power-hungry
+- **Origin**: Forged by the Dark Lord in the fires of Mount Doom
+- **Required Level**: 60
+- **Description**: A simple gold band that radiates an aura of absolute authority
+
+### Amulet of Life
+- **ID**: amulet_of_life
+- **Type**: Accessory
+- **Rarity**: Legendary
+- **Power**: Grants true immortality; cannot be killed by any means
+- **Curse**: The wearer watches all loved ones die while they remain forever
+- **Origin**: Created by the God of Life as a gift to mortals
+- **Required Level**: 70
+- **Description**: A pendant shaped like a green leaf that glows with vital energy
+
+### Necklace of Souls
+- **ID**: necklace_of_souls
+- **Type**: Accessory
+- **Rarity**: Mythic
+- **Power**: Stores the souls of the defeated; can summon them as spectral allies
+- **Curse**: The wearer hears the screams of trapped souls constantly
+- **Origin**: Crafted by the Soul Collector in the Plane of the Dead
+- **Required Level**: 55
+- **Description**: A chain of tiny silver skulls, each containing a trapped spirit
+
+### Ring of Invisibility
+- **ID**: ring_of_invisibility
+- **Type**: Accessory
+- **Rarity**: Legendary
+- **Power**: Grants invisibility that cannot be dispelled by any magic
+- **Curse**: The wearer's shadow remains visible and acts independently
+- **Origin**: Stolen from the Vault of the Invisible King
+- **Required Level**: 40
+- **Description**: A thin silver band that shimmers and fades from sight
+
+### Amulet of the Void
+- **ID**: amulet_of_void
+- **Type**: Accessory
+- **Rarity**: Mythic
+- **Power**: Opens portals to any location; banishes enemies to the void
+- **Curse**: The wearer risks being pulled into the void permanently
+- **Origin**: A fragment of pure nothingness from before creation
+- **Required Level**: 65
+- **Description**: A black stone pendant that seems to contain an infinite darkness
+
+### Ring of the Sun
+- **ID**: ring_of_sun
+- **Type**: Accessory
+- **Rarity**: Legendary
+- **Power**: Burns undead on contact; heals allies with sunlight
+- **Curse**: The wearer cannot function in complete darkness
+- **Origin**: Forged from a shard of the sun by the Solar Smiths
+- **Required Level**: 45
+- **Description**: A golden ring that glows with the intensity of a small sun
+
+### Crown of Thorns
+- **ID**: crown_of_thorns
+- **Type**: Accessory
+- **Rarity**: Legendary
+- **Power**: Deals damage to anyone who attacks the wearer; reflects pain
+- **Curse**: The wearer suffers constant, unending pain
+- **Origin**: The penitent crown of the Fallen Saint
+- **Required Level**: 50
+- **Description**: A circlet of intertwined thorns that pierce the wearer's brow
+
+### Belt of Stars
+- **ID**: belt_of_stars
+- **Type**: Accessory
+- **Rarity**: Legendary
+- **Power**: Grants the ability to walk between stars; instant travel across the world
+- **Curse**: The wearer becomes detached from mortal concerns
+- **Origin**: Woven from the threads of the night sky by the Starweaver
+- **Required Level**: 55
+- **Description**: A belt that appears to be made of captured starlight
+
+### Pendant of Truth
+- **ID**: pendant_of_truth
+- **Type**: Accessory
+- **Rarity**: Legendary
+- **Power**: Forces anyone near the wearer to speak only truth
+- **Curse**: The wearer cannot tell lies, even to protect others
+- **Origin**: Created by the God of Truth as a test for mortals
+- **Required Level**: 48
+- **Description**: A crystal pendant that glows when deception is near
+
+### Ring of the Shadow Walker
+- **ID**: ring_of_shadow_walker
+- **Type**: Accessory
+- **Rarity**: Legendary
+- **Power**: Allows travel through the shadow plane; dodge any attack
+- **Curse**: The wearer slowly loses their physical form
+- **Origin**: Gifted by the Shadow Lord to his most trusted agents
+- **Required Level**: 50
+- **Description**: A ring of dark metal that seems to absorb all light
+
+---
+
+## Special Relics
+
+### Orb of Destiny
+- **ID**: orb_of_destiny
+- **Type**: Accessory
+- **Rarity**: Mythic
+- **Power**: Allows the wielder to see and alter the future; changes one event per day
+- **Curse**: Each alteration creates a worse alternate timeline
+- **Origin**: The crystallized eye of the Fate Weaver
+- **Required Level**: 60
+- **Description**: A crystal sphere that swirls with images of possible futures
+
+### Crystal of Time
+- **ID**: crystal_of_time
+- **Type**: Accessory
+- **Rarity**: Mythic
+- **Power**: Stops time for everyone except the wielder for 10 turns
+- **Curse**: Time stopped ages the wielder by one year per use
+- **Origin**: A fragment from the first moment of time
+- **Required Level**: 65
+- **Description**: A clear crystal that seems to contain frozen moments
+
+### Mirror of Souls
+- **ID**: mirror_of_souls
+- **Type**: Accessory
+- **Rarity**: Legendary
+- **Power**: Reveals the true nature of any being; exposes shapeshifters
+- **Curse**: The wielder sees their own soul and is horrified
+- **Origin**: Crafted by the God of Reflections
+- **Required Level**: 50
+- **Description**: An ornate silver mirror that shows more than reflections
+
+### Grimoire of Infinite Knowledge
+- **ID**: grimoire_of_knowledge
+- **Type**: Accessory
+- **Rarity**: Mythic
+- **Power**: Contains all knowledge of the universe; grants mastery of any skill
+- **Curse**: Reading too much drives the reader to madness
+- **Origin**: Written by the Collective consciousness of all scholars
+- **Required Level**: 55
+- **Description**: An ancient tome that writes itself, pages never ending
+
+### Chalice of Eternity
+- **ID**: chalice_of_eternity
+- **Type**: Accessory
+- **Rarity**: Mythic
+- **Power**: The drinker gains eternal youth and beauty; heals all wounds
+- **Curse**: The drinker can never experience new emotions
+- **Origin**: The personal cup of the God of Time
+- **Required Level**: 70
+- **Description**: A golden chalice that never empties, filled with liquid starlight
+
+### Stone of Power
+- **ID**: stone_of_power
+- **Type**: Accessory
+- **Rarity**: Legendary
+- **Power**: Amplifies all stats by 200%; grants temporary godlike power
+- **Curse**: Power fades after one hour, leaving the user weakened for a day
+- **Origin**: A fallen star from the realm of the gods
+- **Required Level**: 50
+- **Description**: A rough, uncut gem that pulses with raw energy
+
+### Key of Dimensions
+- **ID**: key_of_dimensions
+- **Type**: Accessory
+- **Rarity**: Mythic
+- **Power**: Opens any lock; grants access to any dimension or plane
+- **Curse**: The key can never be destroyed, and will follow its owner forever
+- **Origin**: Forged by the Locksmith of the Multiverse
+- **Required Level**: 60
+- **Description**: A skeleton key that shifts between realities
+
+### Hourglass of Ages
+- **ID**: hourglass_of_ages
+- **Type**: Accessory
+- **Rarity**: Mythic
+- **Power**: Reverses time by up to one hour; undoes any action
+- **Curse**: Each use erases a memory from the wielder's past
+- **Origin**: The personal timepiece of the Chronarch
+- **Required Level**: 65
+- **Description**: An ornate hourglass that runs both forward and backward
+
+### Compass of True North
+- **ID**: compass_of_true_north
+- **Type**: Accessory
+- **Rarity**: Legendary
+- **Power**: Always points to what the wielder needs most; guides to safety
+- **Curse**: The compass reveals truths the wielder may not want to face
+- **Origin**: Created by the Navigator of the Celestial Sea
+- **Required Level**: 45
+- **Description**: A golden compass that points in different directions for different needs
+
+### Atlas of Worlds
+- **ID**: atlas_of_worlds
+- **Type**: Accessory
+- **Rarity**: Mythic
+- **Power**: Shows all worlds and dimensions; grants instant travel between them
+- **Curse**: The bearer becomes lost between worlds, unable to settle anywhere
+- **Origin**: Compiled by the Cartographer of the Multiverse
+- **Required Level**: 60
+- **Description**: An ever-expanding book of maps showing every corner of existence
+
+### Vessel of Souls
+- **ID**: vessel_of_souls
+- **Type**: Accessory
+- **Rarity**: Legendary
+- **Power**: Can contain and release souls; grants spiritual minions
+- **Curse**: The vessel demands a soul payment for each use
+- **Origin**: Crafted by the Soul Forger in the Plane of Spirits
+- **Required Level**: 50
+- **Description**: A dark crystal vial that glows with ethereal light
+
+### Eye of Providence
+- **ID**: eye_of_providence
+- **Type**: Accessory
+- **Rarity**: Mythic
+- **Power**: Grants omniscience; sees all events across the world simultaneously
+- **Curse**: The bearer knows the moment of everyone's death
+- **Origin**: The extracted eye of the All-Seeing God
+- **Required Level**: 70
+- **Description**: A golden eye that floats above the bearer's palm
+
+### Crown of the World
+- **ID**: crown_of_world
+- **Type**: Accessory
+- **Rarity**: Mythic
+- **Power**: Grants dominion over all nature; controls weather and terrain
+- **Curse**: The wearer becomes part of the world, unable to leave
+- **Origin**: Worn by the World Spirit before the age of mortals
+- **Required Level**: 65
+- **Description**: A circlet of living vines and flowers that bloom eternally
+
+### Codex of Fate
+- **ID**: codex_of_fate
+- **Type**: Accessory
+- **Rarity**: Mythic
+- **Power**: Writes the user's destiny; can alter fate itself
+- **Curse**: Changes to fate are permanent and cannot be undone
+- **Origin**: The original manuscript of destiny, before the Fates
+- **Required Level**: 70
+- **Description**: An ancient book with pages that rewrite themselves
+
+### Scepter of Dominion
+- **ID**: scepter_of_dominion
+- **Type**: Accessory
+- **Rarity**: Mythic
+- **Power**: Commands absolute obedience from all who see it; grants kingship
+- **Curse**: The bearer can never form genuine relationships
+- **Origin**: The original symbol of divine right to rule
+- **Required Level**: 65
+- **Description**: A golden scepter topped with a crown of thorns and jewels
+
+### Ark of the Covenant
+- **ID**: ark_of_covenant
+- **Type**: Accessory
+- **Rarity**: Mythic
+- **Power**: Houses the presence of God; destroys all enemies in a mile radius
+- **Curse**: Only the pure of heart can approach it without being consumed
+- **Origin**: Built by divine command to house the Tablets of Law
+- **Required Level**: 75
+- **Description**: A golden chest carried by poles, emanating divine power
+
+### Relic of Creation
+- **ID**: relic_of_creation
+- **Type**: Accessory
+- **Rarity**: Mythic
+- **Power**: Can create anything the wielder imagines; grants reality warping
+- **Curse**: Each creation costs a memory from the wielder's past
+- **Origin**: A fragment of the original creative force of the universe
+- **Required Level**: 80
+- **Description**: A formless, shimmering mass that takes shape in the mind
+
+### Codex of the Dead
+- **ID**: codex_of_dead
+- **Type**: Accessory
+- **Rarity**: Legendary
+- **Power**: Communicates with the dead; raises spectral armies
+- **Curse**: The dead become increasingly difficult to control
+- **Origin**: Written by the first Necromancer in blood and ink
+- **Required Level**: 55
+- **Description**: A leather-bound book with pages made of skin, written in blood
+
+### Stone of Destiny
+- **ID**: stone_of_destiny
+- **Type**: Accessory
+- **Rarity**: Mythic
+- **Power**: Determines the rightful ruler of any kingdom; grants legitimacy
+- **Curse**: Those who sit upon it are bound to their duty forever
+- **Origin**: The original coronation stone of the first king
+- **Required Level**: 60
+- **Description**: A rough stone throne that radiates ancient authority
+
+---
+
+## Summary
+
+- **Total Relics**: 55
+- **Weapon Relics**: 15
+- **Armor Relics**: 15
+- **Accessory Relics**: 10
+- **Special Relics**: 15
+- **Legendary**: 35
+- **Mythic**: 20

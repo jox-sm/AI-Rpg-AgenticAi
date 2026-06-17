@@ -1,0 +1,2008 @@
+[
+  {
+    "name": "Dirt",
+    "Temperature": "20",
+    "Wetness": "15",
+    "Hardness": "2",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Tills into farmland with a hoe. Becomes grass when exposed to light. Turns to mud when submerged.",
+    "id": 1,
+    "_src_id": "dirt"
+  },
+  {
+    "name": "Grass Block",
+    "Temperature": "20",
+    "Wetness": "10",
+    "Hardness": "2",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Spreads to adjacent dirt blocks. Grows tall grass and flowers randomly. Turns to dirt when covered.",
+    "id": 2,
+    "_src_id": "grass_block"
+  },
+  {
+    "name": "Coarse Dirt",
+    "Temperature": "20",
+    "Wetness": "15",
+    "Hardness": "2",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Cannot grow grass. Can be crafted into gravel. Spreads path blocks.",
+    "id": 3,
+    "_src_id": "coarse_dirt"
+  },
+  {
+    "name": "Sand",
+    "Temperature": "25",
+    "Wetness": "5",
+    "Hardness": "1",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Falls when unsupported. Affected by gravity. Turns to sandstone at depth. Glass when smelted.",
+    "id": 4,
+    "_src_id": "sand"
+  },
+  {
+    "name": "Red Sand",
+    "Temperature": "30",
+    "Wetness": "5",
+    "Hardness": "1",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Variant of sand with different color. Used in TNT crafting. Affected by gravity.",
+    "id": 5,
+    "_src_id": "red_sand"
+  },
+  {
+    "name": "Gravel",
+    "Temperature": "20",
+    "Wetness": "10",
+    "Hardness": "1",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Falls when unsupported. Drops flint when mined. Used for concrete powder.",
+    "id": 6,
+    "_src_id": "gravel"
+  },
+  {
+    "name": "Clay",
+    "Temperature": "20",
+    "Wetness": "40",
+    "Hardness": "2",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Found underwater. Smelted into bricks. Harvested with shovel. Becomes terracotta when fired.",
+    "id": 7,
+    "_src_id": "clay"
+  },
+  {
+    "name": "Mud",
+    "Temperature": "18",
+    "Wetness": "60",
+    "Hardness": "1",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Created by applying water to dirt. Slows movement. Packed mud when dried. Muddy mangrove roots when combined.",
+    "id": 8,
+    "_src_id": "mud"
+  },
+  {
+    "name": "Snow Block",
+    "Temperature": "-5",
+    "Wetness": "0",
+    "Hardness": "1",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Melts near heat sources. Creates powder snow when stacked. Used for snow golems.",
+    "id": 9,
+    "_src_id": "snow_block"
+  },
+  {
+    "name": "Snow Layer",
+    "Temperature": "-5",
+    "Wetness": "0",
+    "Hardness": "0.5",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Layers up to 8 high. Melts in warm biomes. Slows movement. Creates sound when walked on.",
+    "id": 10,
+    "_src_id": "snow_layer"
+  },
+  {
+    "name": "Ice",
+    "Temperature": "-2",
+    "Wetness": "20",
+    "Hardness": "1",
+    "Flammable": "No",
+    "Conductive": "Yes",
+    "Light Emission": "10",
+    "Special Properties": "Slippery surface. Melts when exposed to heat. Creates water when broken. Translucent.",
+    "id": 11,
+    "_src_id": "ice"
+  },
+  {
+    "name": "Packed Ice",
+    "Temperature": "-5",
+    "Wetness": "0",
+    "Hardness": "2",
+    "Flammable": "No",
+    "Conductive": "Yes",
+    "Light Emission": "15",
+    "Special Properties": "Extremely slippery. Does not melt. Found in ice spikes biome. Cannot be melted.",
+    "id": 12,
+    "_src_id": "packed_ice"
+  },
+  {
+    "name": "Blue Ice",
+    "Temperature": "-10",
+    "Wetness": "0",
+    "Hardness": "3",
+    "Flammable": "No",
+    "Conductive": "Yes",
+    "Light Emission": "20",
+    "Special Properties": "Most slippery block. Does not melt. Extremely rare. Found in frozen ocean depths.",
+    "id": 13,
+    "_src_id": "blue_ice"
+  },
+  {
+    "name": "Water",
+    "Temperature": "15",
+    "Wetness": "100",
+    "Hardness": "100",
+    "Flammable": "No",
+    "Conductive": "Yes",
+    "Light Emission": "0",
+    "Special Properties": "Flows and spreads. Extinguishes fire. Source block creates infinite water. Cannot be placed in Nether.",
+    "id": 14,
+    "_src_id": "water"
+  },
+  {
+    "name": "Lava",
+    "Temperature": "100",
+    "Wetness": "0",
+    "Hardness": "100",
+    "Flammable": "No",
+    "Conductive": "Yes",
+    "Light Emission": "100",
+    "Special Properties": "Deals fire damage. Flows slowly. Lights nearby flammable blocks. Cannot be picked up.",
+    "id": 15,
+    "_src_id": "lava"
+  },
+  {
+    "name": "Obsidian",
+    "Temperature": "20",
+    "Wetness": "0",
+    "Hardness": "50",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Created when water meets lava. Requires diamond pickaxe. Used for Nether portal frames. Blast resistant.",
+    "id": 16,
+    "_src_id": "obsidian"
+  },
+  {
+    "name": "Crying Obsidian",
+    "Temperature": "20",
+    "Wetness": "0",
+    "Hardness": "50",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "20",
+    "Special Properties": "Glows purple. Used for respawn anchors. Emits purple particles. Cannot form portals.",
+    "id": 17,
+    "_src_id": "crying_obsidian"
+  },
+  {
+    "name": "Stone",
+    "Temperature": "20",
+    "Wetness": "0",
+    "Hardness": "4",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Most common block. Smelts into smooth stone. Drops cobblestone when mined without silk touch.",
+    "id": 18,
+    "_src_id": "stone"
+  },
+  {
+    "name": "Cobblestone",
+    "Temperature": "20",
+    "Wetness": "0",
+    "Hardness": "4",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Created when stone is mined. Used in furnace and dispenser crafting. Renewable resource.",
+    "id": 19,
+    "_src_id": "cobblestone"
+  },
+  {
+    "name": "Andesite",
+    "Temperature": "20",
+    "Wetness": "0",
+    "Hardness": "4",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Igneous rock variant. Polishes into polished andesite. Used in decorative blocks.",
+    "id": 20,
+    "_src_id": "andesite"
+  },
+  {
+    "name": "Diorite",
+    "Temperature": "20",
+    "Wetness": "0",
+    "Hardness": "4",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Igneous rock variant. Polishes into polished diorite. Used in stonecutter recipes.",
+    "id": 21,
+    "_src_id": "diorite"
+  },
+  {
+    "name": "Granite",
+    "Temperature": "20",
+    "Wetness": "0",
+    "Hardness": "4",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Igneous rock variant. Polishes into polished granite. Natural stone variant.",
+    "id": 22,
+    "_src_id": "granite"
+  },
+  {
+    "name": "Basalt",
+    "Temperature": "30",
+    "Wetness": "0",
+    "Hardness": "4",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Formed by lava and water interaction. Smooth basalt variant. Nether stone type.",
+    "id": 23,
+    "_src_id": "basalt"
+  },
+  {
+    "name": "Smooth Basalt",
+    "Temperature": "25",
+    "Wetness": "0",
+    "Hardness": "4",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Smelted from basalt. Decorative variant. Used in respawn anchor.",
+    "id": 24,
+    "_src_id": "smooth_basalt"
+  },
+  {
+    "name": "Tuff",
+    "Temperature": "20",
+    "Wetness": "0",
+    "Hardness": "4",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Found in deepslate layers. Decorative block. Used in stonecutter. Dripstone variant.",
+    "id": 25,
+    "_src_id": "tuff"
+  },
+  {
+    "name": "Deepslate",
+    "Temperature": "15",
+    "Wetness": "0",
+    "Hardness": "5",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Replaces stone at low levels. Drops cobbled deepslate. Polishes into polished deepslate.",
+    "id": 26,
+    "_src_id": "deepslate"
+  },
+  {
+    "name": "Cobbled Deepslate",
+    "Temperature": "15",
+    "Wetness": "0",
+    "Hardness": "5",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Deepslate variant. Used in deepslate bricks crafting. Drops from deepslate.",
+    "id": 27,
+    "_src_id": "cobbled_deepslate"
+  },
+  {
+    "name": "Bedrock",
+    "Temperature": "20",
+    "Wetness": "0",
+    "Hardness": "-1",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Indestructible in survival. Found at world bottom and Nether ceiling. Prevents explosions.",
+    "id": 28,
+    "_src_id": "bedrock"
+  },
+  {
+    "name": "Dripstone Block",
+    "Temperature": "20",
+    "Wetness": "5",
+    "Hardness": "3",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Found in dripstone caves. Creates pointed dripstone. Conducts water drip.",
+    "id": 29,
+    "_src_id": "dripstone_block"
+  },
+  {
+    "name": "Pointed Dripstone",
+    "Temperature": "20",
+    "Wetness": "10",
+    "Hardness": "3",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Stalactites and stalagmites. Drips water or lava. Deals damage when falling.",
+    "id": 30,
+    "_src_id": "pointed_dripstone"
+  },
+  {
+    "name": "Calcite",
+    "Temperature": "20",
+    "Wetness": "0",
+    "Hardness": "3",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Found in geodes. Smooth texture. Used in amethyst block crafting.",
+    "id": 31,
+    "_src_id": "calcite"
+  },
+  {
+    "name": "Smooth Stone",
+    "Temperature": "20",
+    "Wetness": "0",
+    "Hardness": "4",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Smelted from stone. Smooth top texture. Used for slabs and armor.",
+    "id": 32,
+    "_src_id": "smooth_stone"
+  },
+  {
+    "name": "Mud Bricks",
+    "Temperature": "20",
+    "Wetness": "10",
+    "Hardness": "3",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Crafted from packed mud. Decorative building block. Found in trail ruins.",
+    "id": 33,
+    "_src_id": "mud_bricks"
+  },
+  {
+    "name": "Packed Mud",
+    "Temperature": "20",
+    "Wetness": "20",
+    "Hardness": "2",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Crafted with mud and wheat. Used for mud brick crafting. Dried material.",
+    "id": 34,
+    "_src_id": "packed_mud"
+  },
+  {
+    "name": "Farmland",
+    "Temperature": "20",
+    "Wetness": "40",
+    "Hardness": "2",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Created by tilling dirt with hoe. Crops grow on it. Reverts to dirt when trampled.",
+    "id": 35,
+    "_src_id": "farmland"
+  },
+  {
+    "name": "Mycelium",
+    "Temperature": "18",
+    "Wetness": "20",
+    "Hardness": "2",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Spreads slowly on dirt. Found in mushroom island biome. Mushrooms can be placed on it.",
+    "id": 36,
+    "_src_id": "mycelium"
+  },
+  {
+    "name": "Podzol",
+    "Temperature": "18",
+    "Wetness": "15",
+    "Hardness": "2",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Found in taiga and old growth forests. Mushrooms and saplings can be placed. Variant of dirt.",
+    "id": 37,
+    "_src_id": "podzol"
+  },
+  {
+    "name": "Coarse Dirt",
+    "Temperature": "20",
+    "Wetness": "15",
+    "Hardness": "2",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Cannot grow grass. Can be crafted from dirt and gravel. Variant of dirt.",
+    "id": 38,
+    "_src_id": "coarse_dirt"
+  },
+  {
+    "name": "Soul Sand",
+    "Temperature": "30",
+    "Wetness": "5",
+    "Hardness": "3",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Slows movement. Used in Nether portal construction. Summons wither when blocks arranged. Found in Nether.",
+    "id": 39,
+    "_src_id": "soul_sand"
+  },
+  {
+    "name": "Soul Soil",
+    "Temperature": "30",
+    "Wetness": "5",
+    "Hardness": "3",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Nether block. Soul fire can be lit on it. Renewable source of soul sand.",
+    "id": 40,
+    "_src_id": "soul_soil"
+  },
+  {
+    "name": "Netherrack",
+    "Temperature": "40",
+    "Wetness": "0",
+    "Hardness": "2",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Burns forever once lit. Most common Nether block. Smelts into nether brick.",
+    "id": 41,
+    "_src_id": "netherrack"
+  },
+  {
+    "name": "Blackstone",
+    "Temperature": "25",
+    "Wetness": "0",
+    "Hardness": "4",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Nether variant of stone. Polishes into polished blackstone. Used in bastion remnants.",
+    "id": 42,
+    "_src_id": "blackstone"
+  },
+  {
+    "name": "End Stone",
+    "Temperature": "20",
+    "Wetness": "0",
+    "Hardness": "4",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Found in End dimension. Cannot be crafted from overworld materials. Blast resistant.",
+    "id": 43,
+    "_src_id": "end_stone"
+  },
+  {
+    "name": "Moss Block",
+    "Temperature": "20",
+    "Wetness": "30",
+    "Hardness": "2",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Spreads to nearby stone. Found in lush caves. Moss carpet on top. Bone meal grows plants.",
+    "id": 44,
+    "_src_id": "moss_block"
+  },
+  {
+    "name": "Moss Carpet",
+    "Temperature": "20",
+    "Wetness": "30",
+    "Hardness": "0.5",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Thin moss layer. Found in lush caves. Can be placed on moss block.",
+    "id": 45,
+    "_src_id": "moss_carpet"
+  },
+  {
+    "name": "Azalea Leaves",
+    "Temperature": "20",
+    "Wetness": "20",
+    "Hardness": "1",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Found in lush caves. Drops azalea or flower azalea. Part of azalea tree.",
+    "id": 46,
+    "_src_id": "azalea_leaves"
+  },
+  {
+    "name": "Flowering Azalea Leaves",
+    "Temperature": "20",
+    "Wetness": "20",
+    "Hardness": "1",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Decorative leaves with flowers. Drops azalea bushes. Part of flowering azalea tree.",
+    "id": 47,
+    "_src_id": "flowering_azalea_leaves"
+  },
+  {
+    "name": "Rooted Dirt",
+    "Temperature": "20",
+    "Wetness": "15",
+    "Hardness": "2",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Found in lush caves. Hanging roots below. Hoe converts to dirt. Part of cave generation.",
+    "id": 48,
+    "_src_id": "rooted_dirt"
+  },
+  {
+    "name": "Hanging Roots",
+    "Temperature": "20",
+    "Wetness": "20",
+    "Hardness": "0.5",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Decorative plant block. Found in lush caves. Grows downward from rooted dirt.",
+    "id": 49,
+    "_src_id": "hanging_roots"
+  },
+  {
+    "name": "Glow Lichen",
+    "Temperature": "20",
+    "Wetness": "10",
+    "Hardness": "1",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "7",
+    "Special Properties": "Dim light source. Found in caves. Can be sheared off blocks. Renewable light source.",
+    "id": 50,
+    "_src_id": "glow_lichen"
+  },
+  {
+    "name": "Sculk",
+    "Temperature": "15",
+    "Wetness": "0",
+    "Hardness": "2",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Spreads when nearby mob dies. Found in deep dark. Absorbs XP. Part of sculk catalyst system.",
+    "id": 51,
+    "_src_id": "sculk"
+  },
+  {
+    "name": "Sculk Sensor",
+    "Temperature": "15",
+    "Wetness": "0",
+    "Hardness": "2",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "1",
+    "Special Properties": "Detects vibrations. Activates redstone. Found in deep dark. Wool prevents activation.",
+    "id": 52,
+    "_src_id": "sculk_sensor"
+  },
+  {
+    "name": "Sculk Shrieker",
+    "Temperature": "15",
+    "Wetness": "0",
+    "Hardness": "4",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "1",
+    "Special Properties": "Summons Warden when triggered. Found in deep dark. Activated by sculk sensors.",
+    "id": 53,
+    "_src_id": "sculk_shrieker"
+  },
+  {
+    "name": "Sculk Vein",
+    "Temperature": "15",
+    "Wetness": "0",
+    "Hardness": "2",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Decorative sculk layer. Covers blocks. Found in deep dark. Drops XP when mined.",
+    "id": 54,
+    "_src_id": "sculk_vein"
+  },
+  {
+    "name": "Copper Ore",
+    "Temperature": "20",
+    "Wetness": "0",
+    "Hardness": "4",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Drops raw copper. Found in dripstone caves. Ores in deepslate variants too.",
+    "id": 55,
+    "_src_id": "copper_ore"
+  },
+  {
+    "name": "Deepslate Copper Ore",
+    "Temperature": "15",
+    "Wetness": "0",
+    "Hardness": "5",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Deepslate variant of copper ore. Same drops. Found below y=0.",
+    "id": 56,
+    "_src_id": "deepslate_copper_ore"
+  },
+  {
+    "name": "Deepslate Lapis Ore",
+    "Temperature": "15",
+    "Wetness": "0",
+    "Hardness": "5",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Deepslate variant. Drops more lapis than overworld. Found at deep levels.",
+    "id": 57,
+    "_src_id": "deepslate_lapis_ore"
+  },
+  {
+    "name": "Deepslate Coal Ore",
+    "Temperature": "15",
+    "Wetness": "0",
+    "Hardness": "5",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Deepslate variant of coal ore. Drops coal. Found in deep underground.",
+    "id": 58,
+    "_src_id": "deepslate_coal_ore"
+  },
+  {
+    "name": "Oak Log",
+    "Temperature": "20",
+    "Wetness": "10",
+    "Hardness": "3",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Strippable with axe. Core tree block. Burns when exposed to fire. Most common log.",
+    "id": 59,
+    "_src_id": "oak_log"
+  },
+  {
+    "name": "Oak Planks",
+    "Temperature": "20",
+    "Wetness": "10",
+    "Hardness": "3",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Crafted from oak logs. Used in crafting recipes. Can be made into stairs, slabs, doors.",
+    "id": 60,
+    "_src_id": "oak_planks"
+  },
+  {
+    "name": "Spruce Log",
+    "Temperature": "18",
+    "Wetness": "10",
+    "Hardness": "3",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Found in taiga biome. Dark brown bark. Strippable. Used in cabin builds.",
+    "id": 61,
+    "_src_id": "spruce_log"
+  },
+  {
+    "name": "Spruce Planks",
+    "Temperature": "18",
+    "Wetness": "10",
+    "Hardness": "3",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Dark wood planks. Crafted from spruce logs. Used in crafting recipes.",
+    "id": 62,
+    "_src_id": "spruce_planks"
+  },
+  {
+    "name": "Birch Log",
+    "Temperature": "20",
+    "Wetness": "10",
+    "Hardness": "3",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "White bark. Found in birch forests. Strippable. Light colored wood type.",
+    "id": 63,
+    "_src_id": "birch_log"
+  },
+  {
+    "name": "Birch Planks",
+    "Temperature": "20",
+    "Wetness": "10",
+    "Hardness": "3",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Light wood planks. Crafted from birch logs. Bright building material.",
+    "id": 64,
+    "_src_id": "birch_planks"
+  },
+  {
+    "name": "Jungle Log",
+    "Temperature": "25",
+    "Wetness": "15",
+    "Hardness": "3",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Found in jungle biome. Pinkish bark. Strippable. Parrot spawning.",
+    "id": 65,
+    "_src_id": "jungle_log"
+  },
+  {
+    "name": "Jungle Planks",
+    "Temperature": "25",
+    "Wetness": "15",
+    "Hardness": "3",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Warm-toned planks. Crafted from jungle logs. Used in crafting recipes.",
+    "id": 66,
+    "_src_id": "jungle_planks"
+  },
+  {
+    "name": "Acacia Log",
+    "Temperature": "28",
+    "Wetness": "5",
+    "Hardness": "3",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Found in savanna biome. Gray bark, orange interior. Strippable.",
+    "id": 67,
+    "_src_id": "acacia_log"
+  },
+  {
+    "name": "Acacia Planks",
+    "Temperature": "28",
+    "Wetness": "5",
+    "Hardness": "3",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Orange wood planks. Crafted from acacia logs. Vibrant building material.",
+    "id": 68,
+    "_src_id": "acacia_planks"
+  },
+  {
+    "name": "Dark Oak Log",
+    "Temperature": "20",
+    "Wetness": "15",
+    "Hardness": "4",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Found in dark forest biome. Dark bark. Strippable. Very dense wood.",
+    "id": 69,
+    "_src_id": "dark_oak_log"
+  },
+  {
+    "name": "Dark Oak Planks",
+    "Temperature": "20",
+    "Wetness": "15",
+    "Hardness": "4",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Dark brown planks. Crafted from dark oak logs. Strong building material.",
+    "id": 70,
+    "_src_id": "dark_oak_planks"
+  },
+  {
+    "name": "Mangrove Log",
+    "Temperature": "24",
+    "Wetness": "30",
+    "Hardness": "3",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Found in mangrove swamp. Reddish bark. Strippable. Root system.",
+    "id": 71,
+    "_src_id": "mangrove_log"
+  },
+  {
+    "name": "Mangrove Planks",
+    "Temperature": "24",
+    "Wetness": "30",
+    "Hardness": "3",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Red wood planks. Crafted from mangrove logs. Swamp building material.",
+    "id": 72,
+    "_src_id": "mangrove_planks"
+  },
+  {
+    "name": "Mangrove Roots",
+    "Temperature": "24",
+    "Wetness": "40",
+    "Hardness": "3",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Found in mangrove swamps. Muddy mangrove roots variant. Interconnected root system.",
+    "id": 73,
+    "_src_id": "mangrove_roots"
+  },
+  {
+    "name": "Muddy Mangrove Roots",
+    "Temperature": "24",
+    "Wetness": "50",
+    "Hardness": "3",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Mud-coated roots. Found in mangrove swamps. Slows movement slightly.",
+    "id": 74,
+    "_src_id": "muddy_mangrove_roots"
+  },
+  {
+    "name": "Crimson Stem",
+    "Temperature": "40",
+    "Wetness": "0",
+    "Hardness": "3",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Nether wood type. Found in crimson forest. Strippable. Not flammable.",
+    "id": 75,
+    "_src_id": "crimson_stem"
+  },
+  {
+    "name": "Crimson Planks",
+    "Temperature": "40",
+    "Wetness": "0",
+    "Hardness": "3",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Red Nether planks. Crafted from crimson stems. Fire resistant.",
+    "id": 76,
+    "_src_id": "crimson_planks"
+  },
+  {
+    "name": "Warped Stem",
+    "Temperature": "35",
+    "Wetness": "0",
+    "Hardness": "3",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Nether wood type. Found in warped forest. Strippable. Not flammable.",
+    "id": 77,
+    "_src_id": "warped_stem"
+  },
+  {
+    "name": "Warped Planks",
+    "Temperature": "35",
+    "Wetness": "0",
+    "Hardness": "3",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Cyan Nether planks. Crafted from warped stems. Fire resistant.",
+    "id": 78,
+    "_src_id": "warped_planks"
+  },
+  {
+    "name": "Crimson Nylium",
+    "Temperature": "40",
+    "Wetness": "0",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Netherrack covered in crimson fungus. Spreads crimson vegetation. Nether grass.",
+    "id": 79,
+    "_src_id": "crimson_nylium"
+  },
+  {
+    "name": "Warped Nylium",
+    "Temperature": "35",
+    "Wetness": "0",
+    "Hardness": "3",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Netherrack covered in warped fungus. Spreads warped vegetation. Nether grass.",
+    "id": 80,
+    "_src_id": "warped_nylium"
+  },
+  {
+    "name": "Stripped Oak Log",
+    "Temperature": "20",
+    "Wetness": "10",
+    "Hardness": "3",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Oak log with bark removed. Lighter interior. Used in crafting.",
+    "id": 81,
+    "_src_id": "stripped_oak_log"
+  },
+  {
+    "name": "Stripped Spruce Log",
+    "Temperature": "18",
+    "Wetness": "10",
+    "Hardness": "3",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Spruce log with bark removed. Lighter interior. Decorative use.",
+    "id": 82,
+    "_src_id": "stripped_spruce_log"
+  },
+  {
+    "name": "Stripped Birch Log",
+    "Temperature": "20",
+    "Wetness": "10",
+    "Hardness": "3",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Birch log with bark removed. Clean wood appearance.",
+    "id": 83,
+    "_src_id": "stripped_birch_log"
+  },
+  {
+    "name": "Stripped Jungle Log",
+    "Temperature": "25",
+    "Wetness": "15",
+    "Hardness": "3",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Jungle log with bark removed. Pinkish wood interior.",
+    "id": 84,
+    "_src_id": "stripped_jungle_log"
+  },
+  {
+    "name": "Stripped Acacia Log",
+    "Temperature": "28",
+    "Wetness": "5",
+    "Hardness": "3",
+    "Flammable": "Yes",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Acacia log with bark removed. Orange wood interior.",
+    "id": 85,
+    "_src_id": "stripped_acacia_log"
+  },
+  {
+    "name": "Stripped Dark Oak Log",
+    "id": 86,
+    "_src_id": "stripped_dark_oak_log"
+  },
+  {
+    "name": "Stripped Mangrove Log",
+    "Special Properties": "Mangrove log with bark removed. Reddish wood interior.",
+    "id": 87,
+    "_src_id": "stripped_mangrove_log"
+  },
+  {
+    "name": "Stripped Crimson Stem",
+    "Special Properties": "Crimson stem with bark removed. Red Nether wood.",
+    "id": 88,
+    "_src_id": "stripped_crimson_stem"
+  },
+  {
+    "name": "Stripped Warped Stem",
+    "Special Properties": "Warped stem with bark removed. Cyan Nether wood.",
+    "id": 89,
+    "_src_id": "stripped_warped_stem"
+  },
+  {
+    "name": "Oak Stairs",
+    "Special Properties": "Crafted from oak planks. Allows vertical movement. Stair block.",
+    "id": 90,
+    "_src_id": "oak_stairs"
+  },
+  {
+    "name": "Oak Slab",
+    "Special Properties": "Half block. Crafted from oak planks. Smooth top surface.",
+    "id": 91,
+    "_src_id": "oak_slab"
+  },
+  {
+    "name": "Oak Door",
+    "Special Properties": "Opens and closes. Redstone controlled. Blocks mobs. Transparent.",
+    "id": 92,
+    "_src_id": "oak_door"
+  },
+  {
+    "name": "Oak Fence",
+    "Special Properties": "Connects to adjacent fences. Blocks movement. Decorative barrier.",
+    "id": 93,
+    "_src_id": "oak_fence"
+  },
+  {
+    "name": "Oak Trapdoor",
+    "Special Properties": "Horizontal door. Opens/closes vertically. Redstone controlled.",
+    "id": 94,
+    "_src_id": "oak_trapdoor"
+  },
+  {
+    "name": "Oak Pressure Plate",
+    "Special Properties": "Activates when stepped on. Emits redstone signal. Player only.",
+    "id": 95,
+    "_src_id": "oak_pressure_plate"
+  },
+  {
+    "name": "Bookshelf",
+    "Special Properties": "Decorative block. Used for enchanting table power. Contains books.",
+    "id": 96,
+    "_src_id": "bookshelf"
+  },
+  {
+    "name": "Coal Ore",
+    "Temperature": "20",
+    "Wetness": "0",
+    "Hardness": "4",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Drops coal when mined. Most common ore. Found at all elevations.",
+    "id": 97,
+    "_src_id": "coal_ore"
+  },
+  {
+    "name": "Iron Ore",
+    "Temperature": "20",
+    "Wetness": "0",
+    "Hardness": "4",
+    "Flammable": "No",
+    "Conductive": "No",
+    "Light Emission": "0",
+    "Special Properties": "Drops raw iron when mined. Essential for tools and armor. Found in all dimensions.",
+    "id": 98,
+    "_src_id": "iron_ore"
+  },
+  {
+    "name": "Gold Ore",
+    "Temperature": "20",
+    "Wetness": "0",
+    "id": 99,
+    "_src_id": "gold_ore"
+  },
+  {
+    "name": "Diamond Ore",
+    "id": 100,
+    "_src_id": "diamond_ore"
+  },
+  {
+    "name": "Emerald Ore",
+    "id": 101,
+    "_src_id": "emerald_ore"
+  },
+  {
+    "name": "Redstone Ore",
+    "id": 102,
+    "_src_id": null
+  },
+  {
+    "name": "Lapis Lazuli Ore",
+    "id": 103,
+    "_src_id": null
+  },
+  {
+    "name": "Nether Gold Ore",
+    "id": 104,
+    "_src_id": null
+  },
+  {
+    "name": "Nether Quartz Ore",
+    "id": 105,
+    "_src_id": null
+  },
+  {
+    "name": "Ancient Debris",
+    "id": 106,
+    "_src_id": null
+  },
+  {
+    "name": "Deepslate Gold Ore",
+    "id": 107,
+    "_src_id": null
+  },
+  {
+    "name": "Deepslate Iron Ore",
+    "id": 108,
+    "_src_id": null
+  },
+  {
+    "name": "Deepslate Diamond Ore",
+    "id": 109,
+    "_src_id": null
+  },
+  {
+    "name": "Deepslate Emerald Ore",
+    "id": 110,
+    "_src_id": null
+  },
+  {
+    "name": "Deepslate Redstone Ore",
+    "id": 111,
+    "_src_id": null
+  },
+  {
+    "name": "Deepslate Coal Ore",
+    "id": 112,
+    "_src_id": null
+  },
+  {
+    "name": "Tin Ore",
+    "id": 113,
+    "_src_id": null
+  },
+  {
+    "name": "Silver Ore",
+    "id": 114,
+    "_src_id": null
+  },
+  {
+    "name": "Lead Ore",
+    "id": 115,
+    "_src_id": null
+  },
+  {
+    "name": "Zinc Ore",
+    "id": 116,
+    "_src_id": null
+  },
+  {
+    "name": "Aluminum Ore",
+    "id": 117,
+    "_src_id": null
+  },
+  {
+    "name": "Platinum Ore",
+    "id": 118,
+    "_src_id": null
+  },
+  {
+    "name": "Titanium Ore",
+    "id": 119,
+    "_src_id": null
+  },
+  {
+    "name": "Mithril Ore",
+    "id": 120,
+    "_src_id": null
+  },
+  {
+    "name": "Adamantite Ore",
+    "id": 121,
+    "_src_id": null
+  },
+  {
+    "name": "Orichalcum Ore",
+    "id": 122,
+    "_src_id": null
+  },
+  {
+    "name": "Mythril Ore",
+    "id": 123,
+    "_src_id": null
+  },
+  {
+    "name": "Celestium Ore",
+    "id": 124,
+    "_src_id": null
+  },
+  {
+    "name": "Voidstone Ore",
+    "id": 125,
+    "_src_id": null
+  },
+  {
+    "name": "Drakenite Ore",
+    "id": 126,
+    "_src_id": null
+  },
+  {
+    "name": "Frostite Ore",
+    "id": 127,
+    "_src_id": null
+  },
+  {
+    "name": "Blazium Ore",
+    "id": 128,
+    "_src_id": null
+  },
+  {
+    "name": "Shadowsteel Ore",
+    "id": 129,
+    "_src_id": null
+  },
+  {
+    "name": "Aetherium Ore",
+    "id": 130,
+    "_src_id": null
+  },
+  {
+    "name": "Soulsteel Ore",
+    "id": 131,
+    "_src_id": null
+  },
+  {
+    "name": "Radiant Ore",
+    "id": 132,
+    "_src_id": null
+  },
+  {
+    "name": "Prismatic Ore",
+    "id": 133,
+    "_src_id": null
+  },
+  {
+    "name": "Umbranium Ore",
+    "id": 134,
+    "_src_id": null
+  },
+  {
+    "name": "Viridium Ore",
+    "id": 135,
+    "_src_id": null
+  },
+  {
+    "name": "Starfall Ore",
+    "id": 136,
+    "_src_id": null
+  },
+  {
+    "name": "Brick",
+    "Temperature": "20",
+    "id": 137,
+    "_src_id": "brick"
+  },
+  {
+    "name": "Stone Bricks",
+    "id": 138,
+    "_src_id": null
+  },
+  {
+    "name": "Mossy Stone Bricks",
+    "id": 139,
+    "_src_id": null
+  },
+  {
+    "name": "Cracked Stone Bricks",
+    "id": 140,
+    "_src_id": null
+  },
+  {
+    "name": "Chiseled Stone Bricks",
+    "id": 141,
+    "_src_id": null
+  },
+  {
+    "name": "Nether Bricks",
+    "id": 142,
+    "_src_id": null
+  },
+  {
+    "name": "Red Nether Bricks",
+    "id": 143,
+    "_src_id": null
+  },
+  {
+    "name": "End Stone Bricks",
+    "id": 144,
+    "_src_id": null
+  },
+  {
+    "name": "Quartz Block",
+    "id": 145,
+    "_src_id": null
+  },
+  {
+    "name": "Smooth Quartz",
+    "id": 146,
+    "_src_id": null
+  },
+  {
+    "name": "Chiseled Quartz",
+    "id": 147,
+    "_src_id": null
+  },
+  {
+    "name": "Pillar Quartz",
+    "id": 148,
+    "_src_id": null
+  },
+  {
+    "name": "Prismarine",
+    "id": 149,
+    "_src_id": null
+  },
+  {
+    "name": "Dark Prismarine",
+    "id": 150,
+    "_src_id": null
+  },
+  {
+    "name": "Prismarine Bricks",
+    "id": 151,
+    "_src_id": null
+  },
+  {
+    "name": "Glass",
+    "id": 152,
+    "_src_id": null
+  },
+  {
+    "name": "White Stained Glass",
+    "id": 153,
+    "_src_id": null
+  },
+  {
+    "name": "Orange Stained Glass",
+    "id": 154,
+    "_src_id": null
+  },
+  {
+    "name": "Light Blue Stained Glass",
+    "id": 155,
+    "_src_id": null
+  },
+  {
+    "name": "Red Stained Glass",
+    "id": 156,
+    "_src_id": null
+  },
+  {
+    "name": "Glass Pane",
+    "id": 157,
+    "_src_id": null
+  },
+  {
+    "name": "Iron Block",
+    "id": 158,
+    "_src_id": null
+  },
+  {
+    "name": "Gold Block",
+    "id": 159,
+    "_src_id": null
+  },
+  {
+    "name": "Diamond Block",
+    "id": 160,
+    "_src_id": null
+  },
+  {
+    "name": "Emerald Block",
+    "id": 161,
+    "_src_id": null
+  },
+  {
+    "name": "Lapis Block",
+    "id": 162,
+    "_src_id": null
+  },
+  {
+    "name": "Copper Block",
+    "id": 163,
+    "_src_id": null
+  },
+  {
+    "name": "Oxidized Copper",
+    "id": 164,
+    "_src_id": null
+  },
+  {
+    "name": "Waxed Copper",
+    "id": 165,
+    "_src_id": null
+  },
+  {
+    "name": "Amethyst Block",
+    "id": 166,
+    "_src_id": null
+  },
+  {
+    "name": "Budding Amethyst",
+    "id": 167,
+    "_src_id": null
+  },
+  {
+    "name": "Terracotta",
+    "id": 168,
+    "_src_id": null
+  },
+  {
+    "name": "White Terracotta",
+    "id": 169,
+    "_src_id": null
+  },
+  {
+    "name": "Blue Terracotta",
+    "id": 170,
+    "_src_id": null
+  },
+  {
+    "name": "Glazed Terracotta",
+    "id": 171,
+    "_src_id": null
+  },
+  {
+    "name": "Concrete",
+    "id": 172,
+    "_src_id": null
+  },
+  {
+    "name": "White Concrete",
+    "id": 173,
+    "_src_id": null
+  },
+  {
+    "name": "Concrete Powder",
+    "id": 174,
+    "_src_id": null
+  },
+  {
+    "name": "Bone Block",
+    "id": 175,
+    "_src_id": null
+  },
+  {
+    "name": "Dried Kelp Block",
+    "id": 176,
+    "_src_id": null
+  },
+  {
+    "name": "Hay Bale",
+    "id": 177,
+    "_src_id": null
+  },
+  {
+    "name": "Slime Block",
+    "id": 178,
+    "_src_id": null
+  },
+  {
+    "name": "Honey Block",
+    "id": 179,
+    "_src_id": null
+  },
+  {
+    "name": "Honeycomb Block",
+    "id": 180,
+    "_src_id": null
+  },
+  {
+    "name": "Shulker Box",
+    "id": 181,
+    "_src_id": null
+  },
+  {
+    "name": "Barrel",
+    "id": 182,
+    "_src_id": null
+  },
+  {
+    "name": "Lodestone",
+    "id": 183,
+    "_src_id": null
+  },
+  {
+    "name": "Bell",
+    "id": 184,
+    "_src_id": null
+  },
+  {
+    "name": "Enchanting Table",
+    "id": 185,
+    "_src_id": null
+  },
+  {
+    "name": "Ender Chest",
+    "id": 186,
+    "_src_id": null
+  },
+  {
+    "name": "Respawn Anchor",
+    "id": 187,
+    "_src_id": null
+  },
+  {
+    "name": "Enchanted Stone",
+    "id": 188,
+    "_src_id": null
+  },
+  {
+    "name": "Rune Block",
+    "id": 189,
+    "_src_id": null
+  },
+  {
+    "name": "Crystal Block",
+    "id": 190,
+    "_src_id": null
+  },
+  {
+    "name": "Soul Block",
+    "id": 191,
+    "_src_id": null
+  },
+  {
+    "name": "Void Block",
+    "id": 192,
+    "_src_id": null
+  },
+  {
+    "name": "Aether Block",
+    "id": 193,
+    "_src_id": null
+  },
+  {
+    "name": "Mana Crystal",
+    "id": 194,
+    "_src_id": null
+  },
+  {
+    "name": "Arcane Stone",
+    "id": 195,
+    "_src_id": null
+  },
+  {
+    "name": "Ethereal Block",
+    "id": 196,
+    "_src_id": null
+  },
+  {
+    "name": "Celestial Block",
+    "id": 197,
+    "_src_id": null
+  },
+  {
+    "name": "Lunar Stone",
+    "id": 198,
+    "_src_id": null
+  },
+  {
+    "name": "Solar Stone",
+    "id": 199,
+    "_src_id": null
+  },
+  {
+    "name": "Void Crystal",
+    "id": 200,
+    "_src_id": null
+  },
+  {
+    "name": "Arcane Crystal",
+    "id": 201,
+    "_src_id": null
+  },
+  {
+    "name": "Soul Crystal",
+    "id": 202,
+    "_src_id": null
+  },
+  {
+    "name": "Shadow Block",
+    "id": 203,
+    "_src_id": null
+  },
+  {
+    "name": "Radiant Block",
+    "id": 204,
+    "_src_id": null
+  },
+  {
+    "name": "Cursed Stone",
+    "id": 205,
+    "_src_id": null
+  },
+  {
+    "name": "Blessed Stone",
+    "id": 206,
+    "_src_id": null
+  },
+  {
+    "name": "Elemental Core",
+    "id": 207,
+    "_src_id": null
+  },
+  {
+    "name": "Rune of Protection",
+    "id": 208,
+    "_src_id": null
+  },
+  {
+    "name": "Rune of Power",
+    "id": 209,
+    "_src_id": null
+  },
+  {
+    "name": "Rune of Speed",
+    "id": 210,
+    "_src_id": null
+  },
+  {
+    "name": "Rune of Healing",
+    "id": 211,
+    "_src_id": null
+  },
+  {
+    "name": "Arcane Gateway",
+    "id": 212,
+    "_src_id": null
+  },
+  {
+    "name": "Mana Font",
+    "id": 213,
+    "_src_id": null
+  },
+  {
+    "name": "Spell Focus",
+    "id": 214,
+    "_src_id": null
+  },
+  {
+    "name": "Furnace",
+    "id": 215,
+    "_src_id": null
+  },
+  {
+    "name": "Blast Furnace",
+    "id": 216,
+    "_src_id": null
+  },
+  {
+    "name": "Smoker",
+    "id": 217,
+    "_src_id": null
+  },
+  {
+    "name": "Anvil",
+    "id": 218,
+    "_src_id": null
+  },
+  {
+    "name": "Brewing Stand",
+    "id": 219,
+    "_src_id": null
+  },
+  {
+    "name": "Crafting Table",
+    "id": 220,
+    "_src_id": null
+  },
+  {
+    "name": "Stonecutter",
+    "id": 221,
+    "_src_id": null
+  },
+  {
+    "name": "Smithing Table",
+    "id": 222,
+    "_src_id": null
+  },
+  {
+    "name": "Loom",
+    "id": 223,
+    "_src_id": null
+  },
+  {
+    "name": "Cartography Table",
+    "id": 224,
+    "_src_id": null
+  },
+  {
+    "name": "Fletching Table",
+    "id": 225,
+    "_src_id": null
+  },
+  {
+    "name": "Composter",
+    "id": 226,
+    "_src_id": null
+  },
+  {
+    "name": "Piston",
+    "id": 227,
+    "_src_id": null
+  },
+  {
+    "name": "Sticky Piston",
+    "id": 228,
+    "_src_id": null
+  },
+  {
+    "name": "Observer",
+    "id": 229,
+    "_src_id": null
+  },
+  {
+    "name": "Hopper",
+    "id": 230,
+    "_src_id": null
+  },
+  {
+    "name": "Dropper",
+    "id": 231,
+    "_src_id": null
+  },
+  {
+    "name": "Dispenser",
+    "id": 232,
+    "_src_id": null
+  },
+  {
+    "name": "Redstone Block",
+    "id": 233,
+    "_src_id": null
+  },
+  {
+    "name": "Redstone Lamp",
+    "id": 234,
+    "_src_id": null
+  },
+  {
+    "name": "Daylight Detector",
+    "id": 235,
+    "_src_id": null
+  },
+  {
+    "name": "TNT",
+    "id": 236,
+    "_src_id": null
+  },
+  {
+    "name": "Redstone Comparator",
+    "id": 237,
+    "_src_id": null
+  },
+  {
+    "name": "Redstone Repeater",
+    "id": 238,
+    "_src_id": null
+  },
+  {
+    "name": "Lever",
+    "id": 239,
+    "_src_id": null
+  },
+  {
+    "name": "Button",
+    "id": 240,
+    "_src_id": null
+  },
+  {
+    "name": "Tripwire Hook",
+    "id": 241,
+    "_src_id": null
+  },
+  {
+    "name": "Cauldron",
+    "id": 242,
+    "_src_id": null
+  },
+  {
+    "name": "Grindstone",
+    "id": 243,
+    "_src_id": null
+  },
+  {
+    "name": "Lectern",
+    "id": 244,
+    "_src_id": null
+  },
+  {
+    "name": "Soul Campfire",
+    "id": 245,
+    "_src_id": null
+  },
+  {
+    "name": "Campfire",
+    "id": 246,
+    "_src_id": null
+  },
+  {
+    "name": "Smoker",
+    "id": 247,
+    "_src_id": null
+  },
+  {
+    "name": "Blast Furnace",
+    "id": 248,
+    "_src_id": null
+  },
+  {
+    "name": "Jukebox",
+    "id": 249,
+    "_src_id": null
+  },
+  {
+    "name": "Note Block",
+    "id": 250,
+    "_src_id": null
+  },
+  {
+    "name": "Light Block",
+    "id": 251,
+    "_src_id": null
+  },
+  {
+    "name": "Barrier",
+    "id": 252,
+    "_src_id": null
+  },
+  {
+    "name": "Structure Block",
+    "id": 253,
+    "_src_id": null
+  },
+  {
+    "name": "Command Block",
+    "id": 254,
+    "_src_id": null
+  },
+  {
+    "name": "Chain Command Block",
+    "id": 255,
+    "_src_id": null
+  },
+  {
+    "name": "Repeat Command Block",
+    "id": 256,
+    "_src_id": null
+  },
+  {
+    "name": "Dragon Egg",
+    "id": 257,
+    "_src_id": null
+  },
+  {
+    "name": "Crafting Table",
+    "id": 258,
+    "_src_id": null
+  },
+  {
+    "name": "Chest",
+    "id": 259,
+    "_src_id": null
+  },
+  {
+    "name": "Trapped Chest",
+    "id": 260,
+    "_src_id": null
+  },
+  {
+    "name": "End Portal Frame",
+    "id": 261,
+    "_src_id": null
+  },
+  {
+    "name": "End Portal",
+    "id": 262,
+    "_src_id": null
+  },
+  {
+    "name": "Nether Portal",
+    "id": 263,
+    "_src_id": null
+  },
+  {
+    "name": "Beacon",
+    "id": 264,
+    "_src_id": null
+  },
+  {
+    "name": "Conduit",
+    "id": 265,
+    "_src_id": null
+  },
+  {
+    "name": "Lodestone",
+    "id": 266,
+    "_src_id": null
+  },
+  {
+    "name": "Spawner",
+    "id": 267,
+    "_src_id": null
+  },
+  {
+    "name": "Infested Stone",
+    "id": 268,
+    "_src_id": null
+  },
+  {
+    "name": "Infested Cobblestone",
+    "id": 269,
+    "_src_id": null
+  },
+  {
+    "name": "Infested Deepslate",
+    "id": 270,
+    "_src_id": null
+  },
+  {
+    "name": "Monster Spawner",
+    "id": 271,
+    "_src_id": null
+  },
+  {
+    "name": "Reinforced Deepslate",
+    "id": 272,
+    "_src_id": null
+  },
+  {
+    "name": "Category Breakdown:",
+    "id": 273,
+    "_src_id": null
+  },
+  {
+    "name": "Properties Overview:",
+    "Temperature Range": "-20 (Frostite Ore) to 100 (Lava)",
+    "Wetness Range": "0 to 100 (Water)",
+    "Hardness Range": "-1 (Bedrock/Command Blocks) to 100 (Water)",
+    "Flammable Blocks": "~30% of all blocks",
+    "Conductive Blocks": "~20% of all blocks",
+    "Light Emission Range": "0 to 100",
+    "id": 274,
+    "_src_id": null
+  },
+  {
+    "name": "Special Materials (Magic Tier):",
+    "id": 275,
+    "_src_id": null
+  },
+  {
+    "name": "Enchantment/Protection Runes:",
+    "id": 276,
+    "_src_id": null
+  }
+]

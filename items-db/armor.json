@@ -1,0 +1,1693 @@
+[
+  {
+    "name": "Leather Cap",
+    "Slot": "Head",
+    "Defense": "2",
+    "Magic Resistance": "0",
+    "Weight": "0.5",
+    "Durability": "40",
+    "Special Effect": "None",
+    "Rarity": "Common",
+    "Required Level": "1",
+    "Required Stats": "None",
+    "id": 1,
+    "_src_id": "leather_cap"
+  },
+  {
+    "name": "Iron Helmet",
+    "Slot": "Head",
+    "Defense": "5",
+    "Magic Resistance": "1",
+    "Weight": "3.0",
+    "Durability": "80",
+    "Special Effect": "Reduces critical hit chance taken by 5%",
+    "Rarity": "Common",
+    "Required Level": "5",
+    "Required Stats": "STR 10",
+    "id": 2,
+    "_src_id": "iron_helmet"
+  },
+  {
+    "name": "Steel Helmet",
+    "Slot": "Head",
+    "Defense": "8",
+    "Magic Resistance": "2",
+    "Weight": "4.0",
+    "Durability": "120",
+    "Special Effect": "Reduces critical hit chance taken by 10%",
+    "Rarity": "Uncommon",
+    "Required Level": "15",
+    "Required Stats": "STR 20",
+    "id": 3,
+    "_src_id": "steel_helmet"
+  },
+  {
+    "name": "Mithril Helmet",
+    "Slot": "Head",
+    "Defense": "12",
+    "Magic Resistance": "5",
+    "Weight": "1.5",
+    "Durability": "200",
+    "Special Effect": "+5% magic resistance, lightweight",
+    "Rarity": "Rare",
+    "Required Level": "30",
+    "Required Stats": "STR 25, DEX 15",
+    "id": 4,
+    "_src_id": "mithril_helmet"
+  },
+  {
+    "name": "Adamantine Helm",
+    "Slot": "Head",
+    "Defense": "18",
+    "Magic Resistance": "8",
+    "Weight": "6.0",
+    "Durability": "350",
+    "Special Effect": "Immune to stun effects",
+    "Rarity": "Epic",
+    "Required Level": "50",
+    "Required Stats": "STR 40, VIT 30",
+    "id": 5,
+    "_src_id": "adamantine_helm"
+  },
+  {
+    "name": "Wizard Hat",
+    "Slot": "Head",
+    "Defense": "1",
+    "Magic Resistance": "15",
+    "Weight": "0.3",
+    "Durability": "50",
+    "Special Effect": "+15% spell damage",
+    "Rarity": "Uncommon",
+    "Required Level": "10",
+    "Required Stats": "INT 25",
+    "id": 6,
+    "_src_id": "wizard_hat"
+  },
+  {
+    "name": "Arcane Circlet",
+    "Slot": "Head",
+    "Defense": "3",
+    "Magic Resistance": "20",
+    "Weight": "0.2",
+    "Durability": "100",
+    "Special Effect": "+10% mana regeneration",
+    "Rarity": "Rare",
+    "Required Level": "25",
+    "Required Stats": "INT 35",
+    "id": 7,
+    "_src_id": "arcane_circlet"
+  },
+  {
+    "name": "Crown of Thorns",
+    "Slot": "Head",
+    "Defense": "6",
+    "Magic Resistance": "12",
+    "Weight": "0.8",
+    "Durability": "150",
+    "Special Effect": "Attackers take 5% of damage dealt back",
+    "Rarity": "Epic",
+    "Required Level": "40",
+    "Required Stats": "INT 40, WIS 30",
+    "id": 8,
+    "_src_id": "crown_of_thorns"
+  },
+  {
+    "name": "Dragon Scale Helm",
+    "Slot": "Head",
+    "Defense": "22",
+    "Magic Resistance": "15",
+    "Weight": "3.5",
+    "Durability": "400",
+    "Special Effect": "Fire resistance +50%",
+    "Rarity": "Legendary",
+    "Required Level": "60",
+    "Required Stats": "STR 50, VIT 40",
+    "id": 9,
+    "_src_id": "dragon_scale_helm"
+  },
+  {
+    "name": "Leather Hood",
+    "Slot": "Head",
+    "Defense": "3",
+    "Magic Resistance": "0",
+    "Weight": "0.4",
+    "Durability": "35",
+    "Special Effect": "+5% stealth",
+    "Rarity": "Common",
+    "Required Level": "3",
+    "Required Stats": "DEX 8",
+    "id": 10,
+    "_src_id": "leather_hood"
+  },
+  {
+    "name": "Chain Coif",
+    "Slot": "Head",
+    "Defense": "6",
+    "Magic Resistance": "2",
+    "Weight": "2.5",
+    "Durability": "90",
+    "Special Effect": "None",
+    "Rarity": "Common",
+    "Required Level": "8",
+    "Required Stats": "STR 12",
+    "id": 11,
+    "_src_id": "chain_coif"
+  },
+  {
+    "name": "Plate Helm",
+    "Slot": "Head",
+    "Defense": "10",
+    "Magic Resistance": "3",
+    "Weight": "5.0",
+    "Durability": "150",
+    "Special Effect": "+5% block chance",
+    "Rarity": "Uncommon",
+    "Required Level": "20",
+    "Required Stats": "STR 25, VIT 15",
+    "id": 12,
+    "_src_id": "plate_helm"
+  },
+  {
+    "name": "Shadow Hood",
+    "Slot": "Head",
+    "Defense": "4",
+    "Magic Resistance": "10",
+    "Weight": "0.3",
+    "Durability": "60",
+    "Special Effect": "+15% stealth, +5% critical hit",
+    "Rarity": "Rare",
+    "Required Level": "22",
+    "Required Stats": "DEX 30, INT 15",
+    "id": 13,
+    "_src_id": "shadow_hood"
+  },
+  {
+    "name": "Skull Cap",
+    "Slot": "Head",
+    "Defense": "2",
+    "Magic Resistance": "8",
+    "Weight": "0.2",
+    "Durability": "30",
+    "Special Effect": "+8% dark magic resistance",
+    "Rarity": "Common",
+    "Required Level": "7",
+    "Required Stats": "INT 10",
+    "id": 14,
+    "_src_id": "skull_cap"
+  },
+  {
+    "name": "Helm of Valor",
+    "Slot": "Head",
+    "Defense": "14",
+    "Magic Resistance": "8",
+    "Weight": "4.5",
+    "Durability": "250",
+    "Special Effect": "+10% party defense aura",
+    "Rarity": "Epic",
+    "Required Level": "45",
+    "Required Stats": "STR 35, WIS 25",
+    "id": 15,
+    "_src_id": "helm_of_valor"
+  },
+  {
+    "name": "Viking Helmet",
+    "Slot": "Head",
+    "Defense": "9",
+    "Magic Resistance": "2",
+    "Weight": "3.5",
+    "Durability": "110",
+    "Special Effect": "+5% damage on critical hits",
+    "Rarity": "Uncommon",
+    "Required Level": "18",
+    "Required Stats": "STR 22, VIT 10",
+    "id": 16,
+    "_src_id": "viking_helmet"
+  },
+  {
+    "name": "Diadem of the Sun",
+    "Slot": "Head",
+    "Defense": "7",
+    "Magic Resistance": "25",
+    "Weight": "0.5",
+    "Durability": "180",
+    "Special Effect": "+20% holy magic power, heals 2% HP per turn",
+    "Rarity": "Legendary",
+    "Required Level": "55",
+    "Required Stats": "WIS 45, INT 35",
+    "id": 17,
+    "_src_id": "diadem_of_the_sun"
+  },
+  {
+    "name": "Thief's Mask",
+    "Slot": "Head",
+    "Defense": "2",
+    "Magic Resistance": "3",
+    "Weight": "0.2",
+    "Durability": "25",
+    "Special Effect": "+20% pickpocket success",
+    "Rarity": "Common",
+    "Required Level": "5",
+    "Required Stats": "DEX 15",
+    "id": 18,
+    "_src_id": "thieves_mask"
+  },
+  {
+    "name": "Warlord's Crest",
+    "Slot": "Head",
+    "Defense": "16",
+    "Magic Resistance": "10",
+    "Weight": "5.0",
+    "Durability": "300",
+    "Special Effect": "+15% attack damage, intimidates weaker enemies",
+    "Rarity": "Epic",
+    "Required Level": "48",
+    "Required Stats": "STR 45, VIT 30",
+    "id": 19,
+    "_src_id": "warlords_crest"
+  },
+  {
+    "name": "Frost Crown",
+    "Slot": "Head",
+    "Defense": "10",
+    "Magic Resistance": "20",
+    "Weight": "1.0",
+    "Durability": "200",
+    "Special Effect": "Ice attacks +25% damage, immune to freeze",
+    "Rarity": "Rare",
+    "Required Level": "35",
+    "Required Stats": "INT 40",
+    "id": 20,
+    "_src_id": "frost_crown"
+  },
+  {
+    "name": "Iron Visage",
+    "Slot": "Head",
+    "Defense": "7",
+    "Magic Resistance": "1",
+    "Weight": "3.5",
+    "Durability": "95",
+    "Special Effect": "Intimidation +10%",
+    "Rarity": "Common",
+    "Required Level": "10",
+    "Required Stats": "STR 15, VIT 10",
+    "id": 21,
+    "_src_id": "iron_visage"
+  },
+  {
+    "name": "Shadowmere Helm",
+    "Slot": "Head",
+    "Defense": "11",
+    "Magic Resistance": "12",
+    "Weight": "2.0",
+    "Durability": "160",
+    "Special Effect": "+10% dark magic, shadows conceal wearer",
+    "Rarity": "Rare",
+    "Required Level": "32",
+    "Required Stats": "DEX 25, INT 30",
+    "id": 22,
+    "_src_id": "shadowmere_helm"
+  },
+  {
+    "name": "Headdress of the Ancestors",
+    "Slot": "Head",
+    "Defense": "5",
+    "Magic Resistance": "18",
+    "Weight": "0.6",
+    "Durability": "120",
+    "Special Effect": "+15% spirit magic, communication with spirits",
+    "Rarity": "Rare",
+    "Required Level": "28",
+    "Required Stats": "WIS 35, INT 20",
+    "id": 23,
+    "_src_id": "headdress_of_the_ancestors"
+  },
+  {
+    "name": "Battle Worn Helm",
+    "Slot": "Head",
+    "Defense": "4",
+    "Magic Resistance": "1",
+    "Weight": "3.0",
+    "Durability": "60",
+    "Special Effect": "None",
+    "Rarity": "Common",
+    "Required Level": "4",
+    "Required Stats": "STR 8",
+    "id": 24,
+    "_src_id": "battle_worn_helm"
+  },
+  {
+    "name": "Celestial Tiara",
+    "Slot": "Head",
+    "Defense": "8",
+    "Magic Resistance": "30",
+    "Weight": "0.3",
+    "Durability": "250",
+    "Special Effect": "+25% all magic damage, +10% mana regen",
+    "Rarity": "Mythic",
+    "Required Level": "70",
+    "Required Stats": "INT 60, WIS 50",
+    "id": 25,
+    "_src_id": "celestial_tiara"
+  },
+  {
+    "name": "Goblin Mask",
+    "Slot": "Head",
+    "Defense": "1",
+    "Magic Resistance": "0",
+    "Weight": "0.3",
+    "Durability": "20",
+    "Special Effect": "Goblin NPCs are friendly",
+    "Rarity": "Common",
+    "Required Level": "2",
+    "Required Stats": "CHA 10",
+    "id": 26,
+    "_src_id": "goblin_mask"
+  },
+  {
+    "name": "Demon Horns",
+    "Slot": "Head",
+    "Defense": "6",
+    "Magic Resistance": "15",
+    "Weight": "1.0",
+    "Durability": "100",
+    "Special Effect": "+10% fear resistance, dark aura",
+    "Rarity": "Rare",
+    "Required Level": "30",
+    "Required Stats": "INT 30, CHA 20",
+    "id": 27,
+    "_src_id": "demon_horns"
+  },
+  {
+    "name": "Phoenix Plume Crown",
+    "Slot": "Head",
+    "Defense": "13",
+    "Magic Resistance": "18",
+    "Weight": "0.7",
+    "Durability": "300",
+    "Special Effect": "Revive once per battle with 30% HP",
+    "Rarity": "Legendary",
+    "Required Level": "65",
+    "Required Stats": "WIS 50, VIT 40",
+    "id": 28,
+    "_src_id": "phoenix_plume_crown"
+  },
+  {
+    "name": "Iron Band",
+    "Slot": "Head",
+    "Defense": "3",
+    "Magic Resistance": "0",
+    "Weight": "1.0",
+    "Durability": "70",
+    "Special Effect": "None",
+    "Rarity": "Common",
+    "Required Level": "2",
+    "Required Stats": "None",
+    "id": 29,
+    "_src_id": "iron_band"
+  },
+  {
+    "name": "Leather Vest",
+    "Slot": "Chest",
+    "Defense": "4",
+    "Magic Resistance": "0",
+    "Weight": "2.0",
+    "Durability": "50",
+    "Special Effect": "None",
+    "Rarity": "Common",
+    "Required Level": "1",
+    "Required Stats": "None",
+    "id": 30,
+    "_src_id": "leather_vest"
+  },
+  {
+    "name": "Chain Mail",
+    "Slot": "Chest",
+    "Defense": "10",
+    "Magic Resistance": "2",
+    "Weight": "8.0",
+    "Durability": "100",
+    "Special Effect": "None",
+    "Rarity": "Common",
+    "Required Level": "10",
+    "Required Stats": "STR 15",
+    "id": 31,
+    "_src_id": "chain_mail"
+  },
+  {
+    "name": "Plate Armor",
+    "Slot": "Chest",
+    "Defense": "18",
+    "Magic Resistance": "3",
+    "Weight": "18.0",
+    "Durability": "200",
+    "Special Effect": "+10% physical damage reduction",
+    "Rarity": "Uncommon",
+    "Required Level": "25",
+    "Required Stats": "STR 30, VIT 20",
+    "id": 32,
+    "_src_id": "plate_armor"
+  },
+  {
+    "name": "Mithril Chain",
+    "Slot": "Chest",
+    "Defense": "15",
+    "Magic Resistance": "8",
+    "Weight": "4.0",
+    "Durability": "250",
+    "Special Effect": "Lightweight, +5% dodge",
+    "Rarity": "Rare",
+    "Required Level": "35",
+    "Required Stats": "STR 25, DEX 20",
+    "id": 33,
+    "_src_id": "mithril_chain"
+  },
+  {
+    "name": "Cloth Robe",
+    "Slot": "Chest",
+    "Defense": "1",
+    "Magic Resistance": "12",
+    "Weight": "1.0",
+    "Durability": "30",
+    "Special Effect": "+12% spell damage",
+    "Rarity": "Common",
+    "Required Level": "3",
+    "Required Stats": "INT 10",
+    "id": 34,
+    "_src_id": "cloth_robe"
+  },
+  {
+    "name": "Tunic of the Forest",
+    "Slot": "Chest",
+    "Defense": "5",
+    "Magic Resistance": "4",
+    "Weight": "1.5",
+    "Durability": "60",
+    "Special Effect": "+10% nature magic, camouflage in forests",
+    "Rarity": "Uncommon",
+    "Required Level": "12",
+    "Required Stats": "WIS 15, DEX 10",
+    "id": 35,
+    "_src_id": "tunic_of_the_forest"
+  },
+  {
+    "name": "Iron Breastplate",
+    "Slot": "Chest",
+    "Defense": "12",
+    "Magic Resistance": "2",
+    "Weight": "12.0",
+    "Durability": "140",
+    "Special Effect": "None",
+    "Rarity": "Common",
+    "Required Level": "12",
+    "Required Stats": "STR 18",
+    "id": 36,
+    "_src_id": "iron_breastplate"
+  },
+  {
+    "name": "Steel Breastplate",
+    "Slot": "Chest",
+    "Defense": "16",
+    "Magic Resistance": "3",
+    "Weight": "14.0",
+    "Durability": "180",
+    "Special Effect": "+5% block chance",
+    "Rarity": "Uncommon",
+    "Required Level": "22",
+    "Required Stats": "STR 25, VIT 15",
+    "id": 37,
+    "_src_id": "steel_breastplate"
+  },
+  {
+    "name": "Dragon Scale Mail",
+    "Slot": "Chest",
+    "Defense": "25",
+    "Magic Resistance": "15",
+    "Weight": "8.0",
+    "Durability": "400",
+    "Special Effect": "Fire resistance +75%, +10% all elemental resistance",
+    "Rarity": "Legendary",
+    "Required Level": "60",
+    "Required Stats": "STR 50, VIT 45",
+    "id": 38,
+    "_src_id": "dragon_scale_mail"
+  },
+  {
+    "name": "Shadow Leather",
+    "Slot": "Chest",
+    "Defense": "8",
+    "Magic Resistance": "10",
+    "Weight": "2.5",
+    "Durability": "80",
+    "Special Effect": "+20% stealth, shadow step ability",
+    "Rarity": "Rare",
+    "Required Level": "28",
+    "Required Stats": "DEX 30, INT 15",
+    "id": 39,
+    "_src_id": "shadow_leather"
+  },
+  {
+    "name": "Holy Plate",
+    "Slot": "Chest",
+    "Defense": "20",
+    "Magic Resistance": "12",
+    "Weight": "15.0",
+    "Durability": "300",
+    "Special Effect": "+15% holy magic, undead take bonus damage",
+    "Rarity": "Epic",
+    "Required Level": "50",
+    "Required Stats": "STR 35, WIS 30",
+    "id": 40,
+    "_src_id": "holy_plate"
+  },
+  {
+    "name": "Mage's Robe",
+    "Slot": "Chest",
+    "Defense": "2",
+    "Magic Resistance": "20",
+    "Weight": "1.5",
+    "Durability": "40",
+    "Special Effect": "+20% spell damage, +15% mana pool",
+    "Rarity": "Uncommon",
+    "Required Level": "15",
+    "Required Stats": "INT 25",
+    "id": 41,
+    "_src_id": "mages_robe"
+  },
+  {
+    "name": "Berserker's Hide",
+    "Slot": "Chest",
+    "Defense": "7",
+    "Magic Resistance": "2",
+    "Weight": "3.0",
+    "Durability": "70",
+    "Special Effect": "+10% damage when below 50% HP",
+    "Rarity": "Uncommon",
+    "Required Level": "14",
+    "Required Stats": "STR 20, VIT 12",
+    "id": 42,
+    "_src_id": "berserkers_hide"
+  },
+  {
+    "name": "Adamantine Plate",
+    "Slot": "Chest",
+    "Defense": "28",
+    "Magic Resistance": "10",
+    "Weight": "20.0",
+    "Durability": "500",
+    "Special Effect": "Immune to critical hits from physical attacks",
+    "Rarity": "Epic",
+    "Required Level": "55",
+    "Required Stats": "STR 45, VIT 40",
+    "id": 43,
+    "_src_id": "adamantine_plate"
+  },
+  {
+    "name": "Silk Blouse",
+    "Slot": "Chest",
+    "Defense": "2",
+    "Magic Resistance": "8",
+    "Weight": "0.5",
+    "Durability": "25",
+    "Special Effect": "+5% charm success, +8% fire magic",
+    "Rarity": "Common",
+    "Required Level": "6",
+    "Required Stats": "CHA 12, INT 8",
+    "id": 44,
+    "_src_id": "silk_blouse"
+  },
+  {
+    "name": "Brigandine",
+    "Slot": "Chest",
+    "Defense": "14",
+    "Magic Resistance": "3",
+    "Weight": "10.0",
+    "Durability": "160",
+    "Special Effect": "+5% critical hit avoidance",
+    "Rarity": "Uncommon",
+    "Required Level": "18",
+    "Required Stats": "STR 22, DEX 15",
+    "id": 45,
+    "_src_id": "brigandine"
+  },
+  {
+    "name": "Celestial Vestments",
+    "Slot": "Chest",
+    "Defense": "10",
+    "Magic Resistance": "35",
+    "Weight": "2.0",
+    "Durability": "300",
+    "Special Effect": "+30% all magic damage, mana regen +20%",
+    "Rarity": "Mythic",
+    "Required Level": "70",
+    "Required Stats": "INT 60, WIS 50",
+    "id": 46,
+    "_src_id": "celestial_vestments"
+  },
+  {
+    "name": "Leather Chestpiece",
+    "Slot": "Chest",
+    "Defense": "6",
+    "Magic Resistance": "1",
+    "Durability": "60",
+    "Special Effect": "None",
+    "Rarity": "Common",
+    "Required Level": "5",
+    "Required Stats": "DEX 8",
+    "id": 47,
+    "_src_id": "leather_chestpiece"
+  },
+  {
+    "name": "Phantom Vest",
+    "Slot": "Chest",
+    "Defense": "6",
+    "Magic Resistance": "15",
+    "Durability": "70",
+    "Special Effect": "10% chance to become intangible when hit",
+    "Rarity": "Rare",
+    "Required Level": "30",
+    "Required Stats": "INT 30, DEX 20",
+    "id": 48,
+    "_src_id": "phantom_vest"
+  },
+  {
+    "name": "Obsidian Chestplate",
+    "Slot": "Chest",
+    "Defense": "22",
+    "Magic Resistance": "18",
+    "Durability": "350",
+    "Special Effect": "+20% dark magic resistance, reflects 5% dark damage",
+    "Rarity": "Epic",
+    "Required Level": "48",
+    "Required Stats": "STR 40, INT 25",
+    "id": 49,
+    "_src_id": "obsidian_chestplate"
+  },
+  {
+    "name": "Lamellar Armor",
+    "Slot": "Chest",
+    "Defense": "13",
+    "Magic Resistance": "2",
+    "Durability": "130",
+    "Special Effect": "+3% movement speed",
+    "Rarity": "Uncommon",
+    "Required Level": "16",
+    "Required Stats": "STR 20, DEX 12",
+    "id": 50,
+    "_src_id": "lamellar_armor"
+  },
+  {
+    "name": "Blood Mage's Robe",
+    "Slot": "Chest",
+    "Defense": "3",
+    "Magic Resistance": "25",
+    "Special Effect": "Spells cost HP instead of mana, +25% spell power",
+    "Rarity": "Epic",
+    "Required Level": "42",
+    "Required Stats": "INT 45, VIT 20",
+    "id": 51,
+    "_src_id": "blood_mages_robe"
+  },
+  {
+    "name": "Scale Mail",
+    "Slot": "Chest",
+    "id": 52,
+    "_src_id": "scale_mail"
+  },
+  {
+    "name": "Elemental Raiment",
+    "Slot": "Chest",
+    "id": 53,
+    "_src_id": "elemental_raiment"
+  },
+  {
+    "name": "Bone Armor",
+    "Slot": "Chest",
+    "id": 54,
+    "_src_id": "bone_armor"
+  },
+  {
+    "name": "Titanic Plate",
+    "Slot": "Chest",
+    "id": 55,
+    "_src_id": "titanic_plate"
+  },
+  {
+    "name": "Woven Silk Vest",
+    "Slot": "Chest",
+    "id": 56,
+    "_src_id": "woven_silk_vest"
+  },
+  {
+    "name": "Necrotic Vestments",
+    "Slot": "Chest",
+    "id": 57,
+    "_src_id": "necrotic_vestments"
+  },
+  {
+    "name": "Leather Pants",
+    "Slot": "Legs",
+    "id": 58,
+    "_src_id": "leather_pants"
+  },
+  {
+    "name": "Chain Leggings",
+    "id": 59,
+    "_src_id": null
+  },
+  {
+    "name": "Plate Leggings",
+    "id": 60,
+    "_src_id": null
+  },
+  {
+    "name": "Mithril Leggings",
+    "id": 61,
+    "_src_id": null
+  },
+  {
+    "name": "Robe Bottoms",
+    "id": 62,
+    "_src_id": null
+  },
+  {
+    "name": "Leather Greaves",
+    "id": 63,
+    "_src_id": null
+  },
+  {
+    "name": "Iron Greaves",
+    "id": 64,
+    "_src_id": null
+  },
+  {
+    "name": "Steel Greaves",
+    "id": 65,
+    "_src_id": null
+  },
+  {
+    "name": "Dragonhide Leggings",
+    "id": 66,
+    "_src_id": null
+  },
+  {
+    "name": "Shadow Leggings",
+    "id": 67,
+    "_src_id": null
+  },
+  {
+    "name": "Plate Cuisses",
+    "id": 68,
+    "_src_id": null
+  },
+  {
+    "name": "Silk Pantaloons",
+    "id": 69,
+    "_src_id": null
+  },
+  {
+    "name": "Adamantine Leggings",
+    "id": 70,
+    "_src_id": null
+  },
+  {
+    "name": "Chain Breeches",
+    "id": 71,
+    "_src_id": null
+  },
+  {
+    "name": "Mystic Leggings",
+    "id": 72,
+    "_src_id": null
+  },
+  {
+    "name": "Warden's Legguards",
+    "id": 73,
+    "_src_id": null
+  },
+  {
+    "name": "Leather Chaps",
+    "id": 74,
+    "_src_id": null
+  },
+  {
+    "name": "Bone Leggings",
+    "id": 75,
+    "_src_id": null
+  },
+  {
+    "name": "Frostweave Leggings",
+    "id": 76,
+    "_src_id": null
+  },
+  {
+    "name": "Celestial Legwraps",
+    "id": 77,
+    "_src_id": null
+  },
+  {
+    "name": "Studded Leather Legs",
+    "id": 78,
+    "_src_id": null
+  },
+  {
+    "name": "Greaves of Haste",
+    "id": 79,
+    "_src_id": null
+  },
+  {
+    "name": "Obsidian Legguards",
+    "id": 80,
+    "_src_id": null
+  },
+  {
+    "name": "Demonhide Leggings",
+    "id": 81,
+    "_src_id": null
+  },
+  {
+    "name": "Woven Grass Leggings",
+    "id": 82,
+    "_src_id": null
+  },
+  {
+    "name": "Titanic Legguards",
+    "id": 83,
+    "_src_id": null
+  },
+  {
+    "name": "Leather Boots",
+    "id": 84,
+    "_src_id": null
+  },
+  {
+    "name": "Iron Boots",
+    "id": 85,
+    "_src_id": null
+  },
+  {
+    "name": "Steel Boots",
+    "id": 86,
+    "_src_id": null
+  },
+  {
+    "name": "Mithril Boots",
+    "id": 87,
+    "_src_id": null
+  },
+  {
+    "name": "Cloth Sandals",
+    "id": 88,
+    "_src_id": null
+  },
+  {
+    "name": "Leather Shoes",
+    "id": 89,
+    "_src_id": null
+  },
+  {
+    "name": "Chain Boots",
+    "id": 90,
+    "_src_id": null
+  },
+  {
+    "name": "Plate Boots",
+    "id": 91,
+    "_src_id": null
+  },
+  {
+    "name": "Dragonhide Boots",
+    "id": 92,
+    "_src_id": null
+  },
+  {
+    "name": "Shadow Boots",
+    "id": 93,
+    "_src_id": null
+  },
+  {
+    "name": "Slippers of Speed",
+    "id": 94,
+    "_src_id": null
+  },
+  {
+    "name": "Boots of the Bear",
+    "Slot": "Feet",
+    "Defense": "12",
+    "Magic Resistance": "3",
+    "Weight": "6.0",
+    "Durability": "200",
+    "Special Effect": "+10% max HP, immunity to knockback",
+    "Rarity": "Epic",
+    "Required Level": "42",
+    "Required Stats": "STR 38, VIT 30",
+    "id": 95,
+    "_src_id": "boots_of_the_bear"
+  },
+  {
+    "name": "Adamantine Sabatons",
+    "Slot": "Feet",
+    "Defense": "16",
+    "Magic Resistance": "8",
+    "Weight": "10.0",
+    "Durability": "350",
+    "Special Effect": "Immune to trap damage, +10% stun chance",
+    "Rarity": "Epic",
+    "Required Level": "52",
+    "Required Stats": "STR 40, VIT 35",
+    "id": 96,
+    "_src_id": "adamantine_sabatons"
+  },
+  {
+    "name": "Silk Slippers",
+    "Slot": "Feet",
+    "Defense": "1",
+    "Magic Resistance": "10",
+    "Weight": "0.2",
+    "Durability": "25",
+    "Special Effect": "+12% fire magic, +5% charm",
+    "Rarity": "Uncommon",
+    "Required Level": "12",
+    "Required Stats": "INT 15, CHA 10",
+    "id": 97,
+    "_src_id": "silk_slippers"
+  },
+  {
+    "name": "Boots of Flight",
+    "Slot": "Feet",
+    "Defense": "5",
+    "Magic Resistance": "10",
+    "Weight": "0.5",
+    "Durability": "100",
+    "Special Effect": "Levitation, +10% wind magic",
+    "Rarity": "Rare",
+    "Required Level": "28",
+    "Required Stats": "INT 25, DEX 20",
+    "id": 98,
+    "_src_id": "boots_of_flight"
+  },
+  {
+    "name": "Fur-Lined Boots",
+    "Slot": "Feet",
+    "Defense": "4",
+    "Magic Resistance": "2",
+    "id": 99,
+    "_src_id": "fur_lined_boots"
+  },
+  {
+    "name": "War Boots",
+    "id": 100,
+    "_src_id": null
+  },
+  {
+    "name": "Celestial Sandals",
+    "id": 101,
+    "_src_id": null
+  },
+  {
+    "name": "Phantom Treads",
+    "id": 102,
+    "_src_id": null
+  },
+  {
+    "name": "Iron-Soled Boots",
+    "id": 103,
+    "_src_id": null
+  },
+  {
+    "name": "Ninja Tabi",
+    "id": 104,
+    "_src_id": null
+  },
+  {
+    "name": "Boots of the Titan",
+    "id": 105,
+    "_src_id": null
+  },
+  {
+    "name": "Wanderer's Sandals",
+    "id": 106,
+    "_src_id": null
+  },
+  {
+    "name": "Hellfire Sabatons",
+    "id": 107,
+    "_src_id": null
+  },
+  {
+    "name": "Frostwalkers",
+    "id": 108,
+    "_src_id": null
+  },
+  {
+    "name": "Silver-Threaded Boots",
+    "id": 109,
+    "_src_id": null
+  },
+  {
+    "name": "Titanic Boots",
+    "id": 110,
+    "_src_id": null
+  },
+  {
+    "name": "Leather Gloves",
+    "id": 111,
+    "_src_id": null
+  },
+  {
+    "name": "Iron Gauntlets",
+    "id": 112,
+    "_src_id": null
+  },
+  {
+    "name": "Steel Gauntlets",
+    "id": 113,
+    "_src_id": null
+  },
+  {
+    "name": "Mithril Gauntlets",
+    "id": 114,
+    "_src_id": null
+  },
+  {
+    "name": "Cloth Bracers",
+    "id": 115,
+    "_src_id": null
+  },
+  {
+    "name": "Leather Bracers",
+    "id": 116,
+    "_src_id": null
+  },
+  {
+    "name": "Chain Gloves",
+    "id": 117,
+    "_src_id": null
+  },
+  {
+    "name": "Plate Gauntlets",
+    "Rarity": "Uncommon",
+    "id": 118,
+    "_src_id": null
+  },
+  {
+    "name": "Dragonhide Gloves",
+    "id": 119,
+    "_src_id": null
+  },
+  {
+    "name": "Shadow Wraps",
+    "id": 120,
+    "_src_id": null
+  },
+  {
+    "name": "Arcane Gloves",
+    "id": 121,
+    "_src_id": null
+  },
+  {
+    "name": "Adamantine Gauntlets",
+    "id": 122,
+    "_src_id": null
+  },
+  {
+    "name": "Silk Gloves",
+    "id": 123,
+    "_src_id": null
+  },
+  {
+    "name": "Warrior's Vambraces",
+    "id": 124,
+    "_src_id": null
+  },
+  {
+    "name": "Gloves of Precision",
+    "id": 125,
+    "_src_id": null
+  },
+  {
+    "name": "Wicked Gauntlets",
+    "id": 126,
+    "_src_id": null
+  },
+  {
+    "name": "Iron Knuckles",
+    "id": 127,
+    "_src_id": null
+  },
+  {
+    "name": "Celestial Handwraps",
+    "id": 128,
+    "_src_id": null
+  },
+  {
+    "name": "Scale Grips",
+    "id": 129,
+    "_src_id": null
+  },
+  {
+    "name": "Frostbite Gauntlets",
+    "id": 130,
+    "_src_id": null
+  },
+  {
+    "name": "Inferno Grips",
+    "id": 131,
+    "_src_id": null
+  },
+  {
+    "name": "Titan's Grip",
+    "Rarity": "Legendary",
+    "id": 132,
+    "_src_id": null
+  },
+  {
+    "name": "Leather Cloak",
+    "id": 133,
+    "_src_id": null
+  },
+  {
+    "name": "Chain Cloak",
+    "id": 134,
+    "_src_id": null
+  },
+  {
+    "name": "Wool Cape",
+    "id": 135,
+    "_src_id": null
+  },
+  {
+    "name": "Wing Cloak",
+    "id": 136,
+    "_src_id": null
+  },
+  {
+    "name": "Shadow Cloak",
+    "id": 137,
+    "_src_id": null
+  },
+  {
+    "name": "Dragon Wing Cape",
+    "id": 138,
+    "_src_id": null
+  },
+  {
+    "name": "Plate Cape",
+    "id": 139,
+    "_src_id": null
+  },
+  {
+    "name": "Silk Cape",
+    "id": 140,
+    "_src_id": null
+  },
+  {
+    "name": "Mithril Cloak",
+    "id": 141,
+    "_src_id": null
+  },
+  {
+    "name": "Cape of the Phoenix",
+    "Special Effect": "Revive once per day with full HP",
+    "Rarity": "Legendary",
+    "Required Level": "55",
+    "Required Stats": "WIS 40, VIT 35",
+    "id": 142,
+    "_src_id": null
+  },
+  {
+    "name": "Iron Mantle",
+    "Slot": "Back",
+    "Defense": "6",
+    "Magic Resistance": "1",
+    "Weight": "4.0",
+    "Durability": "90",
+    "Special Effect": "None",
+    "Rarity": "Common",
+    "Required Level": "12",
+    "Required Stats": "STR 14",
+    "id": 143,
+    "_src_id": "iron_mantle"
+  },
+  {
+    "name": "Phantom Shroud",
+    "Slot": "Back",
+    "Defense": "2",
+    "Magic Resistance": "18",
+    "Weight": "0.2",
+    "Durability": "80",
+    "Special Effect": "15% chance to avoid all damage",
+    "Rarity": "Epic",
+    "Required Level": "40",
+    "Required Stats": "INT 35, DEX 25",
+    "id": 144,
+    "_src_id": "phantom_shroud"
+  },
+  {
+    "name": "Demon Wings",
+    "Slot": "Back",
+    "Defense": "8",
+    "Magic Resistance": "12",
+    "id": 145,
+    "_src_id": "demon_wings"
+  },
+  {
+    "name": "Angelic Wings",
+    "id": 146,
+    "_src_id": null
+  },
+  {
+    "name": "Spider Silk Cloak",
+    "id": 147,
+    "_src_id": null
+  },
+  {
+    "name": "Frost Mantle",
+    "id": 148,
+    "_src_id": null
+  },
+  {
+    "name": "Titanic Cape",
+    "id": 149,
+    "_src_id": null
+  },
+  {
+    "name": "Cloak of Stars",
+    "id": 150,
+    "_src_id": null
+  },
+  {
+    "name": "Woven Vine Cloak",
+    "id": 151,
+    "_src_id": null
+  },
+  {
+    "name": "Bloodstained Mantle",
+    "id": 152,
+    "_src_id": null
+  },
+  {
+    "name": "Obsidian Mantle",
+    "id": 153,
+    "_src_id": null
+  },
+  {
+    "name": "Iron Amulet",
+    "Slot": "Neck",
+    "Defense": "0",
+    "Magic Resistance": "2",
+    "Weight": "0.1",
+    "Durability": "100",
+    "Special Effect": "None",
+    "Rarity": "Common",
+    "Required Level": "1",
+    "Required Stats": "None",
+    "id": 154,
+    "_src_id": "iron_amulet"
+  },
+  {
+    "name": "Silver Ring",
+    "Slot": "Ring",
+    "Defense": "0",
+    "Magic Resistance": "3",
+    "Weight": "0.05",
+    "Durability": "80",
+    "Special Effect": "None",
+    "Rarity": "Common",
+    "Required Level": "3",
+    "Required Stats": "None",
+    "id": 155,
+    "_src_id": "silver_ring"
+  },
+  {
+    "name": "Gold Necklace",
+    "Slot": "Neck",
+    "Defense": "0",
+    "Magic Resistance": "5",
+    "id": 156,
+    "_src_id": "gold_necklace"
+  },
+  {
+    "name": "Ruby Pendant",
+    "id": 157,
+    "_src_id": null
+  },
+  {
+    "name": "Sapphire Amulet",
+    "id": 158,
+    "_src_id": null
+  },
+  {
+    "name": "Emerald Ring",
+    "id": 159,
+    "_src_id": null
+  },
+  {
+    "name": "Diamond Ring",
+    "id": 160,
+    "_src_id": null
+  },
+  {
+    "name": "Leather Belt",
+    "id": 161,
+    "_src_id": null
+  },
+  {
+    "name": "Chain Belt",
+    "id": 162,
+    "_src_id": null
+  },
+  {
+    "name": "Plate Belt",
+    "id": 163,
+    "_src_id": null
+  },
+  {
+    "name": "Amulet of Health",
+    "id": 164,
+    "_src_id": null
+  },
+  {
+    "name": "Ring of Power",
+    "id": 165,
+    "_src_id": null
+  },
+  {
+    "name": "Amulet of the Mage",
+    "id": 166,
+    "_src_id": null
+  },
+  {
+    "name": "Ring of Regeneration",
+    "id": 167,
+    "_src_id": null
+  },
+  {
+    "name": "Golden Girdle",
+    "Slot": "Waist",
+    "Defense": "4",
+    "Magic Resistance": "8",
+    "Weight": "2.0",
+    "Durability": "150",
+    "Special Effect": "+10% strength, +10 carry weight",
+    "Rarity": "Rare",
+    "Required Level": "20",
+    "Required Stats": "STR 20",
+    "id": 168,
+    "_src_id": "golden_girdle"
+  },
+  {
+    "name": "Amulet of the Warrior",
+    "Slot": "Neck",
+    "Defense": "2",
+    "Magic Resistance": "3",
+    "Weight": "0.1",
+    "Durability": "120",
+    "Special Effect": "+8% melee damage, +5% crit",
+    "Rarity": "Rare",
+    "Required Level": "18",
+    "Required Stats": "STR 22",
+    "id": 169,
+    "_src_id": "amulet_of_the_warrior"
+  },
+  {
+    "name": "Ruby Ring",
+    "Slot": "Ring",
+    "Defense": "0",
+    "id": 170,
+    "_src_id": "ruby_ring"
+  },
+  {
+    "name": "Sapphire Ring",
+    "id": 171,
+    "_src_id": null
+  },
+  {
+    "name": "Emerald Amulet",
+    "id": 172,
+    "_src_id": null
+  },
+  {
+    "name": "Belt of Giant Strength",
+    "Slot": "Waist",
+    "Defense": "3",
+    "Magic Resistance": "2",
+    "Weight": "2.5",
+    "id": 173,
+    "_src_id": "belt_of_giant_strength"
+  },
+  {
+    "name": "Amulet of the Archmage",
+    "id": 174,
+    "_src_id": "amulet_of_the_archmage"
+  },
+  {
+    "name": "Ring of the Dragon",
+    "id": 175,
+    "_src_id": null
+  },
+  {
+    "name": "Holy Symbol",
+    "id": 176,
+    "_src_id": null
+  },
+  {
+    "name": "Shadow Amulet",
+    "id": 177,
+    "_src_id": null
+  },
+  {
+    "name": "Ring of Protection",
+    "id": 178,
+    "_src_id": null
+  },
+  {
+    "name": "Belt of Vitality",
+    "id": 179,
+    "_src_id": null
+  },
+  {
+    "name": "Amulet of the Thief",
+    "id": 180,
+    "_src_id": "amulet_of_the_thief"
+  },
+  {
+    "name": "Ring of Haste",
+    "id": 181,
+    "_src_id": null
+  },
+  {
+    "name": "Amulet of Fortitude",
+    "id": 182,
+    "_src_id": null
+  },
+  {
+    "name": "Ring of Mana",
+    "id": 183,
+    "_src_id": null
+  },
+  {
+    "name": "Crystal Pendant",
+    "id": 184,
+    "_src_id": null
+  },
+  {
+    "name": "Band of the Elements",
+    "id": 185,
+    "_src_id": null
+  },
+  {
+    "name": "Amulet of the Titan",
+    "id": 186,
+    "_src_id": null
+  },
+  {
+    "name": "Obsidian Ring",
+    "id": 187,
+    "_src_id": null
+  },
+  {
+    "name": "Mithril Chain Belt",
+    "id": 188,
+    "_src_id": null
+  },
+  {
+    "name": "Bloodstone Amulet",
+    "id": 189,
+    "_src_id": null
+  },
+  {
+    "name": "Frost Band",
+    "id": 190,
+    "_src_id": null
+  },
+  {
+    "name": "Infernal Amulet",
+    "id": 191,
+    "_src_id": null
+  },
+  {
+    "name": "Silver Chain Belt",
+    "id": 192,
+    "_src_id": null
+  },
+  {
+    "name": "Crown Ring",
+    "id": 193,
+    "_src_id": null
+  },
+  {
+    "name": "Amulet of the Phoenix",
+    "id": 194,
+    "_src_id": null
+  },
+  {
+    "name": "Ring of the Archmage",
+    "id": 195,
+    "_src_id": null
+  },
+  {
+    "name": "Titan's Belt",
+    "id": 196,
+    "_src_id": null
+  },
+  {
+    "name": "Ring of the Elements",
+    "id": 197,
+    "_src_id": null
+  },
+  {
+    "name": "Amulet of the Void",
+    "id": 198,
+    "_src_id": null
+  },
+  {
+    "name": "Ring of Eternity",
+    "id": 199,
+    "_src_id": null
+  },
+  {
+    "name": "Holy Girdle",
+    "id": 200,
+    "_src_id": null
+  },
+  {
+    "name": "Shadow Chain",
+    "id": 201,
+    "_src_id": null
+  },
+  {
+    "name": "Wooden Shield",
+    "id": 202,
+    "_src_id": null
+  },
+  {
+    "name": "Iron Shield",
+    "id": 203,
+    "_src_id": null
+  },
+  {
+    "name": "Steel Shield",
+    "id": 204,
+    "_src_id": null
+  },
+  {
+    "name": "Tower Shield",
+    "id": 205,
+    "_src_id": null
+  },
+  {
+    "name": "Magic Shield",
+    "id": 206,
+    "_src_id": null
+  },
+  {
+    "name": "Mithril Shield",
+    "id": 207,
+    "_src_id": null
+  },
+  {
+    "name": "Dragon Scale Shield",
+    "id": 208,
+    "_src_id": null
+  },
+  {
+    "name": "Adamantine Shield",
+    "id": 209,
+    "_src_id": null
+  },
+  {
+    "name": "Buckler",
+    "id": 210,
+    "_src_id": null
+  },
+  {
+    "name": "Round Shield",
+    "id": 211,
+    "_src_id": null
+  },
+  {
+    "name": "Kite Shield",
+    "id": 212,
+    "_src_id": null
+  },
+  {
+    "name": "Heater Shield",
+    "id": 213,
+    "_src_id": null
+  },
+  {
+    "name": "Holy Shield",
+    "id": 214,
+    "_src_id": null
+  },
+  {
+    "name": "Shadow Shield",
+    "id": 215,
+    "_src_id": null
+  },
+  {
+    "name": "Obsidian Aegis",
+    "id": 216,
+    "_src_id": null
+  },
+  {
+    "name": "Warded Shield",
+    "id": 217,
+    "_src_id": null
+  },
+  {
+    "name": "Frost Shield",
+    "id": 218,
+    "_src_id": null
+  },
+  {
+    "name": "Inferno Shield",
+    "id": 219,
+    "_src_id": null
+  },
+  {
+    "name": "Celestial Aegis",
+    "id": 220,
+    "_src_id": null
+  },
+  {
+    "name": "Titanic Shield",
+    "id": 221,
+    "_src_id": null
+  },
+  {
+    "name": "Leather Shield",
+    "id": 222,
+    "_src_id": null
+  },
+  {
+    "name": "Phantom Ward",
+    "id": 223,
+    "_src_id": null
+  },
+  {
+    "name": "Demon Hide Shield",
+    "id": 224,
+    "_src_id": null
+  }
+]

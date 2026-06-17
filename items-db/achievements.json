@@ -1,0 +1,1152 @@
+[
+  {
+    "name": "First Blood",
+    "Category": "Combat",
+    "Requirement": "Kill your first enemy",
+    "Reward": "10 XP, 5 Gold",
+    "Points": "5",
+    "Description": "Defeat your very first opponent in combat.",
+    "id": 1,
+    "_src_id": "first_blood"
+  },
+  {
+    "name": "Beginner Slayer",
+    "Category": "Combat",
+    "Requirement": "Kill 10 enemies",
+    "Reward": "50 XP, 25 Gold",
+    "Points": "10",
+    "Description": "Defeat 10 enemies in total.",
+    "id": 2,
+    "_src_id": "beginner_slayer"
+  },
+  {
+    "name": "Seasoned Warrior",
+    "Category": "Combat",
+    "Requirement": "Kill 100 enemies",
+    "Reward": "200 XP, 100 Gold, Title: \"Warrior\"",
+    "Points": "25",
+    "Description": "Defeat 100 enemies in total.",
+    "id": 3,
+    "_src_id": "seasoned_warrior"
+  },
+  {
+    "name": "Century Killer",
+    "Category": "Combat",
+    "Requirement": "Kill 500 enemies",
+    "Reward": "1000 XP, 500 Gold, Title: \"Century Slayer\"",
+    "Points": "50",
+    "Description": "Defeat 500 enemies in total.",
+    "id": 4,
+    "_src_id": "century_killer"
+  },
+  {
+    "name": "Walking Catastrophe",
+    "Category": "Combat",
+    "Requirement": "Kill 1000 enemies",
+    "Reward": "5000 XP, 2000 Gold, Title: \"Walking Catastrophe\", Cosmetic: Blood Armor",
+    "Points": "100",
+    "Description": "Defeat 1000 enemies in total.",
+    "id": 5,
+    "_src_id": "walking_catastrophe"
+  },
+  {
+    "name": "Monster Hunter",
+    "Category": "Combat",
+    "Requirement": "Kill 50 monsters",
+    "Reward": "300 XP, 150 Gold",
+    "Points": "20",
+    "Description": "Defeat 50 non-humanoid monsters.",
+    "id": 6,
+    "_src_id": "monster_hunter"
+  },
+  {
+    "name": "Beast Tamer",
+    "Category": "Combat",
+    "Requirement": "Kill 100 beasts",
+    "Reward": "500 XP, 250 Gold, Title: \"Beast Tamer\"",
+    "Points": "30",
+    "Description": "Defeat 100 beast-type enemies.",
+    "id": 7,
+    "_src_id": "beast_tamer"
+  },
+  {
+    "name": "Undead Purifier",
+    "Category": "Combat",
+    "Requirement": "Kill 75 undead creatures",
+    "Reward": "400 XP, 200 Gold, Title: \"Purifier\"",
+    "Points": "25",
+    "Description": "Defeat 75 undead enemies.",
+    "id": 8,
+    "_src_id": "undead_purifier"
+  },
+  {
+    "name": "Dragon Slayer",
+    "Category": "Combat",
+    "Requirement": "Kill any dragon",
+    "Reward": "2000 XP, 1000 Gold, Title: \"Dragon Slayer\", Cosmetic: Dragon Scale Shield",
+    "Points": "75",
+    "Description": "Defeat a mighty dragon in combat.",
+    "id": 9,
+    "_src_id": "dragon_slayer"
+  },
+  {
+    "name": "Hydra Slayer",
+    "Category": "Combat",
+    "Requirement": "Kill a hydra",
+    "Reward": "1500 XP, 750 Gold, Title: \"Hydra Slayer\"",
+    "Points": "60",
+    "Description": "Defeat the fearsome hydra.",
+    "id": 10,
+    "_src_id": "hydra_slayer"
+  },
+  {
+    "name": "Lich King",
+    "Category": "Combat",
+    "Requirement": "Kill a lich",
+    "Reward": "1800 XP, 900 Gold, Title: \"Lich Slayer\", Cosmetic: Phylactery Amulet",
+    "Points": "70",
+    "Description": "Destroy the undead lich and its phylactery.",
+    "id": 11,
+    "_src_id": "lich_king"
+  },
+  {
+    "name": "Giant Slayer",
+    "Category": "Combat",
+    "Requirement": "Kill a giant",
+    "Reward": "1200 XP, 600 Gold, Title: \"Giant Slayer\"",
+    "Points": "55",
+    "Description": "Defeat a towering giant.",
+    "id": 12,
+    "_src_id": "giant_slayer"
+  },
+  {
+    "name": "First Boss",
+    "Category": "Combat",
+    "Requirement": "Defeat your first boss enemy",
+    "Reward": "500 XP, 300 Gold, Title: \"Boss Slayer\"",
+    "Points": "30",
+    "Description": "Conquer your first major boss encounter.",
+    "id": 13,
+    "_src_id": "first_boss"
+  },
+  {
+    "name": "Boss Rush",
+    "Category": "Combat",
+    "Requirement": "Defeat 10 different bosses",
+    "Reward": "3000 XP, 1500 Gold, Title: \"Boss Rusher\", Cosmetic: Trophy Room Key",
+    "Points": "80",
+    "Description": "Defeat 10 unique boss enemies.",
+    "id": 14,
+    "_src_id": "boss_rush"
+  },
+  {
+    "name": "Dungeon Conqueror",
+    "Category": "Combat",
+    "Requirement": "Clear 5 different dungeons",
+    "Reward": "1500 XP, 800 Gold, Title: \"Dungeon Conqueror\"",
+    "Points": "60",
+    "Description": "Completely clear 5 different dungeons of all enemies.",
+    "id": 15,
+    "_src_id": "dungeon_conqueror"
+  },
+  {
+    "name": "Flawless Victory",
+    "Category": "Combat",
+    "Requirement": "Win a boss fight without taking damage",
+    "Reward": "2000 XP, 1000 Gold, Title: \"Flawless\"",
+    "Points": "75",
+    "Description": "Defeat a boss without receiving any damage.",
+    "id": 16,
+    "_src_id": "flawless_victory"
+  },
+  {
+    "name": "Speed Demon",
+    "Category": "Combat",
+    "Requirement": "Defeat a boss in under 30 seconds",
+    "Reward": "1000 XP, 500 Gold, Title: \"Speed Demon\"",
+    "Points": "50",
+    "Description": "Eliminate a boss in record time.",
+    "id": 17,
+    "_src_id": "speed_demon"
+  },
+  {
+    "name": "Combo Master",
+    "Category": "Combat",
+    "Requirement": "Land 20 consecutive hits without missing",
+    "Reward": "300 XP, 150 Gold",
+    "Points": "20",
+    "Description": "Maintain a 20-hit combo streak.",
+    "id": 18,
+    "_src_id": "combo_master"
+  },
+  {
+    "name": "Critical Mind",
+    "Category": "Combat",
+    "Requirement": "Land 50 critical hits total",
+    "Reward": "500 XP, 250 Gold, Title: \"Critical Mind\"",
+    "Points": "30",
+    "Description": "Successfully land 50 critical hits throughout your journey.",
+    "id": 19,
+    "_src_id": "critical_mind"
+  },
+  {
+    "name": "Arrow Catcher",
+    "Category": "Combat",
+    "Requirement": "Deflect 10 arrows with a shield",
+    "Reward": "200 XP, 100 Gold",
+    "Points": "15",
+    "Description": "Successfully block 10 arrow attacks with your shield.",
+    "id": 20,
+    "_src_id": "arrow_catcher"
+  },
+  {
+    "name": "Duel Champion",
+    "Category": "Combat",
+    "Requirement": "Win 20 one-on-one duels",
+    "Reward": "800 XP, 400 Gold, Title: \"Duel Champion\"",
+    "Points": "40",
+    "Description": "Win 20 formal duels against other combatants.",
+    "id": 21,
+    "_src_id": "duel_champion"
+  },
+  {
+    "name": "War Hero",
+    "Category": "Combat",
+    "Requirement": "Participate in 5 large-scale battles",
+    "Reward": "2500 XP, 1200 Gold, Title: \"War Hero\", Cosmetic: War Banner",
+    "Points": "70",
+    "Description": "Fight in 5 massive battles with 20+ combatants.",
+    "id": 22,
+    "_src_id": "war_hero"
+  },
+  {
+    "name": "Parry Master",
+    "Category": "Combat",
+    "Requirement": "Successfully parry 100 attacks",
+    "Reward": "600 XP, 300 Gold, Title: \"Parry Master\"",
+    "Points": "35",
+    "Description": "Master the art of parrying by deflecting 100 strikes.",
+    "id": 23,
+    "_src_id": "parry_master"
+  },
+  {
+    "name": "Berserker",
+    "Category": "Combat",
+    "Requirement": "Kill 5 enemies while below 10% health",
+    "Reward": "800 XP, 400 Gold, Title: \"Berserker\"",
+    "Points": "40",
+    "Description": "Defeat 5 enemies while critically wounded.",
+    "id": 24,
+    "_src_id": "berserker"
+  },
+  {
+    "name": "Untouchable",
+    "Category": "Combat",
+    "Requirement": "Complete 10 fights without taking damage",
+    "Reward": "1500 XP, 750 Gold, Title: \"Untouchable\", Cosmetic: Ghost Cloak",
+    "Points": "65",
+    "Description": "Win 10 consecutive fights without receiving any damage.",
+    "id": 25,
+    "_src_id": "untouchable"
+  },
+  {
+    "name": "First Steps",
+    "Category": "Exploration",
+    "Requirement": "Travel to any new location",
+    "Reward": "10 XP, 5 Gold",
+    "Points": "5",
+    "Description": "Venture out and discover a new location for the first time.",
+    "id": 26,
+    "_src_id": "first_steps"
+  },
+  {
+    "name": "Cartographer",
+    "Category": "Exploration",
+    "Requirement": "Discover 10 locations",
+    "Reward": "100 XP, 50 Gold, Title: \"Cartographer\"",
+    "Points": "15",
+    "Description": "Map out 10 different locations in the world.",
+    "id": 27,
+    "_src_id": "cartographer"
+  },
+  {
+    "name": "World Traveler",
+    "Category": "Exploration",
+    "Requirement": "Discover 50 locations",
+    "Reward": "500 XP, 250 Gold, Title: \"World Traveler\", Cosmetic: Traveler's Map",
+    "Points": "40",
+    "Description": "Explore and discover 50 unique locations.",
+    "id": 28,
+    "_src_id": "world_traveler"
+  },
+  {
+    "name": "Master Explorer",
+    "Category": "Exploration",
+    "Requirement": "Discover all locations in a region",
+    "Reward": "1000 XP, 500 Gold, Title: \"Master Explorer\"",
+    "Points": "50",
+    "Description": "Fully explore an entire region and uncover all its locations.",
+    "id": 29,
+    "_src_id": "master_explorer"
+  },
+  {
+    "name": "Pathfinder",
+    "Category": "Exploration",
+    "Requirement": "Travel 1000 total distance units",
+    "Reward": "300 XP, 150 Gold, Title: \"Pathfinder\"",
+    "Points": "20",
+    "Description": "Cover a total distance of 1000 units in your travels.",
+    "id": 30,
+    "_src_id": "pathfinder"
+  },
+  {
+    "name": "Marathon Runner",
+    "Category": "Exploration",
+    "Requirement": "Travel 10000 total distance units",
+    "Reward": "1500 XP, 750 Gold, Title: \"Marathon Runner\"",
+    "Points": "60",
+    "Description": "Travel an astonishing 10000 units across the world.",
+    "id": 31,
+    "_src_id": "marathon_runner"
+  },
+  {
+    "name": "Secret Finder",
+    "Category": "Exploration",
+    "Requirement": "Discover 5 hidden areas",
+    "Reward": "400 XP, 200 Gold, Title: \"Secret Finder\"",
+    "Points": "25",
+    "Description": "Uncover 5 hidden passages or secret areas.",
+    "id": 32,
+    "_src_id": "secret_finder"
+  },
+  {
+    "name": "Secret Master",
+    "Category": "Exploration",
+    "Requirement": "Discover all hidden areas",
+    "Reward": "2000 XP, 1000 Gold, Title: \"Secret Master\", Cosmetic: Shadow Mask",
+    "Points": "80",
+    "Description": "Find every hidden area in the game.",
+    "id": 33,
+    "_src_id": "secret_master"
+  },
+  {
+    "name": "Mountain Climber",
+    "Category": "Exploration",
+    "Requirement": "Reach the peak of any mountain",
+    "Reward": "200 XP, 100 Gold, Title: \"Mountain Climber\"",
+    "Points": "15",
+    "Description": "Scale a mountain and reach its summit.",
+    "id": 34,
+    "_src_id": "mountain_climber"
+  },
+  {
+    "name": "Deep Diver",
+    "Category": "Exploration",
+    "Requirement": "Explore an underwater area",
+    "Reward": "250 XP, 125 Gold, Title: \"Deep Diver\"",
+    "Points": "20",
+    "Description": "Descend into the depths and explore underwater terrain.",
+    "id": 35,
+    "_src_id": "deep_diver"
+  },
+  {
+    "name": "Sky Walker",
+    "Category": "Exploration",
+    "Requirement": "Reach a floating island or cloud area",
+    "Reward": "500 XP, 250 Gold, Title: \"Sky Walker\", Cosmetic: Cloud Boots",
+    "Points": "30",
+    "Description": "Ascend to a floating island or cloud realm.",
+    "id": 36,
+    "_src_id": "sky_walker"
+  },
+  {
+    "name": "Night Owl",
+    "Category": "Exploration",
+    "Requirement": "Explore a location during nighttime",
+    "Reward": "50 XP, 25 Gold",
+    "Points": "5",
+    "Description": "Venture out and explore while the moon is high.",
+    "id": 37,
+    "_src_id": "night_owl"
+  },
+  {
+    "name": "Dawn Walker",
+    "Category": "Exploration",
+    "Requirement": "Explore a location at sunrise",
+    "Reward": "50 XP, 25 Gold",
+    "Points": "5",
+    "Description": "Be present in a location as the sun rises.",
+    "id": 38,
+    "_src_id": "dawn_walker"
+  },
+  {
+    "name": "Treasure Map",
+    "Category": "Exploration",
+    "Requirement": "Follow a treasure map to its location",
+    "Reward": "300 XP, 200 Gold",
+    "Points": "20",
+    "Description": "Decipher and follow a treasure map to find buried loot.",
+    "id": 39,
+    "_src_id": "treasure_map"
+  },
+  {
+    "name": "Lost and Found",
+    "Category": "Exploration",
+    "Requirement": "Discover a lost city or ruins",
+    "Reward": "800 XP, 400 Gold, Title: \"Ruins Walker\"",
+    "Points": "35",
+    "Description": "Find the remnants of a long-lost civilization.",
+    "id": 40,
+    "_src_id": "lost_and_found"
+  },
+  {
+    "name": "Cave Explorer",
+    "Category": "Exploration",
+    "Requirement": "Explore 10 different caves",
+    "Reward": "400 XP, 200 Gold, Title: \"Cave Explorer\"",
+    "Points": "25",
+    "Description": "Delve into 10 different cave systems.",
+    "id": 41,
+    "_src_id": "cave_explorer"
+  },
+  {
+    "name": "Forest Wanderer",
+    "Category": "Exploration",
+    "Requirement": "Explore all areas within a forest biome",
+    "Reward": "350 XP, 175 Gold, Title: \"Forest Wanderer\"",
+    "Points": "20",
+    "Description": "Thoroughly explore every corner of a forest region.",
+    "id": 42,
+    "_src_id": "forest_wanderer"
+  },
+  {
+    "name": "Desert Nomad",
+    "Category": "Exploration",
+    "Requirement": "Travel across an entire desert",
+    "Reward": "600 XP, 300 Gold, Title: \"Desert Nomad\"",
+    "Points": "35",
+    "Description": "Survive and traverse a vast desert from end to end.",
+    "id": 43,
+    "_src_id": "desert_nomad"
+  },
+  {
+    "name": "Tomb Raider",
+    "Category": "Exploration",
+    "Requirement": "Explore and clear an ancient tomb",
+    "Reward": "700 XP, 350 Gold, Title: \"Tomb Raider\"",
+    "Points": "40",
+    "Description": "Enter an ancient tomb and explore all its chambers.",
+    "id": 44,
+    "_src_id": "tomb_raider"
+  },
+  {
+    "name": "Portal Hopper",
+    "Category": "Exploration",
+    "Requirement": "Use 10 different teleportation portals",
+    "Reward": "300 XP, 150 Gold, Title: \"Portal Hopper\"",
+    "Points": "20",
+    "Description": "Travel through 10 different magical portals.",
+    "id": 45,
+    "_src_id": "portal_hopper"
+  },
+  {
+    "name": "Landmark Collector",
+    "Category": "Exploration",
+    "Requirement": "Visit 25 notable landmarks",
+    "Reward": "800 XP, 400 Gold, Title: \"Landmark Collector\"",
+    "Points": "40",
+    "Description": "Seek out and visit 25 famous landmarks in the world.",
+    "id": 46,
+    "_src_id": "landmark_collector"
+  },
+  {
+    "name": "Underworld Explorer",
+    "Category": "Exploration",
+    "Requirement": "Reach the underworld or hell realm",
+    "Reward": "1500 XP, 750 Gold, Title: \"Underworld Explorer\", Cosmetic: Hellfire Cloak",
+    "Points": "65",
+    "Description": "Descend to the darkest depths of the underworld.",
+    "id": 47,
+    "_src_id": "underworld_explorer"
+  },
+  {
+    "name": "World Traveler Elite",
+    "Category": "Exploration",
+    "Requirement": "Visit every major region",
+    "Reward": "3000 XP, 1500 Gold, Title: \"Globe Trotter\", Cosmetic: World Map Tapestry",
+    "Points": "100",
+    "Description": "Set foot in every major region of the world.",
+    "id": 48,
+    "_src_id": "world_traveler_elite"
+  },
+  {
+    "name": "Nomad",
+    "Category": "Exploration",
+    "Requirement": "Sleep in 20 different locations",
+    "Reward": "200 XP, 100 Gold, Title: \"Nomad\"",
+    "Points": "15",
+    "Description": "Rest your head in 20 different places across the land.",
+    "id": 49,
+    "_src_id": "nomad"
+  },
+  {
+    "name": "Apprentice Crafter",
+    "Category": "Crafting",
+    "Requirement": "Craft your first item",
+    "Reward": "10 XP, 5 Gold",
+    "Points": "5",
+    "Description": "Successfully craft your very first item.",
+    "id": 50,
+    "_src_id": "apprentice_crafter"
+  },
+  {
+    "name": "Novice Smith",
+    "Category": "Crafting",
+    "Requirement": "Craft 10 items",
+    "Reward": "100 XP, 50 Gold",
+    "Points": "15",
+    "Description": "Craft a total of 10 items.",
+    "id": 51,
+    "_src_id": "novice_smith"
+  },
+  {
+    "name": "Journeyman Crafter",
+    "Category": "Crafting",
+    "Requirement": "Craft 50 items",
+    "Reward": "500 XP, 250 Gold, Title: \"Journeyman\"",
+    "Points": "30",
+    "Description": "Craft 50 items to prove your skill.",
+    "id": 52,
+    "_src_id": "journeyman_crafter"
+  },
+  {
+    "name": "Master Smith",
+    "Category": "Crafting",
+    "Requirement": "Craft 100 items",
+    "Reward": "1000 XP, 500 Gold, Title: \"Master Smith\", Cosmetic: Smith's Apron",
+    "Points": "50",
+    "Description": "Achieve mastery by crafting 100 items.",
+    "id": 53,
+    "_src_id": "master_smith"
+  },
+  {
+    "name": "Grandmaster Artisan",
+    "Category": "Crafting",
+    "Requirement": "Craft 500 items",
+    "Reward": "5000 XP, 2500 Gold, Title: \"Grandmaster Artisan\", Cosmetic: Golden Hammer",
+    "Points": "100",
+    "Description": "Reach the pinnacle of crafting with 500 crafted items.",
+    "id": 54,
+    "_src_id": "grandmaster_artisan"
+  },
+  {
+    "name": "Blacksmith",
+    "Category": "Crafting",
+    "Requirement": "Forge 25 weapons",
+    "Reward": "400 XP, 200 Gold, Title: \"Blacksmith\"",
+    "Points": "25",
+    "Description": "Forge 25 different weapons at the anvil.",
+    "id": 55,
+    "_src_id": "blacksmith"
+  },
+  {
+    "name": "Armorsmith",
+    "Category": "Crafting",
+    "Requirement": "Forge 25 pieces of armor",
+    "Reward": "400 XP, 200 Gold, Title: \"Armorsmith\"",
+    "Points": "25",
+    "Description": "Craft 25 pieces of protective armor.",
+    "id": 56,
+    "_src_id": "armorsmith"
+  },
+  {
+    "name": "Potion Brewer",
+    "Category": "Crafting",
+    "Requirement": "Brew 50 potions",
+    "Reward": "300 XP, 150 Gold, Title: \"Potion Brewer\"",
+    "Points": "20",
+    "Description": "Mix and brew 50 different potions.",
+    "id": 57,
+    "_src_id": "potion_brewer"
+  },
+  {
+    "name": "Master Alchemist",
+    "Category": "Crafting",
+    "Requirement": "Brew 200 potions",
+    "Reward": "1500 XP, 750 Gold, Title: \"Master Alchemist\", Cosmetic: Alchemist's Robe",
+    "Points": "60",
+    "Description": "Achieve alchemical mastery with 200 brewed potions.",
+    "id": 58,
+    "_src_id": "master_alchemist"
+  },
+  {
+    "name": "Enchanter",
+    "Category": "Crafting",
+    "Requirement": "Enchant 10 items",
+    "Reward": "500 XP, 250 Gold, Title: \"Enchanter\"",
+    "Points": "30",
+    "Description": "Successfully imbue 10 items with magical properties.",
+    "id": 59,
+    "_src_id": "enchanter"
+  },
+  {
+    "name": "Master Enchanter",
+    "Category": "Crafting",
+    "Requirement": "Enchant 50 items",
+    "Reward": "2000 XP, 1000 Gold, Title: \"Master Enchanter\", Cosmetic: Enchanted Crown",
+    "Points": "70",
+    "Description": "Attain true mastery of the enchanting arts.",
+    "id": 60,
+    "_src_id": "master_enchanter"
+  },
+  {
+    "name": "Cook",
+    "Category": "Crafting",
+    "Requirement": "Prepare 30 meals",
+    "Reward": "250 XP, 125 Gold, Title: \"Cook\"",
+    "Points": "20",
+    "Description": "Cook 30 delicious meals for yourself and allies.",
+    "id": 61,
+    "_src_id": "cook"
+  },
+  {
+    "name": "Master Chef",
+    "Category": "Crafting",
+    "Requirement": "Prepare 100 meals",
+    "Reward": "1000 XP, 500 Gold, Title: \"Master Chef\", Cosmetic: Chef's Hat",
+    "Points": "50",
+    "Description": "Become a culinary legend with 100 prepared meals.",
+    "id": 62,
+    "_src_id": "master_chef"
+  },
+  {
+    "name": "Perfect Craft",
+    "Category": "Crafting",
+    "Requirement": "Craft a legendary quality item",
+    "Reward": "1000 XP, 500 Gold, Title: \"Perfect Crafter\"",
+    "Points": "50",
+    "Description": "Create an item of the highest possible quality.",
+    "id": 63,
+    "_src_id": "perfect_craft"
+  },
+  {
+    "name": "Recipe Collector",
+    "Category": "Crafting",
+    "Requirement": "Learn 50 crafting recipes",
+    "Reward": "800 XP, 400 Gold, Title: \"Recipe Collector\"",
+    "Points": "40",
+    "Description": "Discover and learn 50 different crafting recipes.",
+    "id": 64,
+    "_src_id": "recipe_collector"
+  },
+  {
+    "name": "Master of All Trades",
+    "Category": "Crafting",
+    "Requirement": "Craft at least 10 items in every crafting category",
+    "Reward": "3000 XP, 1500 Gold, Title: \"Jack of All Trades\", Cosmetic: Artisan's Toolkit",
+    "Points": "80",
+    "Description": "Demonstrate versatility across all crafting disciplines.",
+    "id": 65,
+    "_src_id": "master_of_all_trades"
+  },
+  {
+    "name": "Gem Cutter",
+    "Category": "Crafting",
+    "Requirement": "Cut and polish 20 gems",
+    "Reward": "350 XP, 175 Gold, Title: \"Gem Cutter\"",
+    "Points": "20",
+    "Description": "Shape raw gems into brilliant cut stones.",
+    "id": 66,
+    "_src_id": "gem_cutter"
+  },
+  {
+    "name": "Tailor",
+    "Category": "Crafting",
+    "Requirement": "Sew 20 pieces of clothing",
+    "Reward": "300 XP, 150 Gold, Title: \"Tailor\"",
+    "Points": "20",
+    "Description": "Stitch together 20 garments or cloth accessories.",
+    "id": 67,
+    "_src_id": "tailor"
+  },
+  {
+    "name": "Woodworker",
+    "Category": "Crafting",
+    "Requirement": "Craft 15 wooden items",
+    "Reward": "200 XP, 100 Gold, Title: \"Woodworker\"",
+    "Points": "15",
+    "Description": "Carve and shape 15 items from wood.",
+    "id": 68,
+    "_src_id": "woodworker"
+  },
+  {
+    "name": "Legendary Forger",
+    "Category": "Crafting",
+    "Requirement": "Forge a mythical weapon",
+    "Reward": "2500 XP, 1250 Gold, Title: \"Legendary Forger\", Cosmetic: Mythril Hammer",
+    "Points": "75",
+    "Description": "Create a weapon of legend at the forge.",
+    "id": 69,
+    "_src_id": "legendary_forger"
+  },
+  {
+    "name": "First Friend",
+    "Category": "Social",
+    "Requirement": "Make your first ally",
+    "Reward": "10 XP, 5 Gold",
+    "Points": "5",
+    "Description": "Befriend an NPC for the first time.",
+    "id": 70,
+    "_src_id": "first_friend"
+  },
+  {
+    "name": "Popular",
+    "Category": "Social",
+    "Requirement": "Have 10 active allies",
+    "Reward": "200 XP, 100 Gold, Title: \"Popular\"",
+    "Points": "15",
+    "Description": "Maintain friendships with 10 different NPCs.",
+    "id": 71,
+    "_src_id": "popular"
+  },
+  {
+    "name": "Social Butterfly",
+    "Category": "Social",
+    "Requirement": "Have 25 active allies",
+    "Reward": "500 XP, 250 Gold, Title: \"Social Butterfly\"",
+    "Points": "30",
+    "Description": "Build a network of 25 friendly connections.",
+    "id": 72,
+    "_src_id": "social_butterfly"
+  },
+  {
+    "name": "Charismatic Leader",
+    "Category": "Social",
+    "Requirement": "Have 50 active allies",
+    "Reward": "1500 XP, 750 Gold, Title: \"Charismatic Leader\", Cosmetic: Leader's Mantle",
+    "Points": "60",
+    "Description": "Lead a vast network of 50 loyal allies.",
+    "id": 73,
+    "_src_id": "charismatic_leader"
+  },
+  {
+    "name": "Faction Leader",
+    "Category": "Social",
+    "Requirement": "Become the leader of a faction",
+    "Reward": "2000 XP, 1000 Gold, Title: \"Faction Leader\", Cosmetic: Faction Banner",
+    "Points": "70",
+    "Description": "Rise to the top and lead your own faction.",
+    "id": 74,
+    "_src_id": "faction_leader"
+  },
+  {
+    "name": "Diplomat",
+    "Category": "Social",
+    "Requirement": "Successfully negotiate 10 peace agreements",
+    "Reward": "800 XP, 400 Gold, Title: \"Diplomat\"",
+    "Points": "40",
+    "Description": "Resolve 10 conflicts through diplomacy rather than violence.",
+    "id": 75,
+    "_src_id": "diplomat"
+  },
+  {
+    "name": "Merchant Prince",
+    "Category": "Social",
+    "Requirement": "Complete 100 trade deals",
+    "Reward": "1000 XP, 500 Gold, Title: \"Merchant Prince\"",
+    "Points": "50",
+    "Description": "Execute 100 successful trades with merchants and traders.",
+    "id": 76,
+    "_src_id": "merchant_prince"
+  },
+  {
+    "name": "Reputation Hero",
+    "Category": "Social",
+    "Requirement": "Reach maximum reputation with any faction",
+    "Reward": "500 XP, 250 Gold, Title: \"Hero of the People\"",
+    "Points": "30",
+    "Description": "Earn the highest reputation standing with a faction.",
+    "id": 77,
+    "_src_id": "reputation_hero"
+  },
+  {
+    "name": "Renowned",
+    "Category": "Social",
+    "Requirement": "Reach maximum reputation with 3 factions",
+    "Reward": "2000 XP, 1000 Gold, Title: \"Renowned\", Cosmetic: Reputation Crown",
+    "Points": "70",
+    "Description": "Become legendary across three different factions.",
+    "id": 78,
+    "_src_id": "renowned"
+  },
+  {
+    "name": "Matchmaker",
+    "Category": "Social",
+    "Requirement": "Introduce 5 NPCs who become friends",
+    "Reward": "300 XP, 150 Gold, Title: \"Matchmaker\"",
+    "Points": "20",
+    "Description": "Help 5 NPCs form friendships with each other.",
+    "id": 79,
+    "_src_id": "matchmaker"
+  },
+  {
+    "name": "Storyteller",
+    "Category": "Social",
+    "Requirement": "Share 10 stories with NPCs",
+    "Reward": "200 XP, 100 Gold, Title: \"Storyteller\"",
+    "Points": "15",
+    "Description": "Regale 10 NPCs with tales of your adventures.",
+    "id": 80,
+    "_src_id": "storyteller"
+  },
+  {
+    "name": "Quest Giver",
+    "Category": "Social",
+    "Requirement": "Accept 50 quests",
+    "Reward": "500 XP, 250 Gold, Title: \"Quest Giver\"",
+    "Points": "30",
+    "Description": "Accept 50 quests from various NPCs.",
+    "id": 81,
+    "_src_id": "quest_giver"
+  },
+  {
+    "name": "Wedding Guest",
+    "Category": "Social",
+    "Requirement": "Attend an NPC wedding",
+    "Reward": "100 XP, 50 Gold",
+    "Points": "10",
+    "Description": "Witness the union of two NPCs in marriage.",
+    "id": 82,
+    "_src_id": "wedding_guest"
+  },
+  {
+    "name": "Pet Master",
+    "Category": "Social",
+    "Requirement": "Befriend 5 animals or creatures",
+    "Reward": "400 XP, 200 Gold, Title: \"Pet Master\", Cosmetic: Creature Companion",
+    "Points": "25",
+    "Description": "Befriend and be accompanied by 5 animal companions.",
+    "id": 83,
+    "_src_id": "pet_master"
+  },
+  {
+    "name": "Guild Master",
+    "Category": "Social",
+    "Requirement": "Create and lead a guild",
+    "Reward": "1500 XP, 750 Gold, Title: \"Guild Master\", Cosmetic: Guild Hall",
+    "Points": "60",
+    "Description": "Establish your own guild and recruit members.",
+    "id": 84,
+    "_src_id": "guild_master"
+  },
+  {
+    "name": "Treasure Hunter",
+    "Category": "Collection",
+    "Requirement": "Find 25 hidden treasures",
+    "Reward": "300 XP, 150 Gold, Title: \"Treasure Hunter\"",
+    "Points": "20",
+    "Description": "Uncover 25 hidden treasure caches.",
+    "id": 85,
+    "_src_id": "treasure_hunter"
+  },
+  {
+    "name": "Master Treasure Hunter",
+    "Category": "Collection",
+    "Requirement": "Find 100 hidden treasures",
+    "Reward": "1500 XP, 750 Gold, Title: \"Master Treasure Hunter\", Cosmetic: Treasure Map",
+    "Points": "60",
+    "Description": "Discover 100 hidden treasures across the land.",
+    "id": 86,
+    "_src_id": "master_treasure_hunter"
+  },
+  {
+    "name": "Book Worm",
+    "Category": "Collection",
+    "Requirement": "Read 20 books",
+    "Reward": "200 XP, 100 Gold, Title: \"Book Worm\"",
+    "Points": "15",
+    "Description": "Read and absorb knowledge from 20 different books.",
+    "id": 87,
+    "_src_id": "book_worm"
+  },
+  {
+    "name": "Scholar",
+    "Category": "Collection",
+    "Requirement": "Read 50 books",
+    "Reward": "800 XP, 400 Gold, Title: \"Scholar\"",
+    "Points": "40",
+    "Description": "Read 50 books and become a true scholar.",
+    "id": 88,
+    "_src_id": "scholar"
+  },
+  {
+    "name": "Librarian",
+    "Category": "Collection",
+    "Requirement": "Read 100 books",
+    "Reward": "2000 XP, 1000 Gold, Title: \"Librarian\", Cosmetic: Ancient Tome",
+    "Points": "70",
+    "Description": "Read 100 books and accumulate vast knowledge.",
+    "id": 89,
+    "_src_id": "librarian"
+  },
+  {
+    "name": "Coin Collector",
+    "Category": "Collection",
+    "Requirement": "Collect 10000 gold total",
+    "Reward": "500 XP, 500 Gold, Title: \"Coin Collector\"",
+    "Points": "30",
+    "Description": "Accumulate a fortune of 10000 gold.",
+    "id": 90,
+    "_src_id": "coin_collector"
+  },
+  {
+    "name": "Hoarder",
+    "Category": "Collection",
+    "Requirement": "Collect 50000 gold total",
+    "Reward": "2000 XP, 2000 Gold, Title: \"Hoarder\", Cosmetic: Gold Pile",
+    "Points": "70",
+    "Description": "Amass an enormous fortune of 50000 gold.",
+    "id": 91,
+    "_src_id": "hoarder"
+  },
+  {
+    "name": "Gem Collector",
+    "Category": "Collection",
+    "Requirement": "Collect 30 different gems",
+    "Reward": "600 XP, 300 Gold, Title: \"Gem Collector\"",
+    "Points": "35",
+    "Description": "Gather 30 unique gemstones in your collection.",
+    "id": 92,
+    "_src_id": "gem_collector"
+  },
+  {
+    "name": "Weapon Collector",
+    "Category": "Collection",
+    "Requirement": "Collect 25 different weapons",
+    "Reward": "500 XP, 250 Gold, Title: \"Weapon Collector\"",
+    "Points": "30",
+    "Description": "Acquire 25 unique weapons in your armory.",
+    "id": 93,
+    "_src_id": "weapon_collector"
+  },
+  {
+    "name": "Armor Collector",
+    "Category": "Collection",
+    "Requirement": "Collect 25 different armor sets",
+    "Reward": "500 XP, 250 Gold, Title: \"Armor Collector\"",
+    "Points": "30",
+    "Description": "Gather 25 unique armor sets in your wardrobe.",
+    "id": 94,
+    "_src_id": "armor_collector"
+  },
+  {
+    "name": "Relic Collector",
+    "Category": "Collection",
+    "Requirement": "Collect 15 ancient relics",
+    "Reward": "800 XP, 400 Gold, Title: \"Relic Collector\"",
+    "Points": "40",
+    "Description": "Gather 15 ancient and powerful relics.",
+    "id": 95,
+    "_src_id": "relic_collector"
+  },
+  {
+    "name": "Artifact Master",
+    "Category": "Collection",
+    "Requirement": "Collect all legendary artifacts",
+    "Reward": "5000 XP, 2500 Gold, Title: \"Artifact Master\", Cosmetic: Artifact Display",
+    "Points": "100",
+    "Description": "Gather every legendary artifact in existence.",
+    "id": 96,
+    "_src_id": "artifact_master"
+  },
+  {
+    "name": "Potion Collector",
+    "Category": "Collection",
+    "Requirement": "Collect 20 unique potions",
+    "Reward": "300 XP, 150 Gold, Title: \"Potion Collector\"",
+    "Points": "20",
+    "Description": "Stockpile 20 different types of potions.",
+    "id": 97,
+    "_src_id": "potion_collector"
+  },
+  {
+    "name": "Stamp Collector",
+    "Category": "Collection",
+    "Requirement": "Collect 30 stamps or tokens",
+    "Reward": "400 XP, 200 Gold, Title: \"Stamp Collector\"",
+    "Points": "25",
+    "Description": "Gather 30 commemorative stamps or tokens from various places.",
+    "id": 98,
+    "_src_id": "stamp_collector"
+  },
+  {
+    "name": "Music Box",
+    "Category": "Collection",
+    "Requirement": "Collect 10 musical instruments",
+    "Reward": "350 XP, 175 Gold, Title: \"Music Box\"",
+    "Points": "20",
+    "Description": "Gather 10 different musical instruments.",
+    "id": 99,
+    "_src_id": "music_box"
+  },
+  {
+    "name": "Curio Collector",
+    "Category": "Collection",
+    "Requirement": "Collect 40 miscellaneous curiosities",
+    "Reward": "600 XP, 300 Gold, Title: \"Curio Collector\"",
+    "Points": "35",
+    "Description": "Amass a collection of 40 unique curiosities.",
+    "id": 100,
+    "_src_id": "curio_collector"
+  },
+  {
+    "name": "Hidden Path",
+    "Category": "Secret",
+    "Requirement": "Find a secret passage behind a waterfall",
+    "Reward": "200 XP, 100 Gold",
+    "Points": "15",
+    "Description": "Discover the hidden path concealed behind a cascading waterfall.",
+    "id": 101,
+    "_src_id": "hidden_path"
+  },
+  {
+    "name": "Locked Box",
+    "Category": "Secret",
+    "Requirement": "Open a locked chest without a key",
+    "Reward": "300 XP, 150 Gold",
+    "Points": "20",
+    "Description": "Use ingenuity to open a chest without finding the key.",
+    "id": 102,
+    "_src_id": "locked_box"
+  },
+  {
+    "name": "Whispering Walls",
+    "Category": "Secret",
+    "Requirement": "Listen to the whispers in an ancient temple",
+    "Reward": "500 XP, 250 Gold, Title: \"Whisperer\"",
+    "Points": "25",
+    "Description": "Quietly listen to the ancient whispers echoing through temple walls.",
+    "id": 103,
+    "_src_id": "whispering_walls"
+  },
+  {
+    "name": "Invisible Bridge",
+    "Category": "Secret",
+    "Requirement": "Cross a hidden bridge that appears invisible",
+    "Reward": "400 XP, 200 Gold",
+    "Points": "20",
+    "Description": "Step onto an invisible bridge and cross a seemingly impossible gap.",
+    "id": 104,
+    "_src_id": "invisible_bridge"
+  },
+  {
+    "name": "Ghost Friend",
+    "Category": "Secret",
+    "Requirement": "Befriend a ghost NPC",
+    "Reward": "500 XP, 250 Gold, Title: \"Ghost Whisperer\"",
+    "Points": "25",
+    "Description": "Form an unlikely friendship with a spectral being.",
+    "id": 105,
+    "_src_id": "ghost_friend"
+  },
+  {
+    "name": "True Ending",
+    "Category": "Secret",
+    "Requirement": "Complete the game's true ending",
+    "Reward": "5000 XP, 2500 Gold, Title: \"Truth Seeker\", Cosmetic: Crown of Wisdom",
+    "Points": "100",
+    "Description": "Uncover and complete the hidden true ending of the story.",
+    "id": 106,
+    "_src_id": "true_ending"
+  },
+  {
+    "name": "Easter Egg",
+    "Category": "Secret",
+    "Requirement": "Find the developer's easter egg",
+    "Reward": "100 XP, 50 Gold",
+    "Points": "10",
+    "Description": "Locate the hidden easter egg left by the developers.",
+    "id": 107,
+    "_src_id": "easter_egg"
+  },
+  {
+    "name": "Secret Room",
+    "Category": "Secret",
+    "Requirement": "Discover a hidden room in any building",
+    "Reward": "250 XP, 125 Gold",
+    "Points": "15",
+    "Description": "Find a concealed room hidden within an ordinary building.",
+    "id": 108,
+    "_src_id": "secret_room"
+  },
+  {
+    "name": "Ancient Code",
+    "Category": "Secret",
+    "Requirement": "Decode an ancient cipher or message",
+    "Reward": "400 XP, 200 Gold, Title: \"Code Breaker\"",
+    "Points": "25",
+    "Description": "Successfully decipher an ancient coded message.",
+    "id": 109,
+    "_src_id": "ancient_code"
+  },
+  {
+    "name": "Forbidden Knowledge",
+    "Category": "Secret",
+    "Requirement": "Read a forbidden or cursed book",
+    "Reward": "600 XP, 300 Gold, Title: \"Forbidden Scholar\"",
+    "Points": "30",
+    "Description": "Dare to read a book that was meant to stay closed.",
+    "id": 110,
+    "_src_id": "forbidden_knowledge"
+  },
+  {
+    "name": "Secret Boss",
+    "Category": "Secret",
+    "Requirement": "Find and defeat the secret boss",
+    "Reward": "2000 XP, 1000 Gold, Title: \"Secret Slayer\", Cosmetic: Shadow Blade",
+    "Points": "75",
+    "Description": "Uncover and defeat the hidden boss enemy.",
+    "id": 111,
+    "_src_id": "secret_boss"
+  },
+  {
+    "name": "Time Traveler",
+    "Category": "Secret",
+    "Requirement": "Discover a time portal",
+    "Reward": "1000 XP, 500 Gold, Title: \"Time Traveler\"",
+    "Points": "50",
+    "Description": "Find a portal that transports you to a different era.",
+    "id": 112,
+    "_src_id": "time_traveler"
+  },
+  {
+    "name": "Secret Garden",
+    "Category": "Secret",
+    "Requirement": "Find a hidden garden",
+    "Reward": "300 XP, 150 Gold, Title: \"Gardener\"",
+    "Points": "20",
+    "Description": "Discover a secret, lush garden hidden from the world.",
+    "id": 113,
+    "_src_id": "secret_garden"
+  },
+  {
+    "name": "Mirror Dimension",
+    "Category": "Secret",
+    "Requirement": "Enter a mirror or reflection realm",
+    "Reward": "700 XP, 350 Gold, Title: \"Mirror Walker\"",
+    "Points": "35",
+    "Description": "Step through a mirror into a shadow dimension.",
+    "id": 114,
+    "_src_id": "mirror_dimension"
+  },
+  {
+    "name": "Developer's Room",
+    "Category": "Secret",
+    "Requirement": "Find the secret developer room",
+    "Reward": "100 XP, 1000 Gold, Title: \"Meta Gamer\"",
+    "Points": "50",
+    "Description": "Locate the hidden room created by the game developers.",
+    "id": 115,
+    "_src_id": "developers_room"
+  }
+]

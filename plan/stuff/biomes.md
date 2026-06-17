@@ -1,0 +1,800 @@
+# Biome Database
+
+## Temperate Biomes
+
+### Temperate Forest
+- **ID**: temperate_forest
+- **Temperature Range**: 5 to 25
+- **Humidity**: Medium
+- **Terrain Type**: Dense deciduous and mixed woodlands with thick canopy cover
+- **Resources**: Oak logs, berries, mushrooms, deer, herbs, flint
+- **Enemies**: Wolves, bandits, spiders, bears
+- **NPCs**: Herbalists, woodcutters, lost travelers
+- **Weather**: Mild rain, fog, clear skies
+- **Music**: Serene orchestral with birdsong
+- **Difficulty Level**: 2-4
+
+### Ancient Forest
+- **ID**: ancient_forest
+- **Temperature Range**: 3 to 20
+- **Humidity**: High
+- **Terrain Type**: Towering old-growth trees with massive root systems and thick undergrowth
+- **Resources**: Elderwood, rare herbs, spirit moss, enchanted acorns
+- **Enemies**: Treants, dryads, ancient wolves, forest spirits
+- **NPCs**: Druids, hermits, nature monks
+- **Weather**: perpetual mist, occasional rain
+- **Music**: Ethereal and mysterious
+- **Difficulty Level**: 6-8
+
+### Temperate Plains
+- **ID**: temperate_plains
+- **Temperature Range**: 8 to 30
+- **Humidity**: Low
+- **Terrain Type**: Vast open grasslands with scattered wildflowers and gentle rolling terrain
+- **Resources**: Wheat, hay, flax, wild game, clay
+- **Enemies**: Plains wolves, hawks, raiders, snakes
+- **NPCs**: Farmers, merchants, nomads, shepherds
+- **Weather**: Sunny, windy, occasional storms
+- **Music**: Open and adventurous
+- **Difficulty Level**: 1-3
+
+### Rolling Hills
+- **ID**: rolling_hills
+- **Temperature Range**: 5 to 28
+- **Humidity**: Low
+- **Terrain Type**: Gently undulating grassy mounds with scattered copses
+- **Resources**: Sheep, wool, hill berries, stone deposits
+- **Enemies**: Hill giants, wolves, boars, bandits
+- **NPCs**: Shepherds, hill folk, cartographers
+- **Weather**: Breezy, partly cloudy
+- **Music**: Folk-inspired and pastoral
+- **Difficulty Level**: 2-4
+
+### Foothills
+- **ID**: foothills
+- **Temperature Range**: 0 to 22
+- **Humidity**: Medium
+- **Terrain Type**: Rocky transitional zones between plains and mountains
+- **Resources**: Iron ore, copper, slate, mountain goats, wild herbs
+- **Enemies**: Mountain lions, goblins, rock worms
+- **NPCs**: Miners, blacksmiths, surveyors
+- **Weather**: Variable, frequent fog
+- **Music**: Rugged and atmospheric
+- **Difficulty Level**: 3-5
+
+### Temperate Mountains
+- **ID**: temperate_mountains
+- **Temperature Range**: -5 to 15
+- **Humidity**: Medium
+- **Terrain Type**: Steep rocky peaks with alpine meadows and narrow passes
+- **Resources**: Gold ore, silver, iron, eagles, mountain herbs
+- **Enemies**: Mountain trolls, griffins, wyverns, bandit camps
+- **NPCs**: Mountaineers, monks, treasure hunters
+- **Weather**: Sudden storms, snow flurries, clear peaks
+- **Music**: Epic and sweeping
+- **Difficulty Level**: 5-7
+
+### Deep Valley
+- **ID**: deep_valley
+- **Temperature Range**: 8 to 22
+- **Humidity**: High
+- **Terrain Type**: Narrow valleys between mountains with rivers and waterfalls
+- **Resources**: Freshwater fish, gemstones, rare flowers, lumber
+- **Enemies**: Valley drakes, water serpents, cave trolls
+- **NPCs**: Fishermen, gem miners, isolationists
+- **Weather**: Shaded, cool, occasional mist
+- **Music**: Tranquil and echoing
+- **Difficulty Level**: 4-6
+
+### Temperate Lake
+- **ID**: temperate_lake
+- **Temperature Range**: 5 to 25
+- **Humidity**: High
+- **Terrain Type**: Freshwater lakes with shores, reeds, and submerged areas
+- **Resources**: Fish, water lilies, lake pearls, reeds, freshwater clams
+- **Enemies**: Giant leeches, lake serpents, water elementals
+- **NPCs**: Fishermen, boat builders, lake hermits
+- **Weather**: Calm mornings, afternoon breezes
+- **Music**: Peaceful with water sounds
+- **Difficulty Level**: 2-4
+
+### Temperate River
+- **ID**: temperate_river
+- **Temperature Range**: 5 to 25
+- **Humidity**: High
+- **Terrain Type**: Flowing rivers with banks, rapids, and deltas
+- **Resources**: Driftwood, river fish, smooth stones, clay deposits
+- **Enemies**: River trolls, piranhas, crocodiles, bandit ferries
+- **NPCs**: River traders, ferry operators, anglers
+- **Weather**: Misty mornings, humid afternoons
+- **Music**: Flowing and rhythmic
+- **Difficulty Level**: 2-5
+
+### Bamboo Forest
+- **ID**: bamboo_forest
+- **Temperature Range**: 15 to 30
+- **Humidity**: High
+- **Terrain Type**: Dense bamboo groves with filtered light and narrow paths
+- **Resources**: Bamboo, pandas, medicinal herbs, silk
+- **Enemies**: Shadow pandas, bamboo snakes, ninja assassins
+- **NPCs**: Monks, martial artists, tea merchants
+- **Weather**: Humid, light rain, dappled sunlight
+- **Music**: East Asian-inspired and meditative
+- **Difficulty Level**: 3-6
+
+### Apple Orchard
+- **ID**: apple_orchard
+- **Temperature Range**: 8 to 28
+- **Humidity**: Medium
+- **Terrain Type**: Cultivated fruit trees in neat rows with grassy paths
+- **Resources**: Apples, cider, honey, beehives
+- **Enemies**: Fruit bats, orchard blights, pixies
+- **NPCs**: Orchard keepers, cider makers, merchants
+- **Weather**: Sunny, spring rains
+- **Music**: Light and cheerful
+- **Difficulty Level**: 1-2
+
+### Lavender Fields
+- **ID**: lavender_fields
+- **Temperature Range**: 10 to 30
+- **Humidity**: Low
+- **Terrain Type**: Vast purple fields with rows of lavender and gentle breezes
+- **Resources**: Lavender, essential oils, beeswax, honey
+- **Enemies**: Killer bees, wind spirits, plague carriers
+- **NPCs**: Perfumers, alchemists, beekeepers
+- **Weather**: Dry, sunny, fragrant winds
+- **Music**: Calming and aromatic
+- **Difficulty Level**: 1-3
+
+### Oak Savanna
+- **ID**: oak_savanna
+- **Temperature Range**: 10 to 35
+- **Humidity**: Low
+- **Terrain Type**: Scattered ancient oaks across wide grasslands
+- **Resources**: Oak wood, acorns, wild boar, deer
+- **Enemies**: Boars, wolves, giant eagles, satyrs
+- **NPCs**: Rangers, druids, hunters
+- **Weather**: Hot days, cool nights, dry
+- **Music**: Adventurous and open
+- **Difficulty Level**: 2-4
+
+### Mossy Highlands
+- **ID**: mossy_highlands
+- **Temperature Range**: 2 to 18
+- **Humidity**: High
+- **Terrain Type**: Rocky highlands carpeted in thick moss and lichen
+- **Resources**: Peat, moss, rare lichens, bog iron
+- **Enemies**: Bog monsters, giant slugs, moss golems
+- **NPCs**: Peat cutters, herbalists, folklore keepers
+- **Weather**: Perpetual dampness, low clouds
+- **Music**: Mystical and damp
+- **Difficulty Level**: 3-5
+
+### Orchard Meadow
+- **ID**: orchard_meadow
+- **Temperature Range**: 8 to 26
+- **Humidity**: Medium
+- **Terrain Type**: Mixed meadows with fruit trees, streams, and wildflowers
+- **Resources**: Mixed fruits, wild herbs, honey, clay
+- **Enemies**: Foxes, field mice, fey creatures
+- **NPCs**: Farmers, beekeepers, bards
+- **Weather**: Pleasant, light breezes
+- **Music**: Pastoral and serene
+- **Difficulty Level**: 1-3
+
+### Autumn Woods
+- **ID**: autumn_woods
+- **Temperature Range**: 2 to 18
+- **Humidity**: Medium
+- **Terrain Type**: Deciduous forest in perpetual autumn with orange and red foliage
+- **Resources**: Maple syrup, autumn berries, fallow deer, fallen leaves
+- **Enemies**: Leaf golems, scarecrows, autumn wraiths
+- **NPCs**: Leaf collectors, pumpkin carvers, harvesters
+- **Weather**: Crisp, breezy, leaf rain
+- **Music**: Melancholic and warm
+- **Difficulty Level**: 3-5
+
+---
+
+## Hot Biomes
+
+### Sandy Desert
+- **ID**: sandy_desert
+- **Temperature Range**: 20 to 55
+- **Humidity**: Low
+- **Terrain Type**: Vast sand dunes with minimal vegetation and scorching heat
+- **Resources**: Sand, cacti, desert foxes, rare gems buried in sand
+- **Enemies**: Sand worms, scorpions, desert bandits, dust devils
+- **NPCs**: Nomads, treasure hunters, mirage spirits
+- **Weather**: Extreme heat, sandstorms, clear starry nights
+- **Music**: Middle Eastern-inspired and vast
+- **Difficulty Level**: 5-7
+
+### Rocky Desert
+- **ID**: rocky_desert
+- **Temperature Range**: 15 to 50
+- **Humidity**: Low
+- **Terrain Type**: Stony badlands with mesas, buttes, and scattered cacti
+- **Resources**: Stone, iron, desert herbs, rattlesnakes
+- **Enemies**: Rattlesnakes, rock golems, vultures, bandits
+- **NPCs**: prospectors, hermits, lizard folk
+- **Weather**: Hot days, cold nights, dust winds
+- **Music**: Harsh and barren
+- **Difficulty Level**: 4-6
+
+### Savanna
+- **ID**: savanna
+- **Temperature Range**: 20 to 40
+- **Humidity**: Low
+- **Terrain Type**: Wide grasslands with scattered acacia trees and termite mounds
+- **Resources**: Acacia wood, wildlife, tall grass, wild fruits
+- **Enemies**: Lions, hyenas, rhinos, poachers
+- **NPCs**: Tribal hunters, herbalists, guides
+- **Weather**: Dry season, wet season, hot winds
+- **Music**: Rhythmic and tribal
+- **Difficulty Level**: 4-6
+
+### Volcanic Wasteland
+- **ID**: volcanic_wasteland
+- **Temperature Range**: 30 to 80
+- **Humidity**: Low
+- **Terrain Type**: Scorched black rock with lava rivers and ash clouds
+- **Resources**: Obsidian, sulfur, volcanic glass, fire gems
+- **Enemies**: Fire elementals, lava snakes, salamanders, phoenixes
+- **NPCs**: Volcano priests, fire mages, miners
+- **Weather**: Ash fall, lava geysers, toxic fumes
+- **Music**: Intense and primal
+- **Difficulty Level**: 7-9
+
+### Lava Fields
+- **ID**: lava_fields
+- **Temperature Range**: 40 to 100
+- **Humidity**: Low
+- **Terrain Type**: Cooling lava flows with glowing cracks and heat shimmer
+- **Resources**: Cooled obsidian, fire crystals, heat-resistant materials
+- **Enemies**: Fire wyrms, magma golems, lava elementals
+- **NPCs**: Dragon worshippers, fireforged artisans
+- **Weather**: Extreme heat, fire rain, volcanic storms
+- **Music**: Percussive and dangerous
+- **Difficulty Level**: 8-10
+
+### Oasis
+- **ID**: oasis
+- **Temperature Range**: 20 to 40
+- **Humidity**: High
+- **Terrain Type**: Lush green paradise surrounded by desert with palm trees and pools
+- **Resources**: Fresh water, dates, palm wood, medicinal plants
+- **Enemies**: Desert raiders, crocodiles, giant scorpions
+- **NPCs**: Merchants, healers, water keepers
+- **Weather**: Hot but humid, refreshing breezes
+- **Music**: Refreshing and mystical
+- **Difficulty Level**: 3-5
+
+### Tropical Jungle
+- **ID**: tropical_jungle
+- **Temperature Range**: 22 to 38
+- **Humidity**: High
+- **Terrain Type**: Dense rainforest with towering trees, vines, and undergrowth
+- **Resources**: Tropical fruits, rare woods, medicinal herbs, parrots
+- **Enemies**: Jaguars, giant spiders, poison frogs, jungle trolls
+- **NPCs**: Jungle tribes, shamans, explorers
+- **Weather**: Daily rain, humid, misty mornings
+- **Music**: Exotic and wild
+- **Difficulty Level**: 5-7
+
+### Sulfur Springs
+- **ID**: sulfur_springs
+- **Temperature Range**: 25 to 60
+- **Humidity**: High
+- **Terrain Type**: Bubbling hot springs with yellow sulfur deposits and toxic pools
+- **Resources**: Sulfur, hot spring water, unique minerals, heat fungi
+- **Enemies**: Toxic slimes, gas elementals, mutated creatures
+- **NPCs**: Apothecaries, alchemists,温泉 monks
+- **Weather**: Toxic steam, yellow fog, hot mist
+- **Music**: Unsettling and bubbling
+- **Difficulty Level**: 6-8
+
+### Charred Plains
+- **ID**: charred_plains
+- **Temperature Range**: 15 to 45
+- **Humidity**: Low
+- **Terrain Type**: Fire-scarred grasslands with blackened soil and new growth
+- **Resources**: Charcoal, fire-resistant plants, phoenix ash
+- **Enemies**: Fire imps, ash zombies, burning spirits
+- **NPCs**: Fire watchers, regeneration mages, survivors
+- **Weather**: Hazy, smoky, occasional fire rain
+- **Music**: Somber and regenerative
+- **Difficulty Level**: 5-7
+
+### Sunbaked Canyon
+- **ID**: sunbaked_canyon
+- **Temperature Range**: 25 to 50
+- **Humidity**: Low
+- **Terrain Type**: Deep red rock canyons carved by ancient rivers with narrow trails
+- **Resources**: Red stone, copper, canyon birds, lizards, cave deposits
+- **Enemies**: Canyon hawks, rock snakes, bandits, rattlers
+- **NPCs**: Rangers, hermits, canyon dwellers
+- **Weather**: Hot, windy, flash flood risk
+- **Music**: Echoing and arid
+- **Difficulty Level**: 4-6
+
+---
+
+## Cold Biomes
+
+### Tundra
+- **ID**: tundra
+- **Temperature Range**: -30 to 5
+- **Humidity**: Low
+- **Terrain Type**: Flat treeless permafrost with moss and lichen
+- **Resources**: Reindeer, arctic foxes, moss, frozen berries
+- **Enemies**: Arctic wolves, polar bears, frost giants, ice wraiths
+- **NPCs**: Nomadic herders, ice fishers, shaman
+- **Weather**: Blizzards, auroras, bitter cold winds
+- **Music**: Lonely and expansive
+- **Difficulty Level**: 5-7
+
+### Ice Plains
+- **ID**: ice_plains
+- **Temperature Range**: -40 to -5
+- **Humidity**: Low
+- **Terrain Type**: Vast frozen landscapes with ice sheets and frozen rivers
+- **Resources**: Ice crystals, frozen fish, seal blubber, permafrost minerals
+- **Enemies**: Ice wolves, frost bears, ice elementals, snow serpents
+- **NPCs**: Ice fishers, fur traders, frozen monks
+- **Weather**: Whiteouts, ice storms, still frozen silence
+- **Music**: Cold and crystalline
+- **Difficulty Level**: 6-8
+
+### Snow Mountains
+- **ID**: snow_mountains
+- **Temperature Range**: -25 to 0
+- **Humidity**: Medium
+- **Terrain Type**: Towering snow-capped peaks with glaciers and ice caves
+- **Resources**: Snow leopards, alpine herbs, glacier ice, diamonds
+- **Enemies**: Yetis, ice dragons, frost giants, mountain spirits
+- **NPCs**: Mountain monks, hermits, ice mages
+- **Weather**: Avalanches, snowstorms, clear mountain air
+- **Music**: Majestic and frozen
+- **Difficulty Level**: 7-9
+
+### Frozen Lake
+- **ID**: frozen_lake
+- **Temperature Range**: -30 to 0
+- **Humidity**: Medium
+- **Terrain Type**: Vast frozen lakes with ice fishing holes and submerged structures
+- **Resources**: Ice fish, frozen pearls, clear ice, rare minerals beneath ice
+- **Enemies**: Ice worms, frozen undead, lake wraiths, frost spirits
+- **NPCs**: Ice fishermen, frozen spirits, ice sculptors
+- **Weather**: Still, cold, occasional ice cracks
+- **Music**: Eerie and quiet
+- **Difficulty Level**: 5-7
+
+### Frost Forest
+- **ID**: frost_forest
+- **Temperature Range**: -20 to 5
+- **Humidity**: Medium
+- **Terrain Type**: Snow-laden evergreen forests with frozen streams
+- **Resources**: Frostwood, snow berries, frozen timber, ice crystals
+- **Enemies**: Ice wolves, frost spiders, snow golems, wendigos
+- **NPCs**: Rangers, ice druids, frost witches
+- **Weather**: Snowfall, freezing fog, crisp air
+- **Music**: Haunting and beautiful
+- **Difficulty Level**: 5-7
+
+### Blizzard Wastes
+- **ID**: blizzard_wastes
+- **Temperature Range**: -50 to -10
+- **Humidity**: Low
+- **Terrain Type**: Featureless frozen wastelands with perpetual blizzards
+- **Resources**: Frozen bones, ice gems, hardy herbs, frozen meat
+- **Enemies**: Blizzard elementals, ice wraiths, frost worms, frozen horrors
+- **NPCs**: Lost souls, ice witches, frostforged warriors
+- **Weather**: Constant blizzard, zero visibility, howling winds
+- **Music**: Dark and relentless
+- **Difficulty Level**: 8-10
+
+### Frozen Tundra
+- **ID**: frozen_tundra
+- **Temperature Range**: -35 to -5
+- **Humidity**: Low
+- **Terrain Type**: Frozen flatlands with ice ridges and permafrost mounds
+- **Resources**: Mammoth bones, frost berries, ice ore, frozen herbs
+- **Enemies**: Mammoths, ice elementals, frost berserkers, snow stalkers
+- **NPCs**: Ice nomads, frost shamans, mammoth riders
+- **Weather**: Bitter cold, ice winds, northern lights
+- **Music**: Primal and icy
+- **Difficulty Level**: 6-8
+
+### Glacial Caves
+- **ID**: glacial_caves
+- **Temperature Range**: -15 to 0
+- **Humidity**: High
+- **Terrain Type**: Ice caverns with stalactites, frozen underground lakes, and geothermal vents
+- **Resources**: Ice crystals, frozen gems, rare fungi, glacier water
+- **Enemies**: Ice bats, frost golems, cave worms, frozen dragons
+- **NPCs**: Ice miners, frozen spirits, crystal mages
+- **Weather**: Constant cold, dripping water, ice collapses
+- **Music**: Echoing and mysterious
+- **Difficulty Level**: 7-9
+
+### Snowfield
+- **ID**: snowfield
+- **Temperature Range**: -20 to 2
+- **Humidity**: Medium
+- **Terrain Type**: Wide open snow-covered plains with gentle drifts
+- **Resources**: Snow hares, frost flowers, buried treasure, ice mushrooms
+- **Enemies**: Snow wolves, ice bears, frost spirits, snow trolls
+- **NPCs**: Snow hunters, travelers, ice sculptors
+- **Weather**: Snowfall, wind, occasional clear skies
+- **Music**: Peaceful but cold
+- **Difficulty Level**: 4-6
+
+### Permafrost Peaks
+- **ID**: permafrost_peaks
+- **Temperature Range**: -40 to -10
+- **Humidity**: Low
+- **Terrain Type**: Jagged frozen peaks with permanent ice and exposed rock
+- **Resources**: Permafrost crystals, ice dragonscales, frozen artifacts
+- **Enemies**: Ice dragons, frost giants, permafrost golems, cold wraiths
+- **NPCs**: Dragon slayers, frostforged smiths, mountain oracles
+- **Weather**: Extreme cold, ice storms, frozen lightning
+- **Music**: Epic and glacial
+- **Difficulty Level**: 8-10
+
+---
+
+## Wet Biomes
+
+### Swamp
+- **ID**: swamp
+- **Temperature Range**: 10 to 30
+- **Humidity**: High
+- **Terrain Type**: Waterlogged terrain with murky water, dead trees, and thick mud
+- **Resources**: Peat, medicinal herbs, frogs, willow bark, bog iron
+- **Enemies**: Swamp trolls, giant leeches, plague toads, will-o-wisps
+- **NPCs**: Swamp witches, herbalists, outcasts
+- **Weather**: Foggy, humid, mosquito swarms
+- **Music**: Eerie and murky
+- **Difficulty Level**: 4-6
+
+### Marsh
+- **ID**: marsh
+- **Temperature Range**: 5 to 28
+- **Humidity**: High
+- **Terrain Type**: Shallow waterways with tall reeds, cattails, and muddy banks
+- **Resources**: Reeds, cattails, waterfowl, clay, marsh gas
+- **Enemies**: Marsh harpies, mud elementals, snapping turtles, bandits
+- **NPCs**: Reed weavers, duck hunters, marsh guides
+- **Weather**: Misty, overcast, humid
+- **Music**: Suspenseful and damp
+- **Difficulty Level**: 3-5
+
+### Mangrove Forest
+- **ID**: mangrove_forest
+- **Temperature Range**: 20 to 35
+- **Humidity**: High
+- **Terrain Type**: Coastal forest with tangled roots in brackish tidal water
+- **Resources**: Mangrove wood, crabs, shellfish, tropical fish, salt
+- **Enemies**: Crocodiles, water snakes, mangrove spirits, pirates
+- **NPCs**: Fishermen, crab catchers, coastal shamans
+- **Weather**: Tidal changes, humid, tropical rain
+- **Music**: Rhythmic and tidal
+- **Difficulty Level**: 4-6
+
+### Coral Reef
+- **ID**: coral_reef
+- **Temperature Range**: 18 to 30
+- **Humidity**: High
+- **Terrain Type**: Underwater coral formations with colorful marine life
+- **Resources**: Coral, pearls, tropical fish, seaweed, shells
+- **Enemies**: Sharks, jellyfish, sea serpents, pirate ghosts
+- **NPCs**: Merfolk, divers, coral mages
+- **Weather**: Underwater currents, clear visibility, occasional storms above
+- **Music**: Aquatic and vibrant
+- **Difficulty Level**: 5-7
+
+### Deep Ocean
+- **ID**: deep_ocean
+- **Temperature Range**: 1 to 15
+- **Humidity**: High
+- **Terrain Type**: Abyssal depths with bioluminescent creatures and deep trenches
+- **Resources**: Deep sea pearls, rare minerals, abyssal fish, ancient artifacts
+- **Enemies**: Giant squid, deep sea leviathans, abyssal horrors, kraken
+- **NPCs**: Deep sea dwellers, ancient beings, lost sailors
+- **Weather**: Crushing pressure, darkness, bioluminescence
+- **Music**: Deep and alien
+- **Difficulty Level**: 8-10
+
+### Flooded Ruins
+- **ID**: flooded_ruins
+- **Temperature Range**: 5 to 25
+- **Humidity**: High
+- **Terrain Type**: Submerged ancient cities with crumbling architecture and treasure
+- **Resources**: Ancient artifacts, sunken gold, magical relics, coral growth
+- **Enemies**: Undead sailors, water elementals, giant crabs, sirens
+- **NPCs**: Ghost historians, treasure divers, sunken gods
+- **Weather**: Underwater currents, eerie silence, occasional bubbles
+- **Music**: Haunting and submerged
+- **Difficulty Level**: 6-8
+
+### Bog
+- **ID**: bog
+- **Temperature Range**: 2 to 22
+- **Humidity**: High
+- **Terrain Type**: Spongy peat terrain with acidic water and preserved remains
+- **Resources**: Peat, preserved artifacts, rare moss, bog iron
+- **Enemies**: Bog mummies, acid slimes, mosquitoes, bog beasts
+- **NPCs**: Bog witches, peat cutters, archaeologists
+- **Weather**: Perpetually overcast, damp, cold mists
+- **Music**: Somber and preserved
+- **Difficulty Level**: 5-7
+
+### Mangrove Bayou
+- **ID**: mangrove_bayou
+- **Temperature Range**: 18 to 32
+- **Humidity**: High
+- **Terrain Type**: Southern-style bayou with cypress trees and Spanish moss
+- **Resources**: Cypress wood, crawfish, alligators, Spanish moss, herbs
+- **Enemies**: Bayou gators, swamp ghosts, rougarou, voodoo spirits
+- **NPCs**: Bayou fishermen, voodoo practitioners, Cajun cooks
+- **Weather**: Hot, humid, afternoon thunderstorms
+- **Music**: Bluesy and mysterious
+- **Difficulty Level**: 4-6
+
+### Quicksand Marsh
+- **ID**: quicksand_marsh
+- **Temperature Range**: 10 to 35
+- **Humidity**: High
+- **Terrain Type**: Deceptive terrain with hidden quicksand pits and unstable ground
+- **Resources**: Rare herbs, hidden treasures, safe-path crystals
+- **Enemies**: Quicksand worms, sand drakes, marsh bandits, sinkhole spirits
+- **NPCs**: Marsh guides, treasure hunters, warning criers
+- **Weather**: Hot, deceptive calm, sudden sinkholes
+- **Music**: Tense and uncertain
+- **Difficulty Level**: 5-7
+
+### Lily Pond
+- **ID**: lily_pond
+- **Temperature Range**: 10 to 28
+- **Humidity**: High
+- **Terrain Type**: Serene freshwater ponds covered in lily pads with frog inhabitants
+- **Resources**: Lily pads, frogs, dragonflies, water mint, lotus flowers
+- **Enemies**: Giant frogs, pond snakes, water sprites, leeches
+- **NPCs**: Frog shamans, lotus monks, pond keepers
+- **Weather**: Still, warm, firefly nights
+- **Music**: Peaceful and amphibian
+- **Difficulty Level**: 2-4
+
+---
+
+## Magical Biomes
+
+### Floating Islands
+- **ID**: floating_islands
+- **Temperature Range**: 10 to 25
+- **Humidity**: Medium
+- **Terrain Type**: Aerial islands suspended in clouds with waterfalls and magical flora
+- **Resources**: Sky crystals, cloud silk, wind gems, floating wood, rare birds
+- **Enemies**: Sky drakes, cloud elementals, harpies, wind wraiths
+- **NPCs**: Sky mages, cloud merchants, wind monks
+- **Weather**: Constant wind, cloud cover, magical auroras
+- **Music**: Ethereal and uplifting
+- **Difficulty Level**: 6-8
+
+### Crystal Caves
+- **ID**: crystal_caves
+- **Temperature Range**: 10 to 20
+- **Humidity**: Medium
+- **Terrain Type**: Underground caverns filled with glowing crystals and mineral formations
+- **Resources**: Crystals, gemstones, crystal shards, luminous fungi, rare minerals
+- **Enemies**: Crystal golems, gem spiders, light elementals, cave dwellers
+- **NPCs**: Crystal miners, gem mages, cave hermits
+- **Weather**: Still, bioluminescent, occasional crystal collapses
+- **Music**: Shimmering and resonant
+- **Difficulty Level**: 5-7
+
+### Shadow Realm
+- **ID**: shadow_realm
+- **Temperature Range**: -10 to 10
+- **Humidity**: Medium
+- **Terrain Type**: Dark dimension of twisted shadows, impossible geometry, and void
+- **Resources**: Shadow essence, void crystals, dark matter, nightmare shards
+- **Enemies**: Shadow wraiths, void beasts, nightmare horses, darkness elementals
+- **NPCs**: Shadow mages, lost souls, void walkers
+- **Weather**: Eternal darkness, void storms, reality distortions
+- **Music**: Dark and unsettling
+- **Difficulty Level**: 8-10
+
+### Aether
+- **ID**: aether
+- **Temperature Range**: 15 to 25
+- **Humidity**: Medium
+- **Terrain Type**: Celestial realm of pure light, floating platforms, and divine architecture
+- **Resources**: Aether crystals, holy water, divine light, celestial metals
+- **Enemies**: Fallen angels, aether wraiths, divine constructs, light elementals
+- **NPCs**: Celestial beings, angelic warriors, divine oracles
+- **Weather**: Perfect clarity, divine light, occasional light rain
+- **Music**: Orchestral and divine
+- **Difficulty Level**: 7-9
+
+### Void
+- **ID**: void
+- **Temperature Range**: -100 to 100
+- **Humidity**: Low
+- **Terrain Type**: Empty dimension of nothingness with occasional reality tears
+- **Resources**: Void essence, reality shards, dimensional fragments, nothingness
+- **Enemies**: Void worms, reality breakers, entropy elementals, nothing itself
+- **NPCs**: Void mages, dimension walkers, lost gods
+- **Weather**: Nothing, silence, occasional void storms
+- **Music**: Absence and minimalism
+- **Difficulty Level**: 9-10
+
+### Enchanted Forest
+- **ID**: enchanted_forest
+- **Temperature Range**: 10 to 25
+- **Humidity**: Medium
+- **Terrain Type**: Magical woodland with glowing plants, fairy rings, and talking trees
+- **Resources**: Fairy dust, enchanted wood, magic mushrooms, speaking stones
+- **Enemies**: Dark fairies, corrupted sprites, wicked witches, shadow beasts
+- **NPCs**: Fairy queens, elf lords, forest spirits, wizards
+- **Weather**: Magical mist, glowing nights, fairy rain
+- **Music**: Mystical and enchanting
+- **Difficulty Level**: 5-7
+
+### Mana Fields
+- **ID**: mana_fields
+- **Temperature Range**: 10 to 28
+- **Humidity**: Medium
+- **Terrain Type**: Open fields radiating raw magical energy with glowing flora
+- **Resources**: Mana crystals, magical herbs, spell components, energy pools
+- **Enemies**: Mana elementals, spell eaters, magic beasts, paradox creatures
+- **NPCs**: Mana harvesters, spell weavers, magic researchers
+- **Weather**: Magical storms, mana rain, reality shifts
+- **Music**: Pulsing and magical
+- **Difficulty Level**: 6-8
+
+### Spirit World
+- **ID**: spirit_world
+- **Temperature Range**: 0 to 20
+- **Humidity**: Medium
+- **Terrain Type**: Ethereal plane where spirits dwell with translucent landscapes
+- **Resources**: Spirit essence, ghost orchids, ethereal silk, soul gems
+- **Enemies**: Corrupted spirits, soul eaters, ghost wolves, phantom warriors
+- **NPCs**: Spirit guides, ancestral ghosts, shaman visionaries
+- **Weather**: Ethereal mist, spirit rain, ghost lights
+- **Music**: Otherworldly and haunting
+- **Difficulty Level**: 6-8
+
+### Demon Lands
+- **ID**: demon_lands
+- **Temperature Range**: 30 to 70
+- **Humidity**: Low
+- **Terrain Type**: Hellish landscape with fire, brimstone, and tortured earth
+- **Resources**: Demon horns, infernal iron, brimstone, hellfire crystals
+- **Enemies**: Demons, imps, hellhounds, fallen angels, demon lords
+- **NPCs**: Demon hunters, warlocks, tormented souls
+- **Weather**: Fire rain, brimstone storms, eternal heat
+- **Music**: Intense and infernal
+- **Difficulty Level**: 8-10
+
+### Fey Crossing
+- **ID**: fey_crossing
+- **Temperature Range**: 12 to 25
+- **Humidity**: Medium
+- **Terrain Type**: Magical woodland where reality bends and time flows differently
+- **Resources**: Fey berries, mushroom rings, fairy gold, temporal flowers
+- **Enemies**: Unseelie fey, satyrs, trickster spirits, time anomalies
+- **NPCs**: Seelie court, fey lords, goblin merchants
+- **Weather**: Perpetual twilight, magical auroras, fairy mists
+- **Music**: Whimsical and dangerous
+- **Difficulty Level**: 5-7
+
+### Arcane Library
+- **ID**: arcane_library
+- **Temperature Range**: 15 to 22
+- **Humidity**: Low
+- **Terrain Type**: Infinite magical library with shifting shelves and living books
+- **Resources**: Ancient scrolls, spell books, knowledge crystals, enchanted ink
+- **Enemies**: Book golems, knowledge eaters, cursed texts, library wraiths
+- **NPCs**: Librarians, scholars, archmages, sentient books
+- **Weather**: Still, dusty, occasional paper storms
+- **Music**: Quiet and scholarly
+- **Difficulty Level**: 4-7
+
+### Elemental Chaos
+- **ID**: elemental_chaos
+- **Temperature Range**: -50 to 100
+- **Humidity**: Variable
+- **Terrain Type**: Reality-warped landscape where all four elements collide and shift
+- **Resources**: Elemental cores, chaos crystals, reality shards, primal essence
+- **Enemies**: Elemental lords, chaos beasts, void spawns, paradox elementals
+- **NPCs**: Chaos mages, elemental binders, reality anchors
+- **Weather**: Constant elemental storms, reality tears, time loops
+- **Music**: Chaotic and intense
+- **Difficulty Level**: 9-10
+
+### Celestial Gardens
+- **ID**: celestial_gardens
+- **Temperature Range**: 15 to 25
+- **Humidity**: Medium
+- **Terrain Type**: Divine gardens with flowers of light, crystal streams, and golden paths
+- **Resources**: Celestial flowers, starlight essence, golden fruit, divine herbs
+- **Enemies**: Fallen stars, corrupted angels, light wraiths, divine beasts
+- **NPCs**: Celestial beings, angelic gardeners, divine healers
+- **Weather**: Perfect clarity, gentle divine light, stardust rain
+- **Music**: Serene and divine
+- **Difficulty Level**: 6-8
+
+### Dream Realm
+- **ID**: dream_realm
+- **Temperature Range**: 10 to 30
+- **Humidity**: Medium
+- **Terrain Type**: Surreal landscape of impossible architecture and shifting perspectives
+- **Resources**: Dream silk, nightmare crystals, subconscious gems, lucid shards
+- **Enemies**: Nightmares, dream catchers, sleep parasites, mind flayers
+- **NPCs**: Dream weavers, sleeping prophets, lucid guides
+- **Weather**: Dreamlogic, impossible weather, time distortion
+- **Music**: Surreal and shifting
+- **Difficulty Level**: 5-8
+
+### Time Rift
+- **ID**: time_rift
+- **Temperature Range**: -20 to 40
+- **Humidity**: Variable
+- **Terrain Type**: Fractured temporal landscape with past, present, and future overlapping
+- **Resources**: Temporal crystals, chronoshards, era relics, time fragments
+- **Enemies**: Temporal paradoxes, time wraiths, era beasts, chronoclasm
+- **NPCs**: Time travelers, chronomancers, temporal refugees
+- **Weather**: Time storms, era shifts, temporal fog
+- **Music**: Disorienting and temporal
+- **Difficulty Level**: 8-10
+
+### Bone Fields
+- **ID**: bone_fields
+- **Temperature Range**: 0 to 15
+- **Humidity**: Low
+- **Terrain Type**: Plains of ancient bones, skeletal trees, and death energy
+- **Resources**: Bone dust, necrotic essence, death crystals, soul fragments
+- **Enemies**: Skeleton warriors, bone golems, death knights, liches
+- **NPCs**: Necromancers, death priests, undead scholars
+- **Weather**: Death fog, bone rain, cold wind
+- **Music**: Grim and deathly
+- **Difficulty Level**: 7-9
+
+### Mana Stormlands
+- **ID**: mana_stormlands
+- **Temperature Range**: 5 to 35
+- **Humidity**: Medium
+- **Terrain Type**: Magical wasteland ravaged by perpetual mana storms
+- **Resources**: Mana crystals, storm glass, lightning rods, wild magic
+- **Enemies**: Storm elementals, mana beasts, lightning wraiths, chaos creatures
+- **NPCs**: Storm mages, mana harvesters, lightning monks
+- **Weather**: Constant mana storms, lightning, wild magic surges
+- **Music**: Electric and volatile
+- **Difficulty Level**: 7-9
+
+### Whispering Marshes
+- **ID**: whispering_marshes
+- **Temperature Range**: 5 to 25
+- **Humidity**: High
+- **Terrain Type**: Haunted wetlands where the dead whisper and shadows move
+- **Resources**: Ghost orchids, whisper reeds, shadow essence, spirit herbs
+- **Enemies**: Ghosts, will-o-wisps, shadow stalkers, haunted spirits
+- **NPCs**: Spirit mediums, ghost hunters, undead priests
+- **Weather**: Foggy, whispering winds, ghost lights
+- **Music**: Eerie and whispering
+- **Difficulty Level**: 5-7
+
+---
+
+## Summary
+
+| Category | Count |
+|----------|-------|
+| Temperate Biomes | 16 |
+| Hot Biomes | 10 |
+| Cold Biomes | 10 |
+| Wet Biomes | 10 |
+| Magical Biomes | 16 |
+| **Total** | **62** |

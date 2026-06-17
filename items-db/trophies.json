@@ -1,0 +1,383 @@
+[
+  {
+    "name": "Goblin Skull",
+    "Category": "Combat",
+    "Rarity": "Common",
+    "Requirement": "Defeat 50 goblins",
+    "Effect": "+5% damage vs humanoid enemies",
+    "Description": "A yellowed skull with jagged teeth, mounted on a rough wooden plaque.",
+    "id": 1,
+    "_src_id": "goblin_skull"
+  },
+  {
+    "name": "Dragon Head",
+    "Category": "Combat",
+    "Rarity": "Epic",
+    "Requirement": "Slay an Ancient Dragon",
+    "Effect": "+15% fire resistance, intimidating aura",
+    "Description": "A massive crimson head with scales that shimmer like rubies, eyes still glowing faintly.",
+    "id": 2,
+    "_src_id": "dragon_head"
+  },
+  {
+    "name": "Werewolf Fang",
+    "Category": "Combat",
+    "Rarity": "Uncommon",
+    "Requirement": "Defeat a Werewolf during a full moon",
+    "Effect": "+10% damage at night",
+    "Description": "A curved ivory fang, stained with dried blood, set in a silver frame.",
+    "id": 3,
+    "_src_id": "werewolf_fang"
+  },
+  {
+    "name": "Lich Crown",
+    "Category": "Combat",
+    "Rarity": "Legendary",
+    "Requirement": "Destroy a Lich and its phylactery",
+    "Effect": "+20% magic resistance, undead fear aura",
+    "Description": "A tarnished iron crown adorned with black gemstones that pulse with necrotic energy.",
+    "id": 4,
+    "_src_id": "lich_crown"
+  },
+  {
+    "name": "Troll Severed Arm",
+    "Category": "Combat",
+    "Rarity": "Uncommon",
+    "Requirement": "Cleave off a troll's arm",
+    "Effect": "Regeneration +5 HP/sec when displayed",
+    "Description": "A grotesque green limb, still twitching, nailed to a slab of petrified wood.",
+    "id": 5,
+    "_src_id": "troll_arm"
+  },
+  {
+    "name": "Hydra Skull",
+    "Category": "Combat",
+    "Rarity": "Rare",
+    "Requirement": "Defeat a multi-headed Hydra",
+    "Effect": "Multi-strike chance +10%",
+    "Description": "A massive bleached skull with seven empty eye sockets, each carved with ancient runes.",
+    "id": 6,
+    "_src_id": "hydra_skull"
+  },
+  {
+    "name": "Minotaur Horn",
+    "Category": "Combat",
+    "Rarity": "Uncommon",
+    "Requirement": "Kill a Minotaur in its own labyrinth",
+    "Effect": "+8% maze navigation speed",
+    "Description": "A spiraling obsidian horn, heavy and sharp, wrapped in leather cord.",
+    "id": 7,
+    "_src_id": "minotaur_horn"
+  },
+  {
+    "name": "Vampire Heart",
+    "Category": "Combat",
+    "Rarity": "Rare",
+    "Requirement": "Defeat a Vampire Lord",
+    "Effect": "Lifesteal +3% on all attacks",
+    "Description": "A crystallized heart encased in red amber, beating slowly when touched.",
+    "id": 8,
+    "_src_id": "vampire_heart"
+  },
+  {
+    "name": "Skeleton Warlord's Shield",
+    "Category": "Combat",
+    "Rarity": "Rare",
+    "Requirement": "Defeat the Skeleton Warlord",
+    "Effect": "+12% block chance",
+    "Description": "A dented iron shield emblazoned with a cracked bone crest, still bearing claw marks.",
+    "id": 9,
+    "_src_id": "skeleton_shield"
+  },
+  {
+    "name": "Beholder Eye Stalk",
+    "Category": "Combat",
+    "Rarity": "Epic",
+    "Requirement": "Sever an eye stalk from a Beholder",
+    "Effect": "+15% spell accuracy",
+    "Description": "A writhing stalk with a milky eye at its tip, frozen mid-gaze, radiating arcane dread.",
+    "id": 10,
+    "_src_id": "beholder_eye"
+  },
+  {
+    "name": "Orc War Chief's Banner",
+    "Category": "Combat",
+    "Rarity": "Common",
+    "Requirement": "Defeat an Orc War Chief",
+    "Effect": "+5% morale bonus in group fights",
+    "Description": "A tattered blood-red banner with a crude white skull painted on it.",
+    "id": 11,
+    "_src_id": "orc_banner"
+  },
+  {
+    "name": "Basilisk Fang",
+    "Category": "Combat",
+    "Rarity": "Rare",
+    "Requirement": "Survive a Basilisk's petrifying gaze",
+    "Effect": "Petrification immunity",
+    "Description": "A long, crystalline fang that refracts light into rainbow patterns, cold to the touch.",
+    "id": 12,
+    "_src_id": "basilisk_fang"
+  },
+  {
+    "name": "Ancient Artifact",
+    "Category": "Exploration",
+    "Rarity": "Rare",
+    "Requirement": "Discover a hidden ruin from the Old Kingdom",
+    "Effect": "+10% lore discovery chance",
+    "Description": "A golden disc etched with celestial maps, warm and humming with forgotten power.",
+    "id": 13,
+    "_src_id": "ancient_artifact"
+  },
+  {
+    "name": "Lost Treasure of Elara",
+    "Category": "Exploration",
+    "Rarity": "Epic",
+    "Requirement": "Find the Sunken Vault of Elara",
+    "Effect": "+25% gold find rate",
+    "Description": "A chest overflowing with coins from a fallen empire, gems glinting like starlight.",
+    "id": 14,
+    "_src_id": "lost_treasure"
+  },
+  {
+    "name": "Deep Sea Pearl",
+    "Category": "Exploration",
+    "Rarity": "Rare",
+    "Requirement": "Reach the ocean floor in the Abyssal Trench",
+    "Effect": "Underwater breathing extended by 50%",
+    "Description": "A luminous pearl the size of a fist, swirling with bioluminescent blue light.",
+    "id": 15,
+    "_src_id": "deep_sea_pearl"
+  },
+  {
+    "name": "Map of the Forgotten Lands",
+    "Category": "Exploration",
+    "Rarity": "Uncommon",
+    "Requirement": "Recover a map from a shipwreck",
+    "Effect": "Reveals hidden paths on the world map",
+    "Description": "A water-stained parchment with ink that shifts to reveal new locations over time.",
+    "id": 16,
+    "_src_id": "forgotten_map"
+  },
+  {
+    "name": "Starfall Meteorite",
+    "Category": "Exploration",
+    "Rarity": "Epic",
+    "Requirement": "Witness and retrieve a meteorite impact",
+    "Effect": "+20% cosmic damage resistance",
+    "Description": "A jagged black rock still warm from its descent, threaded with veins of silver.",
+    "id": 17,
+    "_src_id": "starfall_meteorite"
+  },
+  {
+    "name": "Whispering Compass",
+    "Category": "Exploration",
+    "Rarity": "Rare",
+    "Requirement": "Solve the puzzle of the Lost Temple",
+    "Effect": "Points toward nearest secret location",
+    "Description": "A brass compass whose needle spins toward secrets, whispering directions in an unknown tongue.",
+    "id": 18,
+    "_src_id": "whispering_compass"
+  },
+  {
+    "name": "Phoenix Feather",
+    "Category": "Exploration",
+    "Rarity": "Legendary",
+    "Requirement": "Find the Nest of the Eternal Phoenix",
+    "Effect": "Auto-resurrect once per day with full health",
+    "Description": "A blazing feather that never extinguishes, radiating warmth and the scent of ash and flowers.",
+    "id": 19,
+    "_src_id": "phoenix_feather"
+  },
+  {
+    "name": "Crystal of Convergence",
+    "Category": "Exploration",
+    "Rarity": "Uncommon",
+    "Requirement": "Reach the geographic center of the world",
+    "Effect": "Teleportation cooldown reduced by 20%",
+    "Description": "A multifaceted crystal that hums in harmony with ley lines, refracting light into prismatic displays.",
+    "id": 20,
+    "_src_id": "crystal_convergence"
+  },
+  {
+    "name": "Masterwork Weapon",
+    "Category": "Crafting",
+    "Rarity": "Rare",
+    "Requirement": "Forge a weapon with a quality score of 100",
+    "Effect": "All crafted weapons gain +10% damage",
+    "Description": "A flawless blade of damascus steel, its edge sharp enough to split a hair mid-fall.",
+    "id": 21,
+    "_src_id": "masterwork_weapon"
+  },
+  {
+    "name": "Perfect Potion",
+    "Category": "Crafting",
+    "Rarity": "Uncommon",
+    "Requirement": "Brew a potion with zero flaws",
+    "Effect": "+15% potion effectiveness",
+    "Description": "A crystal vial containing liquid that swirls with every color of the spectrum, perfectly balanced.",
+    "id": 22,
+    "_src_id": "perfect_potion"
+  },
+  {
+    "name": "Adamantine Ingot",
+    "Category": "Crafting",
+    "Rarity": "Epic",
+    "Requirement": "Smelt pure adamantine ore",
+    "Effect": "Crafted armor gains +20% durability",
+    "Description": "A dense, dark ingot that absorbs light, impossibly heavy for its size.",
+    "id": 23,
+    "_src_id": "adamantine_ingot"
+  },
+  {
+    "name": "Enchanted Loom",
+    "Category": "Crafting",
+    "Rarity": "Rare",
+    "Requirement": "Weave fabric imbued with living magic",
+    "Effect": "Crafted clothing provides +10% magic resistance",
+    "Description": "A wooden loom threaded with starlight, producing cloth that shifts patterns on its own.",
+    "id": 24,
+    "_src_id": "enchanted_loom"
+  },
+  {
+    "name": "Dragon Scale Hammer",
+    "Category": "Crafting",
+    "Rarity": "Rare",
+    "Requirement": "Craft a tool using dragon scales",
+    "Effect": "Crafting speed +25%",
+    "Description": "A heavy smithing hammer wrapped in iridescent dragon scales, resonating with primal heat.",
+    "id": 25,
+    "_src_id": "dragon_scale_hammer"
+  },
+  {
+    "name": "Alchemist's Crown",
+    "Category": "Crafting",
+    "Rarity": "Legendary",
+    "Requirement": "Master all alchemical recipes",
+    "Effect": "Crafted potions have a chance to double in potency",
+    "Description": "A circlet of intertwined silver tubes and vials, each containing a different colored reagent.",
+    "id": 26,
+    "_src_id": "alchemist_crown"
+  },
+  {
+    "name": "Friends of the Tavern",
+    "Category": "Social",
+    "Rarity": "Common",
+    "Requirement": "Befriend all tavern patrons in a single town",
+    "Effect": "+10% discount at all taverns",
+    "Description": "A wooden tankard engraved with tiny portraits of smiling faces, warm to the touch.",
+    "id": 27,
+    "_src_id": "friends_tavern"
+  },
+  {
+    "name": "Silver Tongue",
+    "Category": "Social",
+    "Rarity": "Uncommon",
+    "Requirement": "Win 10 persuasion checks in a row",
+    "Effect": "+8% charisma bonus",
+    "Description": "A small silver whistle shaped like a tongue, amplifying the wearer's voice with charm.",
+    "id": 28,
+    "_src_id": "silver_tongue"
+  },
+  {
+    "name": "King's Favor",
+    "Category": "Social",
+    "Rarity": "Legendary",
+    "Requirement": "Complete a quest directly for the monarch",
+    "Effect": "Access to royal guard companions",
+    "Description": "A golden seal bearing the king's personal crest, granting audience at any time.",
+    "id": 29,
+    "_src_id": "kings_favor"
+  },
+  {
+    "name": "Peacemaker's Medallion",
+    "Category": "Social",
+    "Rarity": "Rare",
+    "Requirement": "Resolve a war through diplomacy",
+    "Effect": "+15% success on negotiation checks",
+    "Description": "A tarnished bronze medallion depicting two hands clasped, warm and calming.",
+    "id": 30,
+    "_src_id": "peacemaker_medallion"
+  },
+  {
+    "name": "Black Market Badge",
+    "Category": "Social",
+    "Rarity": "Uncommon",
+    "Requirement": "Gain trust of the Thieves' Guild",
+    "Effect": "Access to illegal vendors",
+    "Description": "A small iron token with a shadowy figure, recognized by those who lurk in alleys.",
+    "id": 31,
+    "_src_id": "black_market_badge"
+  },
+  {
+    "name": "Hidden Room Discovery",
+    "Category": "Secret",
+    "Rarity": "Rare",
+    "Requirement": "Find a secret room not marked on any map",
+    "Effect": "+10% chance to find hidden passages",
+    "Description": "A dusty stone key that fits no known lock, etched with the symbol of an open door.",
+    "id": 32,
+    "_src_id": "hidden_room"
+  },
+  {
+    "name": "Developer's Blessing",
+    "Category": "Secret",
+    "Rarity": "Mythic",
+    "Requirement": "Type the command \"I believe in you\" at the title screen",
+    "Effect": "+50% experience gain for 24 hours",
+    "Description": "A shimmering blue orb containing a message: \"Thanks for playing. You matter.\"",
+    "id": 33,
+    "_src_id": "developer_blessing"
+  },
+  {
+    "name": "The Unkillable Rat",
+    "Category": "Secret",
+    "Rarity": "Epic",
+    "Requirement": "Fail to kill the same rat 10 times",
+    "Effect": "Summon a loyal rat companion",
+    "Description": "A tiny golden rat statue with a mischievous grin, somehow always moving when you look away.",
+    "id": 34,
+    "_src_id": "unkillable_rat"
+  },
+  {
+    "name": "Mirror World Access",
+    "Category": "Secret",
+    "Rarity": "Legendary",
+    "Requirement": "Find and enter the Reflection Gate",
+    "Effect": "Unlock the inverted world zone",
+    "Description": "A cracked mirror shard reflecting a world where everything is reversed, beautiful and terrifying.",
+    "id": 35,
+    "_src_id": "mirror_world"
+  },
+  {
+    "name": "The Final Password",
+    "Category": "Secret",
+    "Rarity": "Mythic",
+    "Requirement": "Discover the 7 hidden words across all zones",
+    "Effect": "Unlocks the true ending path",
+    "Description": "A scroll that remains perpetually blank until the correct word is spoken, then glows with golden text.",
+    "id": 36,
+    "_src_id": "final_password"
+  },
+  {
+    "name": "Developer's Easter Egg",
+    "Category": "Secret",
+    "Rarity": "Mythic",
+    "Requirement": "Find the hidden room in the tutorial area and interact with the developers' memorial",
+    "Effect": "Permanent +5% to all stats",
+    "Description": "A small bronze plaque reading \"In memory of the bugs that made us stronger,\" surrounded by flowers.",
+    "id": 37,
+    "_src_id": "developer_easter_egg"
+  },
+  {
+    "name": "Rarity Distribution",
+    "Common": "3",
+    "Uncommon": "8",
+    "Rare": "12",
+    "Epic": "7",
+    "Legendary": "5",
+    "Mythic": "3",
+    "id": 38,
+    "_src_id": null
+  }
+]

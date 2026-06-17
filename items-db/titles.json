@@ -1,0 +1,938 @@
+[
+  {
+    "name": "Novice Fighter",
+    "Rarity": "Common",
+    "Requirement": "Win 10 combat encounters",
+    "Bonus Effect": "+2% Melee Damage",
+    "Description": "Every legend begins with a single swing.",
+    "id": 1,
+    "_src_id": "novice_fighter"
+  },
+  {
+    "name": "Seasoned Warrior",
+    "Rarity": "Common",
+    "Requirement": "Win 50 combat encounters",
+    "Bonus Effect": "+5% Melee Damage",
+    "Description": "The battlefield is now your second home.",
+    "id": 2,
+    "_src_id": "seasoned_warrior"
+  },
+  {
+    "name": "Battle-Hardened Veteran",
+    "Rarity": "Uncommon",
+    "Requirement": "Win 150 combat encounters",
+    "Bonus Effect": "+8% Melee Damage, +3% Damage Resistance",
+    "Description": "Scars tell stories only the worthy understand.",
+    "id": 3,
+    "_src_id": "battle_hardened_veteran"
+  },
+  {
+    "name": "Berserker",
+    "Rarity": "Uncommon",
+    "Requirement": "Defeat 20 enemies in a single rage state without dying",
+    "Bonus Effect": "+10% Damage While Below 30% HP",
+    "Description": "Pain is fuel. Rage is the fire.",
+    "id": 4,
+    "_src_id": "berserker"
+  },
+  {
+    "name": "Slasher",
+    "Rarity": "Rare",
+    "Requirement": "Deal 10,000 total damage with blade weapons",
+    "Bonus Effect": "+12% Blade Damage, +5% Critical Hit Chance",
+    "Description": "Their blade dances leave only silence behind.",
+    "id": 5,
+    "_src_id": "slasher"
+  },
+  {
+    "name": "Executioner",
+    "Rarity": "Rare",
+    "Requirement": "Defeat 100 elite or boss enemies",
+    "Bonus Effect": "+15% Damage to Low-HP Enemies",
+    "Description": "Justice is swift. Death is swifter.",
+    "id": 6,
+    "_src_id": "executioner"
+  },
+  {
+    "name": "Dragonslayer",
+    "Rarity": "Epic",
+    "Requirement": "Defeat a dragon-type enemy for the first time",
+    "Bonus Effect": "+20% Damage to Dragon-Type Enemies, +10% Fire Resistance",
+    "Description": "They say only the mad challenge dragons. The mad win.",
+    "id": 7,
+    "_src_id": "dragonslayer"
+  },
+  {
+    "name": "Abyssal Reaper",
+    "Rarity": "Epic",
+    "Requirement": "Defeat 500 undead enemies",
+    "Bonus Effect": "+15% Damage to Undead, +8% Life Steal",
+    "Description": "Death recognizes its own kind.",
+    "id": 8,
+    "_src_id": "abyssal_reaper"
+  },
+  {
+    "name": "Godslayer",
+    "Rarity": "Legendary",
+    "Requirement": "Defeat a divine or god-tier enemy",
+    "Bonus Effect": "+25% Damage to All Bosses, Immunity to Divine Seals",
+    "Description": "When mortals strike down gods, the cosmos trembles.",
+    "id": 9,
+    "_src_id": "godslayer"
+  },
+  {
+    "name": "Warlord",
+    "Rarity": "Legendary",
+    "Requirement": "Win 1,000 combat encounters without retreating",
+    "Bonus Effect": "+18% All Damage, +10% Armor, Party Morale Boost",
+    "Description": "Armies follow not the strongest, but the most relentless.",
+    "id": 10,
+    "_src_id": "warlord"
+  },
+  {
+    "name": "Apocalypse Bringer",
+    "Rarity": "Mythic",
+    "Requirement": "Defeat 10 bosses in a single playthrough without taking fatal damage",
+    "Bonus Effect": "+30% All Damage, +15% Critical Damage, AOE on Kill",
+    "Description": "Where they walk, worlds end.",
+    "id": 11,
+    "_src_id": "apocalypse_bringer"
+  },
+  {
+    "name": "Archer Supreme",
+    "Rarity": "Rare",
+    "Requirement": "Defeat 200 enemies with ranged weapons",
+    "Bonus Effect": "+12% Ranged Damage, +8% Accuracy",
+    "Description": "One shot. One kill. Every time.",
+    "id": 12,
+    "_src_id": "archer_supreme"
+  },
+  {
+    "name": "Shield Bearer",
+    "Rarity": "Common",
+    "Requirement": "Block 500 attacks with a shield",
+    "Bonus Effect": "+10% Block Chance, +5% Damage Resistance",
+    "Description": "The wall that never falls.",
+    "id": 13,
+    "_src_id": "shield_bearer"
+  },
+  {
+    "name": "Critical Strike Artist",
+    "Rarity": "Uncommon",
+    "Requirement": "Land 200 critical hits",
+    "Bonus Effect": "+10% Critical Hit Chance, +15% Critical Damage",
+    "Description": "They strike where it hurts most.",
+    "id": 14,
+    "_src_id": "critical_strike_artist"
+  },
+  {
+    "name": "Dual Wielder",
+    "Rarity": "Rare",
+    "Requirement": "Defeat 100 enemies using dual-wielded weapons",
+    "Bonus Effect": "+8% Attack Speed, +6% Damage with Dual Weapons",
+    "Description": "Two blades, one purpose: destruction.",
+    "id": 15,
+    "_src_id": "dual_wielder"
+  },
+  {
+    "name": "Spellblade",
+    "Rarity": "Epic",
+    "Requirement": "Defeat 300 enemies using a combination of magic and melee",
+    "Bonus Effect": "+10% Magic Damage, +10% Melee Damage, +5% Hybrid Damage",
+    "Description": "Steel and sorcery united in purpose.",
+    "id": 16,
+    "_src_id": "spellblade"
+  },
+  {
+    "name": "Unyielding",
+    "Rarity": "Rare",
+    "Requirement": "Survive 50 encounters with less than 10% HP",
+    "Bonus Effect": "+15% Damage Resistance When Low HP",
+    "Description": "They break. They bend. They never fall.",
+    "id": 17,
+    "_src_id": "unyielding"
+  },
+  {
+    "name": "Headshot Master",
+    "Rarity": "Uncommon",
+    "Requirement": "Land 100 headshot critical hits",
+    "Bonus Effect": "+12% Critical Hit Chance",
+    "Description": "Precision is not luck. It is art.",
+    "id": 18,
+    "_src_id": "headshot_master"
+  },
+  {
+    "name": "Massacre",
+    "Rarity": "Rare",
+    "Requirement": "Defeat 50 enemies in a single battle",
+    "Bonus Effect": "+20% Damage After 10 Consecutive Kills",
+    "Description": "When the dust settles, only silence remains.",
+    "id": 19,
+    "_src_id": "massacre"
+  },
+  {
+    "name": "Blood Knight",
+    "Rarity": "Epic",
+    "Requirement": "Defeat 300 enemies while below 50% HP",
+    "Bonus Effect": "+18% Lifesteal, +10% Damage When Injured",
+    "Description": "They thrive in the chaos of near-death.",
+    "id": 20,
+    "_src_id": "blood_knight"
+  },
+  {
+    "name": "Parry Master",
+    "Rarity": "Uncommon",
+    "Requirement": "Successfully parry 200 attacks",
+    "Bonus Effect": "+10% Parry Chance, +5% Counter Damage",
+    "Description": "The perfect defense is a devastating offense.",
+    "id": 21,
+    "_src_id": "parry_master"
+  },
+  {
+    "name": "Siege Breaker",
+    "Rarity": "Rare",
+    "Requirement": "Destroy 100 fortifications or barriers",
+    "Bonus Effect": "+15% Damage to Structures and Shields",
+    "Description": "No wall can withstand their wrath.",
+    "id": 22,
+    "_src_id": "siege_breaker"
+  },
+  {
+    "name": "Necromancer's Bane",
+    "Rarity": "Epic",
+    "Requirement": "Defeat 200 undead or summoned enemies",
+    "Bonus Effect": "+20% Damage to Summoned Creatures, Dispel on Kill",
+    "Description": "They send the restless back to their graves.",
+    "id": 23,
+    "_src_id": "necromancers_bane"
+  },
+  {
+    "name": "Final Stand",
+    "Rarity": "Legendary",
+    "Requirement": "Win a battle as the last party member alive 50 times",
+    "Bonus Effect": "+25% All Stats When Solo, Last Stand Immunity (Once)",
+    "Description": "Alone, but never defeated.",
+    "id": 24,
+    "_src_id": "final_stand"
+  },
+  {
+    "name": "Beginner Explorer",
+    "Rarity": "Common",
+    "Requirement": "Visit 10 different locations",
+    "Bonus Effect": "+3% Movement Speed",
+    "Description": "The first steps on an infinite road.",
+    "id": 25,
+    "_src_id": "beginner_explorer"
+  },
+  {
+    "name": "Trailblazer",
+    "Rarity": "Common",
+    "Requirement": "Discover 25 uncharted locations",
+    "Bonus Effect": "+5% Movement Speed, Reduced Encounter Rate",
+    "Description": "Where others fear to tread, they lead.",
+    "id": 26,
+    "_src_id": "trailblazer"
+  },
+  {
+    "name": "Cartographer",
+    "Rarity": "Uncommon",
+    "Requirement": "Map 50 different areas completely",
+    "Bonus Effect": "+10% XP from Exploration, Full Map Revealed",
+    "Description": "Knowledge of the land is power over it.",
+    "id": 27,
+    "_src_id": "cartographer"
+  },
+  {
+    "name": "Pathfinder",
+    "Rarity": "Uncommon",
+    "Requirement": "Complete 30 exploration-based quests",
+    "Bonus Effect": "+8% Movement Speed, +5% Chance to Avoid Ambush",
+    "Description": "They forge paths where none existed.",
+    "id": 28,
+    "_src_id": "pathfinder"
+  },
+  {
+    "name": "Treasure Hunter",
+    "Rarity": "Rare",
+    "Requirement": "Find 100 hidden treasures or secret stashes",
+    "Bonus Effect": "+15% Rare Item Drop Rate, Treasure Sense",
+    "Description": "Fortune favors those who seek it relentlessly.",
+    "id": 29,
+    "_src_id": "treasure_hunter"
+  },
+  {
+    "name": "Dungeon Delver",
+    "Rarity": "Rare",
+    "Requirement": "Clear 25 dungeons or underground areas",
+    "Bonus Effect": "+10% Damage Underground, +8% Trap Detection",
+    "Description": "The darkness does not scare them. It welcomes them.",
+    "id": 30,
+    "_src_id": "dungeon_delver"
+  },
+  {
+    "name": "World Walker",
+    "Rarity": "Epic",
+    "Requirement": "Visit every major region in the game",
+    "Bonus Effect": "+12% Movement Speed, Fast Travel Unlock",
+    "Description": "No corner of the world remains unknown to them.",
+    "id": 31,
+    "_src_id": "world_walker"
+  },
+  {
+    "name": "Lore Seeker",
+    "Rarity": "Rare",
+    "Requirement": "Discover 200 lore entries or ancient texts",
+    "Bonus Effect": "+10% XP from All Sources, +5% Magic Find",
+    "Description": "Knowledge is the oldest form of power.",
+    "id": 32,
+    "_src_id": "lore_seeker"
+  },
+  {
+    "name": "Skybound Scout",
+    "Rarity": "Uncommon",
+    "Requirement": "Reach 10 elevated or high-altitude locations",
+    "Bonus Effect": "+5% Ranged Damage, +3% Evasion",
+    "Description": "The higher they climb, the further they see.",
+    "id": 33,
+    "_src_id": "skybound_scout"
+  },
+  {
+    "name": "Deep Diver",
+    "Rarity": "Rare",
+    "Requirement": "Explore 15 underwater or subterranean areas",
+    "Bonus Effect": "+10% Water/Air Resistance, Underwater Breathing",
+    "Description": "The deep holds secrets waiting to be claimed.",
+    "id": 34,
+    "_src_id": "deep_diver"
+  },
+  {
+    "name": "Wilderness Survivor",
+    "Rarity": "Common",
+    "Requirement": "Survive 30 encounters in hostile wilderness",
+    "Bonus Effect": "+8% HP Regen in Nature, +5% Foraging Success",
+    "Description": "Nature tests them. They always pass.",
+    "id": 35,
+    "_src_id": "wilderness_survivor"
+  },
+  {
+    "name": "Ruin Scholar",
+    "Rarity": "Uncommon",
+    "Requirement": "Explore 20 ancient ruins or abandoned sites",
+    "Bonus Effect": "+10% XP from Lore, +5% Ancient Artifact Find",
+    "Description": "In ruins, they find the echoes of forgotten empires.",
+    "id": 36,
+    "_src_id": "ruin_scholar"
+  },
+  {
+    "name": "Night Wanderer",
+    "Rarity": "Rare",
+    "Requirement": "Explore 40 locations during nighttime",
+    "Bonus Effect": "+10% Stealth at Night, +8% Night Vision",
+    "Description": "The night hides dangers. It also hides opportunities.",
+    "id": 37,
+    "_src_id": "night_wanderer"
+  },
+  {
+    "name": "Gatekeeper",
+    "Rarity": "Epic",
+    "Requirement": "Unlock 50 sealed doors, gates, or barriers",
+    "Bonus Effect": "+15% Lockpick Chance, Master Key Effect",
+    "Description": "Every lock is just a puzzle waiting to be solved.",
+    "id": 38,
+    "_src_id": "gatekeeper"
+  },
+  {
+    "name": "Dimensional Traveler",
+    "Rarity": "Legendary",
+    "Requirement": "Visit 5 different planes, dimensions, or realms",
+    "Bonus Effect": "+20% All Resistances, Dimensional Anchor",
+    "Description": "Reality is merely a suggestion to them.",
+    "id": 39,
+    "_src_id": "dimensional_traveler"
+  },
+  {
+    "name": "Map Completer",
+    "Rarity": "Epic",
+    "Requirement": "Achieve 100% map completion in any region",
+    "Bonus Effect": "+12% Movement Speed, Full Region Knowledge",
+    "Description": "They leave no stone unturned, no path untaken.",
+    "id": 40,
+    "_src_id": "map_completer"
+  },
+  {
+    "name": "Fog Walker",
+    "Rarity": "Uncommon",
+    "Requirement": "Navigate through 15 areas with reduced visibility",
+    "Bonus Effect": "+10% Evasion in Fog, +5% Stealth",
+    "Description": "In the mist, they move like ghosts.",
+    "id": 41,
+    "_src_id": "fog_walker"
+  },
+  {
+    "name": "Altar Finder",
+    "Rarity": "Rare",
+    "Requirement": "Discover 30 hidden altars or shrines",
+    "Bonus Effect": "+10% Blessing Effectiveness, +5% Divine Resistance",
+    "Description": "They seek the sacred in forgotten places.",
+    "id": 42,
+    "_src_id": "altar_finder"
+  },
+  {
+    "name": "Relic Collector",
+    "Rarity": "Epic",
+    "Requirement": "Collect 50 ancient relics or artifacts",
+    "Bonus Effect": "+15% Magic Find, +10% XP from Treasure",
+    "Description": "Each relic is a story. They collect them all.",
+    "id": 43,
+    "_src_id": "relic_collector"
+  },
+  {
+    "name": "Perpetual Wanderer",
+    "Rarity": "Mythic",
+    "Requirement": "Travel 10,000 total distance units",
+    "Bonus Effect": "+25% Movement Speed, +15% XP from Exploration, Auto-Map",
+    "Description": "They do not seek a destination. The journey is the reward.",
+    "id": 44,
+    "_src_id": "perpetual_wanderer"
+  },
+  {
+    "name": "Apprentice Crafter",
+    "Rarity": "Common",
+    "Requirement": "Craft 10 items",
+    "Bonus Effect": "+3% Crafting Success Rate",
+    "Description": "Every master was once a beginner.",
+    "id": 45,
+    "_src_id": "apprentice_crafter"
+  },
+  {
+    "name": "Journeyman Smith",
+    "Rarity": "Common",
+    "Requirement": "Craft 50 items",
+    "Bonus Effect": "+5% Crafting Success Rate, +3% Item Quality",
+    "Description": "The hammer rings with growing confidence.",
+    "id": 46,
+    "_src_id": "journeyman_smith"
+  },
+  {
+    "name": "Master Smith",
+    "Rarity": "Uncommon",
+    "Requirement": "Craft 150 weapons or armor pieces",
+    "Bonus Effect": "+10% Crafting Success Rate, +8% Item Quality",
+    "Description": "Their forge produces masterpieces.",
+    "id": 47,
+    "_src_id": "master_smith"
+  },
+  {
+    "name": "Grand Alchemist",
+    "Rarity": "Rare",
+    "Requirement": "Brew 200 potions",
+    "Bonus Effect": "+12% Potion Potency, +10% Crafting Success Rate",
+    "Description": "They turn mere ingredients into miracles.",
+    "id": 48,
+    "_src_id": "grand_alchemist"
+  },
+  {
+    "name": "Expert Enchanter",
+    "Rarity": "Rare",
+    "Requirement": "Enchant 100 items successfully",
+    "Bonus Effect": "+15% Enchantment Success Rate, +8% Enchantment Potency",
+    "Description": "Magic flows through their fingertips into steel.",
+    "id": 49,
+    "_src_id": "expert_enchanter"
+  },
+  {
+    "name": "Arcane Artificer",
+    "Rarity": "Epic",
+    "Requirement": "Craft 50 magical items",
+    "Bonus Effect": "+12% Magical Item Quality, +10% Enchantment Slots",
+    "Description": "They blend art and arcane into functional perfection.",
+    "id": 50,
+    "_src_id": "arcane_artificer"
+  },
+  {
+    "name": "Grandmaster Artisan",
+    "Rarity": "Epic",
+    "Requirement": "Achieve 500 successful crafts across all disciplines",
+    "Bonus Effect": "+15% All Crafting Stats, Master Craftsman Bonus",
+    "Description": "Their name is synonymous with excellence.",
+    "id": 51,
+    "_src_id": "grandmaster_artisan"
+  },
+  {
+    "name": "Legendary Forgemaster",
+    "Rarity": "Legendary",
+    "Requirement": "Craft 10 items of Legendary or higher quality",
+    "Bonus Effect": "+20% Item Quality, +15% Crafting Success Rate",
+    "Description": "They forge legends, not just weapons.",
+    "id": 52,
+    "_src_id": "legendary_forgemaster"
+  },
+  {
+    "name": "Transmutation Sage",
+    "Rarity": "Uncommon",
+    "Requirement": "Successfully transmute 100 materials",
+    "Bonus Effect": "+10% Material Recovery Rate, +5% Transmutation Quality",
+    "Description": "One thing becomes another in their capable hands.",
+    "id": 53,
+    "_src_id": "transmutation_sage"
+  },
+  {
+    "name": "Poison Crafter",
+    "Rarity": "Rare",
+    "Requirement": "Brew 75 poison-type concoctions",
+    "Bonus Effect": "+12% Poison Potency, +8% Poison Duration",
+    "Description": "A delicate art requiring steady hands and darker knowledge.",
+    "id": 54,
+    "_src_id": "poison_crafter"
+  },
+  {
+    "name": "Gem Cutter",
+    "Rarity": "Uncommon",
+    "Requirement": "Cut and prepare 100 gems",
+    "Bonus Effect": "+10% Gem Quality, +5% Socket Effectiveness",
+    "Description": "Perfection is measured in facets.",
+    "id": 55,
+    "_src_id": "gem_cutter"
+  },
+  {
+    "name": "Runesmith",
+    "Rarity": "Epic",
+    "Requirement": "Inscribe 100 runes onto equipment",
+    "Bonus Effect": "+15% Rune Power, +10% Rune Duration",
+    "Description": "Each rune carries a fraction of their will.",
+    "id": 56,
+    "_src_id": "runesmith"
+  },
+  {
+    "name": "Master Tailor",
+    "Rarity": "Rare",
+    "Requirement": "Craft 100 cloth or leather armor pieces",
+    "Bonus Effect": "+12% Light Armor Quality, +8% Comfort Bonus",
+    "Description": "Thread and needle become instruments of protection.",
+    "id": 57,
+    "_src_id": "master_tailor"
+  },
+  {
+    "name": "Potion Brewer Supreme",
+    "Rarity": "Epic",
+    "Requirement": "Brew 500 potions of any kind",
+    "Bonus Effect": "+15% Potion Potency, +10% Batch Crafting",
+    "Description": "Their elixirs are sought by kings and desperate soldiers alike.",
+    "id": 58,
+    "_src_id": "potion_brewer_supreme"
+  },
+  {
+    "name": "Eternal Craftsman",
+    "Rarity": "Mythic",
+    "Requirement": "Achieve Master rank in all crafting disciplines",
+    "Bonus Effect": "+25% All Crafting Stats, Auto-Repair, Unique Recipe Access",
+    "Description": "Their craft transcends mortal limitation.",
+    "id": 59,
+    "_src_id": "eternal_craftsman"
+  },
+  {
+    "name": "Friendly Face",
+    "Rarity": "Common",
+    "Requirement": "Complete 10 NPC favor quests",
+    "Bonus Effect": "+5% NPC Discount, +3% Quest Reward",
+    "Description": "A warm smile opens many doors.",
+    "id": 60,
+    "_src_id": "friendly_face"
+  },
+  {
+    "name": "Persuader",
+    "Rarity": "Common",
+    "Requirement": "Succeed in 25 speech checks",
+    "Bonus Effect": "+5% Persuasion Success Rate",
+    "Description": "Words are weapons. They wield them masterfully.",
+    "id": 61,
+    "_src_id": "persuader"
+  },
+  {
+    "name": "Diplomat",
+    "Rarity": "Uncommon",
+    "Requirement": "Resolve 20 conflicts through negotiation",
+    "Bonus Effect": "+8% Persuasion, +5% Reputation Gain",
+    "Description": "The pen and the tongue are mightier than the sword.",
+    "id": 62,
+    "_src_id": "diplomat"
+  },
+  {
+    "name": "Intimidator",
+    "Rarity": "Uncommon",
+    "Requirement": "Succeed in 25 intimidation checks",
+    "Bonus Effect": "+8% Intimidation Success Rate, +5% Fear Aura",
+    "Description": "Presence alone can end a fight before it begins.",
+    "id": 63,
+    "_src_id": "intimidator"
+  },
+  {
+    "name": "Silver Tongue",
+    "Rarity": "Rare",
+    "Requirement": "Succeed in 100 speech checks of any type",
+    "Bonus Effect": "+12% All Social Skill Success, +8% Reputation Gain",
+    "Description": "They could talk their way out of a dragon's lair.",
+    "id": 64,
+    "_src_id": "silver_tongue"
+  },
+  {
+    "name": "Trusted Ally",
+    "Rarity": "Uncommon",
+    "Requirement": "Complete 30 companion loyalty quests",
+    "Bonus Effect": "+10% Companion Damage, +5% Party Morale",
+    "Description": "Loyalty is earned through actions, not words.",
+    "id": 65,
+    "_src_id": "trusted_ally"
+  },
+  {
+    "name": "Renowned Hero",
+    "Rarity": "Rare",
+    "Requirement": "Reach maximum reputation with 3 factions",
+    "Bonus Effect": "+10% Reputation Gain, +8% Quest Reward",
+    "Description": "Their name is sung in taverns across the land.",
+    "id": 66,
+    "_src_id": "renowned_hero"
+  },
+  {
+    "name": "Master Deceiver",
+    "Rarity": "Rare",
+    "Requirement": "Succeed in 50 deception checks",
+    "Bonus Effect": "+12% Deception Success Rate, +5% Stealth",
+    "Description": "Truth is whatever they say it is.",
+    "id": 67,
+    "_src_id": "master_deceiver"
+  },
+  {
+    "name": "Faction Champion",
+    "Rarity": "Epic",
+    "Requirement": "Reach Exalted reputation with any faction",
+    "Bonus Effect": "+15% Faction Rewards, Faction Vendor Access",
+    "Description": "They embody the faction's ideals.",
+    "id": 68,
+    "_src_id": "faction_champion"
+  },
+  {
+    "name": "Charismatic Leader",
+    "Rarity": "Epic",
+    "Requirement": "Lead a party of 4+ through 50 battles",
+    "Bonus Effect": "+10% Party Stats, +12% Morale Recovery",
+    "Description": "Followers do not question. They believe.",
+    "id": 69,
+    "_src_id": "charismatic_leader"
+  },
+  {
+    "name": "Renowned Merchant",
+    "Rarity": "Uncommon",
+    "Requirement": "Complete 50 trade or commerce quests",
+    "Bonus Effect": "+10% Buy/Sell Prices, +5% Rare Item Stock",
+    "Description": "Gold flows like water through their hands.",
+    "id": 70,
+    "_src_id": "renowned_merchant"
+  },
+  {
+    "name": "People's Champion",
+    "Rarity": "Legendary",
+    "Requirement": "Complete 100 quests for common citizens",
+    "Bonus Effect": "+15% Reputation with Commoners, +10% NPC Assistance",
+    "Description": "The people do not worship gods. They worship this champion.",
+    "id": 71,
+    "_src_id": "peoples_champion"
+  },
+  {
+    "name": "Whisper",
+    "Rarity": "Rare",
+    "Requirement": "Successfully gather intelligence from 30 NPCs",
+    "Bonus Effect": "+10% Intuition, +8% Secret Discovery",
+    "Description": "Secrets are currency. They are the richest.",
+    "id": 72,
+    "_src_id": "whisper"
+  },
+  {
+    "name": "Kingmaker",
+    "Rarity": "Mythic",
+    "Requirement": "Influence the rise or fall of 5 faction leaders",
+    "Bonus Effect": "+20% All Social Skills, +15% Political Power",
+    "Description": "They do not sit on thrones. They decide who does.",
+    "id": 73,
+    "_src_id": "kingmaker"
+  },
+  {
+    "name": "Betrayer",
+    "Rarity": "Rare",
+    "Requirement": "Betray 5 factions or quest-givers",
+    "Bonus Effect": "+10% Ambush Damage, +8% Deception",
+    "Description": "Trust is a vulnerability they exploit.",
+    "id": 74,
+    "_src_id": "betrayer"
+  },
+  {
+    "name": "First Blood",
+    "Rarity": "Common",
+    "Requirement": "Defeat your first enemy",
+    "Bonus Effect": "+2% XP Gain",
+    "Description": "The first kill is always the most memorable.",
+    "id": 75,
+    "_src_id": "first_blood"
+  },
+  {
+    "name": "Level Ascendant",
+    "Rarity": "Common",
+    "Requirement": "Reach Level 10",
+    "Bonus Effect": "+5% XP Gain",
+    "Description": "Growth is inevitable for the determined.",
+    "id": 76,
+    "_src_id": "level_ascendant"
+  },
+  {
+    "name": "Centurion",
+    "Rarity": "Uncommon",
+    "Requirement": "Reach Level 50",
+    "Bonus Effect": "+8% XP Gain, +5% All Stats",
+    "Description": "Halfway to legend. No turning back.",
+    "id": 77,
+    "_src_id": "centurion"
+  },
+  {
+    "name": "Paragon",
+    "Rarity": "Rare",
+    "Requirement": "Reach Level 100",
+    "Bonus Effect": "+12% XP Gain, +10% All Stats",
+    "Description": "Mortals look up. They have become the peak.",
+    "id": 78,
+    "_src_id": "paragon"
+  },
+  {
+    "name": "Transcendent",
+    "Rarity": "Epic",
+    "Requirement": "Reach the maximum level cap",
+    "Bonus Effect": "+15% All Stats, +10% XP Overflow",
+    "Description": "Beyond the summit lies infinity.",
+    "id": 79,
+    "_src_id": "transcendent"
+  },
+  {
+    "name": "Millionaire",
+    "Rarity": "Uncommon",
+    "Requirement": "Accumulate 1,000,000 gold",
+    "Bonus Effect": "+10% Gold Find, +5% Shop Prices",
+    "Description": "Gold buys power. Power buys everything.",
+    "id": 80,
+    "_src_id": "millionaire"
+  },
+  {
+    "name": "Billionaire",
+    "Rarity": "Epic",
+    "Requirement": "Accumulate 100,000,000 gold",
+    "Bonus Effect": "+20% Gold Find, Gold Shield",
+    "Description": "They could buy kingdoms. They choose to buy empires.",
+    "id": 81,
+    "_src_id": "billionaire"
+  },
+  {
+    "name": "Completionist",
+    "Rarity": "Epic",
+    "Requirement": "Complete 100% of quests in a region",
+    "Bonus Effect": "+15% XP, +10% Reputation, Completion Bonus",
+    "Description": "Leaving nothing unfinished is their creed.",
+    "id": 82,
+    "_src_id": "completionist"
+  },
+  {
+    "name": "Jack of All Trades",
+    "Rarity": "Rare",
+    "Requirement": "Unlock at least 1 skill in every skill tree",
+    "Bonus Effect": "+8% All Stats, Versatility Bonus",
+    "Description": "Mastery of one is impressive. Breadth of many is rare.",
+    "id": 83,
+    "_src_id": "jack_of_all_trades"
+  },
+  {
+    "name": "Perfectionist",
+    "Rarity": "Legendary",
+    "Requirement": "Achieve S-rank or perfect score in 50 challenges",
+    "Bonus Effect": "+15% All Stats, Perfect Execution Bonus",
+    "Description": "Good enough is never enough.",
+    "id": 84,
+    "_src_id": "perfectionist"
+  },
+  {
+    "name": "Speedrunner",
+    "Rarity": "Rare",
+    "Requirement": "Complete a major questline in under 50% expected time",
+    "Bonus Effect": "+10% Movement Speed, +8% Action Speed",
+    "Description": "Time waits for no one. Neither do they.",
+    "id": 85,
+    "_src_id": "speedrunner"
+  },
+  {
+    "name": "Survivor",
+    "Rarity": "Uncommon",
+    "Requirement": "Escape from 20 near-death situations",
+    "Bonus Effect": "+10% HP, +5% Dodge Chance",
+    "Description": "Death has tried. Death has failed.",
+    "id": 86,
+    "_src_id": "survivor"
+  },
+  {
+    "name": "Ghost",
+    "Rarity": "Rare",
+    "Requirement": "Complete 30 missions without being detected",
+    "Bonus Effect": "+12% Stealth, +8% Evasion",
+    "Description": "They were never there. Or so the stories say.",
+    "id": 87,
+    "_src_id": "ghost"
+  },
+  {
+    "name": "Untouchable",
+    "Rarity": "Epic",
+    "Requirement": "Complete 100 battles without taking damage",
+    "Bonus Effect": "+15% Evasion, +10% Damage Resistance",
+    "Description": "The perfect defense makes offense unnecessary.",
+    "id": 88,
+    "_src_id": "untouchable"
+  },
+  {
+    "name": "One-Man Army",
+    "Rarity": "Epic",
+    "Requirement": "Defeat 50 group encounters solo",
+    "Bonus Effect": "+20% Solo Damage, +15% Solo Defense",
+    "Description": "They do not need allies. They are the army.",
+    "id": 89,
+    "_src_id": "one_man_army"
+  },
+  {
+    "name": "Legend",
+    "Rarity": "Legendary",
+    "Requirement": "Complete the main storyline",
+    "Bonus Effect": "+20% All Stats, Title Bonus Unlocked",
+    "Description": "Their deeds will echo through eternity.",
+    "id": 90,
+    "_src_id": "legend"
+  },
+  {
+    "name": "Myth",
+    "Rarity": "Mythic",
+    "Requirement": "Complete the main storyline on the hardest difficulty",
+    "Bonus Effect": "+30% All Stats, Unique Abilities Unlocked",
+    "Description": "They are no longer mortal. They are legend incarnate.",
+    "id": 91,
+    "_src_id": "myth"
+  },
+  {
+    "name": "Hoarder",
+    "Rarity": "Uncommon",
+    "Requirement": "Collect 500 unique items",
+    "Bonus Effect": "+8% Inventory Space, +5% Item Discovery",
+    "Description": "Everything has value. They know this better than anyone.",
+    "id": 92,
+    "_src_id": "hoarder"
+  },
+  {
+    "name": "Collector Supreme",
+    "Rarity": "Rare",
+    "Requirement": "Collect 200 unique items of Rare quality or higher",
+    "Bonus Effect": "+12% Magic Find, +8% Set Bonus Effectiveness",
+    "Description": "Their collection spans the extraordinary.",
+    "id": 93,
+    "_src_id": "collector_supreme"
+  },
+  {
+    "name": "Dragon Bane",
+    "Rarity": "Legendary",
+    "Requirement": "Defeat all dragon-type enemies in the game",
+    "Bonus Effect": "+25% Dragon Damage, Dragon Fear Immunity",
+    "Description": "Dragons fear this name more than any weapon.",
+    "id": 94,
+    "_src_id": "dragon_bane"
+  },
+  {
+    "name": "Undying",
+    "Rarity": "Epic",
+    "Requirement": "Revive from death 50 times",
+    "Bonus Effect": "+10% HP Regen, +8% Revival Speed",
+    "Description": "Death is merely an inconvenience.",
+    "id": 95,
+    "_src_id": "undying"
+  },
+  {
+    "name": "Pacifist",
+    "Rarity": "Rare",
+    "Requirement": "Complete 30 quests without killing anyone",
+    "Bonus Effect": "+10% Persuasion, +8% XP from Non-Combat",
+    "Description": "Strength is not always measured in violence.",
+    "id": 96,
+    "_src_id": "pacifist"
+  },
+  {
+    "name": "Altruist",
+    "Rarity": "Rare",
+    "Requirement": "Donate 100,000 gold to NPCs or causes",
+    "Bonus Effect": "+10% Reputation, +5% Healing Power",
+    "Description": "Giving is its own reward.",
+    "id": 97,
+    "_src_id": "altruist"
+  },
+  {
+    "name": "Scourge of the Abyss",
+    "Rarity": "Legendary",
+    "Requirement": "Defeat 1,000 demonic or abyssal enemies",
+    "Bonus Effect": "+20% Damage to Demonic, Abyssal Resistance",
+    "Description": "The abyss gazes back. It blinks first.",
+    "id": 98,
+    "_src_id": "scourge_of_the_abyss"
+  },
+  {
+    "name": "Eternal Champion",
+    "Rarity": "Mythic",
+    "Requirement": "Complete all major achievement categories at 100%",
+    "Bonus Effect": "+35% All Stats, Eternal Blessing, Unique Aura",
+    "Description": "They have done it all. The cosmos bows.",
+    "id": 99,
+    "_src_id": "eternal_champion"
+  },
+  {
+    "name": "Iron Will",
+    "Rarity": "Rare",
+    "Requirement": "Resist 50 crowd control or debuff effects",
+    "Bonus Effect": "+15% CC Resistance, +8% Debuff Resistance",
+    "Description": "Their will cannot be broken.",
+    "id": 100,
+    "_src_id": "iron_will"
+  },
+  {
+    "name": "Lucky Star",
+    "Rarity": "Uncommon",
+    "Requirement": "Trigger 100 critical hit or lucky effects",
+    "Bonus Effect": "+10% Critical Hit Chance, +8% Luck",
+    "Description": "Fortune favors them at every turn.",
+    "id": 101,
+    "_src_id": "lucky_star"
+  },
+  {
+    "name": "Master Strategist",
+    "Rarity": "Epic",
+    "Requirement": "Win 200 battles using tactical commands",
+    "Bonus Effect": "+15% Party Damage, +10% Party Defense",
+    "Description": "Victory is won before the battle begins.",
+    "id": 102,
+    "_src_id": "master_strategist"
+  },
+  {
+    "name": "Relentless",
+    "Rarity": "Rare",
+    "Requirement": "Fight for 500 total battle rounds",
+    "Bonus Effect": "+10% Stamina, +8% Endurance",
+    "Description": "They do not stop. They do not rest. They conquer.",
+    "id": 103,
+    "_src_id": "relentless"
+  },
+  {
+    "name": "Icon of Valor",
+    "Rarity": "Legendary",
+    "Requirement": "Complete all combat-related achievements",
+    "Bonus Effect": "+20% All Combat Stats, Fear Aura",
+    "Description": "Their name is synonymous with victory.",
+    "id": 104,
+    "_src_id": "icon_of_valor"
+  }
+]
