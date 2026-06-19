@@ -17,6 +17,15 @@ class RedisConfig:
     output_db: int = field(default_factory=lambda: int(os.getenv("REDIS_OUTPUT_DB", "1")))
     password: Optional[str] = field(default_factory=lambda: os.getenv("REDIS_PASSWORD", None))
     ttl_seconds: int = field(default_factory=lambda: int(os.getenv("REDIS_TTL_SECONDS", "3600")))
+    rag_db: int = field(default_factory=lambda: int(os.getenv("REDIS_RAG_DB", "2")))
+    upstash_rest_url: Optional[str] = field(default_factory=lambda: os.getenv("UPSTASH_REDIS_REST_URL", None))
+    upstash_rest_token: Optional[str] = field(default_factory=lambda: os.getenv("UPSTASH_REDIS_REST_TOKEN", None))
+    upstash_rag_url: Optional[str] = field(default_factory=lambda: os.getenv("UPSTASH_REDIS_RAG_URL", None))
+    upstash_rag_token: Optional[str] = field(default_factory=lambda: os.getenv("UPSTASH_REDIS_RAG_TOKEN", None))
+
+    @property
+    def use_upstash(self) -> bool:
+        return bool(self.upstash_rest_url and self.upstash_rest_token)
 
     @property
     def input_url(self) -> str:

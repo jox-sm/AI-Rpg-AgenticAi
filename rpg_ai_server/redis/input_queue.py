@@ -22,8 +22,11 @@ class InputQueue:
             logger.error(f"Failed to pop request from input queue: {e}")
             return None
 
+    async def enqueue(self, request: GameRequest):
+        await self._client.push_request(request.uuid, request.model_dump())
+
     async def requeue(self, request: GameRequest):
         await self._client.set_json(request.uuid, request.model_dump())
 
     async def queue_size(self) -> int:
-        return await self._client.dbsize()
+        return await self._client.queue_length()

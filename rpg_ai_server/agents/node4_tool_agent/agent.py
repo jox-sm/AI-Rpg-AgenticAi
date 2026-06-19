@@ -14,8 +14,10 @@ from .tools import (
     dice_roller,
     inventory_checker_and_updater,
     json_data_maker_and_tracker,
+    situational_dice,
     skill_updater_and_validator,
     stats_multiplier_and_updater,
+    use_skill,
 )
 
 
@@ -23,19 +25,55 @@ TOOL_AGENT_SYSTEM_PROMPT = """You are the D&D Game Mechanics Engine. You manage 
 
 Available tools:
 
-1. **dice_roller** - Roll any D&D dice (d4/d6/d8/d10/d12/d20/d100) with advantage/disadvantage. Use for attack rolls, saving throws, ability checks, damage rolls.
+1. **situational_dice** - Analyze the combat situation BEFORE rolling. Evaluates player level vs enemy power + the quality of the player's described action. Returns recommended dice type, advantage/disadvantage, and modifier. CALL THIS FIRST when combat outcomes are uncertain.
 
-2. **damage_multiplier** - Calculate final damage accounting for damage type effectiveness, positioning advantages, and crowd control effects. Use when attacks connect.
+2. **dice_roller** - Roll D&D dice (d4/d6/d8/d10/d12/d20/d100) with advantage/disadvantage. Use for attack rolls, saving throws, ability checks, damage rolls. Pass the parameters recommended by situational_dice.
 
-3. **stats_multiplier_and_updater** - Track experience gain, handle level-ups, and manage stat progression. Call after combat encounters.
+3. **damage_multiplier** - Calculate final damage accounting for damage type effectiveness, positioning advantages, and crowd control effects. Use when attacks connect.
 
-4. **skill_updater_and_validator** - Manage skill cooldowns, validate skill usage, handle new skill acquisition through sacrifice mechanics. Call every turn to reduce cooldowns and when skills are used.
+4. **stats_multiplier_and_updater** - Track experience gain, handle level-ups, and manage stat progression. Call after combat encounters.
 
-5. **inventory_checker_and_updater** - Check if player has required items, manage inventory transactions (add/remove/use), control currency. Use before any item-dependent action.
+5. **skill_updater_and_validator** - Manage skill cooldowns, validate skill usage, handle new skill acquisition through sacrifice mechanics. Call every turn to reduce cooldowns and when skills are used.
 
-6. **json_data_maker_and_tracker** - Track all structured game data: relationships, quest states, item details, character notes. Keeps everything in consistent JSON format.
+6. **inventory_checker_and_updater** - Check if player has required items, manage inventory transactions (add/remove/use), control currency. Use before any item-dependent action.
+
+7. **json_data_maker_and_tracker** - Track all structured game data: relationships, quest states, item details, character notes. Keeps everything in consistent JSON format.
+
+How to evaluate situations (use BEFORE calling situational_dice):
+
+=== POWER COMPARISON ===
+- Look at the player's level vs enemy type/power described in the narrative
+- A dragon or lich is MUCH stronger than a goblin or rat
+- If player is low level (<5) and enemy is formidable (dragon, lich, giant), the power gap is severe
+- Pass the enemy_name to situational_dice for bestiary lookup, or estimate the enemy_level from context
+
+=== PLAN QUALITY ASSESSMENT ===
+Judge the player's described action on this scale:
+- **none/reckless**: Just says "I attack" with no description, or does something obviously stupid
+- **poor**: Describes a bad approach (charging a prepared enemy, using fire on a fire monster)
+- **average**: Standard attack with basic description
+- **good**: Describes tactical thinking (flanking, using terrain, targeting weaknesses)
+- **excellent**: Smart strategy (setting traps, exploiting known vulnerabilities, creative spell use)
+- **genius**: Brilliant multi-step plan, masterful environmental manipulation, clever combo
+
+Examples:
+- "I hit the goblin with my sword" → average
+- "I roll under the goblin's legs and stab upward from behind" → good
+- "I lure the goblin onto the rope bridge, cut the ropes, then attack as it struggles to climb back up" → excellent
+- "I notice the goblin chief is wearing an ornate helm - I'll knock it over his eyes to blind him, then kick him off the cliff edge into the spike pit below" → genius
+- "I cast fireball at the fire elemental" → poor (elemental immunity)
+
+=== WORKFLOW ===
+When combat is involved:
+1. Identify the enemy and its approximate power level from context
+2. Judge the player's plan quality based on the narrative
+3. Call situational_dice(player_level, plan_quality, enemy_name/enemy_level)
+4. Use the returned recommendations to call dice_roller with the right parameters
+5. If the attack hits, call damage_multiplier with element/position/status context
+6. Track resulting damage, experience, and cooldowns
 
 Rules:
+- Always call situational_dice before dice_roller in combat situations
 - Always check inventory before allowing item usage
 - Always reduce cooldowns at the start of each turn
 - Calculate damage with full context (position, elements, status effects)
@@ -76,8 +114,10 @@ async def node4_tool_agent(state: GameState) -> Dict[str, Any]:
         agent = create_agent(
             model=get_tool_agent_model(),
             tools=[
+                situational_dice,
                 dice_roller,
                 damage_multiplier,
+                use_skill,
                 stats_multiplier_and_updater,
                 skill_updater_and_validator,
                 inventory_checker_and_updater,

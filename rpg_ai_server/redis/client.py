@@ -1,73 +1,114 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
-from redis.asyncio import Redis
+from upstash_redis import AsyncRedis as UpstashRedis
 
 from ..config.settings import settings
 from ..utils.logger import logger
 
 
 class RedisClient:
-    def __init__(self, db: int, url: Optional[str] = None):
-        self.db = db
-        self._client: Optional[Redis] = None
-        self._url = url or f"redis://{settings.redis.host}:{settings.redis.port}/{db}"
+    def __init__(self, prefix: str = ""):
+        self.prefix = prefix
+        self._client: Optional[UpstashRedis] = None
 
     async def connect(self):
         if self._client is None:
-            self._client = await Redis.from_url(
-                self._url,
-                password=settings.redis.password,
-                decode_responses=True,
+            if not settings.redis.use_upstash:
+                raise RuntimeError(
+                    "Upstash Redis REST URL and token must be set in environment"
+                )
+            self._client = UpstashRedis(
+                url=settings.redis.upstash_rest_url,
+                token=settings.redis.upstash_rest_token,
             )
-            logger.info(f"Connected to Redis DB {self.db}")
+            logger.info(f"Connected to Upstash Redis (prefix={self.prefix})")
 
     async def disconnect(self):
-        if self._client:
-            await self._client.close()
-            self._client = None
+        if self._client is None:
+            return
+        await self._client.close()
+        self._client = None
 
     @property
-    def client(self) -> Redis:
+    def client(self) -> UpstashRedis:
         if self._client is None:
             raise RuntimeError("Redis not connected. Call connect() first.")
         return self._client
 
+    def _key(self, key: str) -> str:
+        return f"{self.prefix}:{key}" if self.prefix else key
+
     async def set_json(self, key: str, value: Dict[str, Any], ttl: Optional[int] = None) -> bool:
         ttl = ttl or settings.redis.ttl_seconds
         await self.connect()
-        result = await self.client.setex(key, ttl, json.dumps(value))
-        return bool(result)
+        full_key = self._key(key)
+        serialized = json.dumps(value)
+        await self.client.set(full_key, serialized, ex=ttl)
+        return True
 
     async def get_json(self, key: str) -> Optional[Dict[str, Any]]:
         await self.connect()
-        data = await self.client.get(key)
+        full_key = self._key(key)
+        data = await self.client.get(full_key)
         if data is None:
             return None
         return json.loads(data)
 
     async def delete(self, key: str) -> bool:
         await self.connect()
-        return bool(await self.client.delete(key))
+        full_key = self._key(key)
+        result = await self.client.delete(full_key)
+        return result > 0
 
     async def exists(self, key: str) -> bool:
         await self.connect()
-        return bool(await self.client.exists(key))
+        full_key = self._key(key)
+        result = await self.client.exists(full_key)
+        return result > 0
 
-    async def memory_usage(self, key: str) -> Optional[int]:
+    async def keys(self, pattern: str = "*") -> List[str]:
         await self.connect()
-        return await self.client.memory_usage(key)
+        full_pattern = self._key(pattern) if self.prefix else pattern
+        result = await self.client.keys(full_pattern)
+        if self.prefix and result:
+            prefix_len = len(self.prefix) + 1
+            return [k[prefix_len:] for k in result]
+        return result
 
     async def dbsize(self) -> int:
         await self.connect()
+        if self.prefix:
+            keys_list = await self.client.keys(self._key("*"))
+            return len(keys_list)
         return await self.client.dbsize()
+
+    async def memory_usage(self, key: str) -> Optional[int]:
+        await self.connect()
+        full_key = self._key(key)
+        try:
+            result = await self.client.execute("MEMORY", "USAGE", full_key)
+            return result
+        except Exception:
+            return None
 
     async def info_section(self, section: str = "memory") -> Dict[str, Any]:
         await self.connect()
-        info = await self.client.info(section)
-        return info
+        try:
+            raw = await self.client.execute("INFO", section)
+            info: Dict[str, Any] = {}
+            for line in raw.split("\n"):
+                if ":" in line:
+                    k, v = line.strip().split(":", 1)
+                    try:
+                        info[k] = int(v)
+                    except ValueError:
+                        info[k] = v
+            return info
+        except Exception:
+            return {}
 
     async def memory_percent(self) -> float:
         info = await self.info_section("memory")
@@ -80,25 +121,164 @@ class RedisClient:
 
 class InputRedisClient(RedisClient):
     def __init__(self):
-        super().__init__(db=settings.redis.input_db)
+        super().__init__(prefix="input")
 
     async def pop_request(self) -> Optional[Dict[str, Any]]:
-        keys = await self.client.keys("*")
-        if not keys:
+        await self.connect()
+        raw = await self.client.lpop(self._key("queue"))
+        if raw is None:
             return None
-        key = keys[0]
-        data = await self.get_json(key)
-        if data:
-            await self.delete(key)
-        return data
+        return json.loads(raw)
+
+    async def push_request(self, uuid: str, data: Dict[str, Any]) -> bool:
+        await self.connect()
+        serialized = json.dumps(data)
+        await self.client.rpush(self._key("queue"), serialized)
+        return True
+
+    async def queue_length(self) -> int:
+        await self.connect()
+        return await self.client.llen(self._key("queue"))
+
+    async def push_delayed(self, item: Dict[str, Any], score: float) -> bool:
+        await self.connect()
+        serialized = json.dumps(item)
+        await self.client.zadd(self._key("queue:delayed"), {serialized: score})
+        return True
+
+    async def pop_delayed_due(self, max_score: float) -> list[Dict[str, Any]]:
+        await self.connect()
+        key = self._key("queue:delayed")
+        raw_items = await self.client.zrangebyscore(key, 0, max_score)
+        if not raw_items:
+            return []
+        await self.client.zremrangebyscore(key, 0, max_score)
+        return [json.loads(r) for r in raw_items]
+
+    async def push_dead(self, item: Dict[str, Any]):
+        await self.connect()
+        serialized = json.dumps(item)
+        score = item.get("timestamp", 0)
+        await self.client.zadd(self._key("queue:dead"), {serialized: score})
+
+    async def set_heartbeat(self, worker_id: str, game_uuid: str, ttl: int = 15) -> bool:
+        await self.connect()
+        await self.client.set(self._key(f"workers:{worker_id}:heartbeat"), game_uuid, ex=ttl)
+        return True
+
+    async def get_heartbeat(self, worker_id: str) -> Optional[str]:
+        await self.connect()
+        return await self.client.get(self._key(f"workers:{worker_id}:heartbeat"))
 
     async def get_all_keys(self) -> list[str]:
-        return await self.client.keys("*")
+        return await self.keys("*")
 
 
 class OutputRedisClient(RedisClient):
     def __init__(self):
-        super().__init__(db=settings.redis.output_db)
+        super().__init__(prefix="output")
 
     async def push_result(self, uuid: str, data: Dict[str, Any]) -> bool:
         return await self.set_json(uuid, data)
+
+    async def count(self) -> int:
+        return await self.dbsize()
+
+
+class RagRedisClient(RedisClient):
+    def __init__(self):
+        super().__init__(prefix="rag")
+
+    async def connect(self):
+        if self._client is None:
+            url = settings.redis.upstash_rag_url or settings.redis.upstash_rest_url
+            token = settings.redis.upstash_rag_token or settings.redis.upstash_rest_token
+            if not url or not token:
+                raise RuntimeError(
+                    "RAG Redis URL and token must be set in environment "
+                    "(UPSTASH_REDIS_RAG_URL / UPSTASH_REDIS_RAG_TOKEN)"
+                )
+            self._client = UpstashRedis(url=url, token=token)
+            logger.info(f"Connected to RAG Redis (prefix={self.prefix})")
+
+    async def push_staging(self, payload: Dict[str, Any]) -> bool:
+        await self.connect()
+        serialized = json.dumps(payload)
+        await self.client.rpush(self._key("queue"), serialized)
+        return True
+
+    async def pop_staging(self) -> Optional[Dict[str, Any]]:
+        await self.connect()
+        raw = await self.client.lpop(self._key("queue"))
+        if raw is None:
+            return None
+        return json.loads(raw)
+
+    async def get_chunk(self, uuid: str, index: int) -> Optional[Dict[str, Any]]:
+        return await self.get_json(f"{uuid}:{index}")
+
+    async def staging_count(self) -> int:
+        await self.connect()
+        return await self.client.llen(self._key("queue"))
+
+
+class GamesRedisClient(RedisClient):
+    def __init__(self):
+        super().__init__(prefix="games")
+
+    async def hset(self, uuid: str, field: str, value: str) -> bool:
+        await self.connect()
+        await self.client.hset(self._key(f"{uuid}:state"), field, value)
+        return True
+
+    async def hget(self, uuid: str, field: str) -> Optional[str]:
+        await self.connect()
+        return await self.client.hget(self._key(f"{uuid}:state"), field)
+
+    async def hgetall(self, uuid: str) -> Optional[Dict[str, str]]:
+        await self.connect()
+        return await self.client.hgetall(self._key(f"{uuid}:state"))
+
+    async def hdel(self, uuid: str, field: str) -> bool:
+        await self.connect()
+        result = await self.client.hdel(self._key(f"{uuid}:state"), field)
+        return result > 0
+
+    async def incr(self, uuid: str) -> int:
+        await self.connect()
+        return await self.client.incr(self._key(f"{uuid}:counter"))
+
+    async def set_counter(self, uuid: str, value: int) -> bool:
+        await self.connect()
+        await self.client.set(self._key(f"{uuid}:counter"), str(value))
+        return True
+
+    async def expire(self, uuid: str, ttl: int) -> bool:
+        await self.connect()
+        result = await self.client.expire(self._key(f"{uuid}:state"), ttl)
+        return result > 0
+
+    async def acquire_lock(self, uuid: str, worker_id: str, ttl: int = 30) -> bool:
+        await self.connect()
+        result = await self.client.set(
+            self._key(f"{uuid}:lock"), worker_id, nx=True, ex=ttl
+        )
+        return result is not None
+
+    async def release_lock(self, uuid: str, worker_id: str) -> bool:
+        await self.connect()
+        key = self._key(f"{uuid}:lock")
+        current = await self.client.get(key)
+        if current == worker_id:
+            await self.client.delete(key)
+            return True
+        return False
+
+    async def refresh_lock(self, uuid: str, worker_id: str, ttl: int = 30) -> bool:
+        await self.connect()
+        key = self._key(f"{uuid}:lock")
+        current = await self.client.get(key)
+        if current == worker_id:
+            await self.client.expire(key, ttl)
+            return True
+        return False

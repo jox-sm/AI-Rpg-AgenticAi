@@ -67,6 +67,16 @@ MONSTER_DIFFICULTY = {
     "dragon_ancient": {"exp": 15000, "level": 25},
 }
 
+PLAN_QUALITY_BONUSES = {
+    "none": {"advantage_bonus": -4, "damage_mult": 0.5, "desc": "No plan, just attacking recklessly"},
+    "reckless": {"advantage_bonus": -4, "damage_mult": 0.5, "desc": "Reckless attack with no strategy"},
+    "poor": {"advantage_bonus": -2, "damage_mult": 0.7, "desc": "Bad plan that makes the situation worse"},
+    "average": {"advantage_bonus": 0, "damage_mult": 1.0, "desc": "Standard attack, nothing special"},
+    "good": {"advantage_bonus": 2, "damage_mult": 1.3, "desc": "Decent plan with some tactical thought"},
+    "excellent": {"advantage_bonus": 4, "damage_mult": 1.6, "desc": "Smart plan exploiting enemy weaknesses"},
+    "genius": {"advantage_bonus": 6, "damage_mult": 2.0, "desc": "Brilliant trap or masterful strategy"},
+}
+
 ORGAN_HIT_MULTIPLIERS = {
     "eye": 0.3,
     "head": 0.5,
@@ -78,6 +88,105 @@ ORGAN_HIT_MULTIPLIERS = {
     "tail": 0.8,
     "core": 0.25,
 }
+
+
+@tool
+async def situational_dice(
+    player_level: int,
+    plan_quality: str = "average",
+    enemy_name: str = "",
+    enemy_level: int = 0,
+) -> str:
+    """Analyze combat situation and recommend optimal dice configuration.
+    Evaluates player power vs enemy difficulty plus plan/strategy quality,
+    then returns recommended dice type, advantage/disadvantage, and modifier.
+
+    Args:
+        player_level: Current character level (required)
+        plan_quality: How good the player's described action is:
+            'none'/'reckless' - attacking with no plan, making things worse (-4 penalty)
+            'poor' - bad approach that hinders success (-2 penalty)
+            'average' - standard attack, nothing special (no modifier)
+            'good' - decent tactical thinking (+2 bonus)
+            'excellent' - smart plan exploiting enemy weaknesses (+4 bonus)
+            'genius' - brilliant trap or masterful strategy (+6 bonus)
+        enemy_name: Name of enemy to look up in bestiary
+        enemy_level: Enemy level if not in bestiary (optional fallback)
+    """
+    enemy_lvl = enemy_level
+    if enemy_name:
+        monster_info = MONSTER_DIFFICULTY.get(enemy_name.strip().lower())
+        if monster_info:
+            enemy_lvl = monster_info["level"]
+
+    if enemy_lvl <= 0:
+        enemy_lvl = player_level
+
+    power_ratio = player_level / max(enemy_lvl, 1)
+    power_ratio = max(0.1, min(5.0, power_ratio))
+
+    if power_ratio >= 2.0:
+        power_bonus = 5
+        power_desc = "overwhelming advantage"
+    elif power_ratio >= 1.5:
+        power_bonus = 3
+        power_desc = "clear advantage"
+    elif power_ratio >= 1.1:
+        power_bonus = 1
+        power_desc = "slight advantage"
+    elif power_ratio >= 0.9:
+        power_bonus = 0
+        power_desc = "even match"
+    elif power_ratio >= 0.6:
+        power_bonus = -2
+        power_desc = "slight disadvantage"
+    elif power_ratio >= 0.4:
+        power_bonus = -4
+        power_desc = "clear disadvantage"
+    else:
+        power_bonus = -6
+        power_desc = "overwhelming disadvantage"
+
+    plan_info = PLAN_QUALITY_BONUSES.get(plan_quality.strip().lower(), PLAN_QUALITY_BONUSES["average"])
+    plan_bonus = plan_info["advantage_bonus"]
+    damage_mult = plan_info["damage_mult"]
+    plan_desc = plan_info["desc"]
+
+    total_modifier = power_bonus + plan_bonus
+
+    recommend_advantage = False
+    recommend_disadvantage = False
+    if total_modifier >= 3:
+        recommend_advantage = True
+    elif total_modifier <= -3:
+        recommend_disadvantage = True
+
+    effective_bonus = total_modifier
+    if recommend_advantage:
+        effective_bonus = max(0, total_modifier - 3)
+    elif recommend_disadvantage:
+        effective_bonus = min(0, total_modifier + 3)
+
+    return json.dumps({
+        "analysis": f"Player lvl {player_level} vs enemy lvl {enemy_lvl} ({power_desc}). Plan: {plan_desc}.",
+        "power_ratio": round(power_ratio, 2),
+        "power_bonus": power_bonus,
+        "power_description": power_desc,
+        "plan_quality": plan_quality,
+        "plan_bonus": plan_bonus,
+        "plan_damage_multiplier": damage_mult,
+        "total_situation_modifier": total_modifier,
+        "recommended_dice": "d20",
+        "recommended_advantage": recommend_advantage,
+        "recommended_disadvantage": recommend_disadvantage,
+        "recommended_modifier": effective_bonus,
+        "recommended_damage_multiplier": damage_mult,
+        "guidance": (
+            "Use the recommended dice parameters in your dice_roller call. "
+            f"Set modifier={effective_bonus}, advantage={recommend_advantage}, disadvantage={recommend_disadvantage}. "
+            f"Apply damage_multiplier of {damage_mult}x to final damage via damage_multiplier tool."
+        ),
+    }, indent=2)
 
 
 @tool
@@ -485,3 +594,83 @@ async def json_data_maker_and_tracker(
         return json.dumps(data_store, indent=2)
 
     return json.dumps({"error": f"Unknown action: {action}"}, indent=2)
+
+
+@tool
+async def use_skill(
+    skill_name: str,
+    current_stats_json: str = "{}",
+    current_skills_json: str = "[]",
+    target_json: str = "{}",
+    modifier: int = 0,
+    damage_multiplier: float = 1.0,
+    mana: int = 50,
+    max_mana: int = 100,
+) -> str:
+    """Execute a named skill with current character state and target context.
+    Routes to the correct skill handler automatically.
+
+    Args:
+        skill_name: Name of the skill to use (e.g., 'slash', 'block', 'persuasion', 'fire_magic')
+        current_stats_json: JSON string of current CharacterStats
+        current_skills_json: JSON string of current skills list
+        target_json: JSON string describing the target (enemy/item/NPC with type, defense, level, etc.)
+        modifier: Flat modifier to the skill check roll
+        damage_multiplier: Damage multiplier from plan quality, positioning, etc.
+        mana: Current mana available
+        max_mana: Maximum mana pool
+    """
+    from ...skills import SKILL_REGISTRY, get_skill, list_skills
+
+    skill = get_skill(skill_name)
+    if not skill:
+        available = list_skills()
+        return json.dumps({
+            "error": f"Unknown skill: '{skill_name}'",
+            "available_skills": available,
+        }, indent=2)
+
+    try:
+        stats = json.loads(current_stats_json) if isinstance(current_stats_json, str) else current_stats_json
+    except (json.JSONDecodeError, TypeError):
+        stats = {}
+
+    try:
+        skills_data = json.loads(current_skills_json) if isinstance(current_skills_json, str) else current_skills_json
+    except (json.JSONDecodeError, TypeError):
+        skills_data = []
+
+    try:
+        target = json.loads(target_json) if isinstance(target_json, str) else target_json
+    except (json.JSONDecodeError, TypeError):
+        target = {}
+
+    skill_level = 1
+    for s in skills_data:
+        if isinstance(s, dict):
+            name = s.get("name", s.get("skill_name", "")).lower()
+        else:
+            name = str(s).lower()
+        if name == skill_name.lower():
+            skill_level = float(s.get("level", s.get("value", 1)))
+            break
+
+    handler = skill["handler"]
+    stat_bonus = stats.get("level", 1) // 4 + stats.get("strength", 10) // 4
+
+    ctx = {
+        "skill_level": skill_level,
+        "stat_bonus": stat_bonus,
+        "modifier": modifier,
+        "damage_multiplier": damage_multiplier,
+        "target": target,
+        "mana": mana,
+        "max_mana": max_mana,
+    }
+
+    result = handler(ctx)
+    result["skill_name"] = skill_name
+    result["skill_category"] = skill.get("category", "")
+    result["skill_level"] = skill_level
+
+    return json.dumps(result, indent=2)
