@@ -12,7 +12,7 @@ def _block(ctx: dict) -> dict:
     mod = ctx.get("modifier", 0)
 
     diff = max(5, int(incoming * 0.5))
-    check = success_check(lvl, diff, stat, mod)
+    check = success_check(lvl, diff, stat, mod, mastery_key="combat_defense")
 
     blocked = 0
     if check["success"]:
@@ -35,7 +35,7 @@ def _parry(ctx: dict) -> dict:
     mod = ctx.get("modifier", 0)
 
     diff = max(8, int(incoming * 0.6))
-    check = success_check(lvl, diff, stat, mod)
+    check = success_check(lvl, diff, stat, mod, mastery_key="combat_defense")
 
     riposte = False
     blocked = 0
@@ -60,7 +60,7 @@ def _dodge(ctx: dict) -> dict:
     mod = ctx.get("modifier", 0)
 
     diff = max(6, int(incoming * 0.4))
-    check = success_check(lvl, diff, stat, mod)
+    check = success_check(lvl, diff, stat, mod, mastery_key="combat_defense")
 
     xp = xp_gain(lvl, 1.1, check["success"], check["quality"])
     return make_result(

@@ -5,12 +5,42 @@ import random
 from typing import Any, Optional
 
 
+_DC_TO_DIFFICULTY = {
+    3: "trivial", 5: "trivial", 7: "easy", 8: "easy",
+    10: "normal", 12: "normal", 13: "hard", 15: "hard",
+    17: "very_hard", 18: "very_hard", 20: "legendary", 22: "legendary",
+}
+
+
+def _nearest_difficulty(dc: int) -> str:
+    keys = sorted(_DC_TO_DIFFICULTY.keys())
+    nearest = min(keys, key=lambda k: abs(k - dc))
+    return _DC_TO_DIFFICULTY[nearest]
+
+
 def success_check(
     skill_level: float,
     difficulty: int = 10,
     stat_bonus: int = 0,
     modifier: int = 0,
+    mastery_key: Optional[str] = None,
 ) -> dict:
+    if mastery_key:
+        from ..utils.mastery import mastery_check
+        diff_label = _nearest_difficulty(difficulty)
+        result = mastery_check(int(skill_level), mastery_key, diff_label, stat_bonus)
+        margin_raw = result["effective_rate"] - result["roll"]
+        margin = int(margin_raw * 100)
+        return {
+            "roll": result["roll"],
+            "total": result["roll"],
+            "dc": difficulty,
+            "success": result["success"],
+            "margin": max(margin, 0) if result["success"] else min(margin, 0),
+            "quality": result["quality"],
+            "mastery_rate": result.get("effective_rate", 0),
+            "mastery_key": mastery_key,
+        }
     roll = random.randint(1, 20) + int(skill_level) + stat_bonus + modifier
     success = roll >= difficulty
     margin = roll - difficulty

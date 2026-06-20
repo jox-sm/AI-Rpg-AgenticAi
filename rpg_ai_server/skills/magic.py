@@ -18,7 +18,7 @@ def _spellcasting(ctx: dict) -> dict:
         return make_result(False, f"Not enough mana ({mana}/{mana_cost})")
 
     diff = max(5, target.get("magic_defense", 10))
-    check = success_check(lvl, diff, stat, mod)
+    check = success_check(lvl, diff, stat, mod, mastery_key="magic")
 
     dmg = 0
     if check["success"]:
@@ -65,7 +65,7 @@ def _fire_magic(ctx: dict) -> dict:
         return make_result(False, f"Not enough mana ({mana}/{mana_cost})")
 
     diff = max(5, target.get("magic_defense", 10) - 3)
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="magic")
 
     dmg = 0
     burn = False
@@ -99,7 +99,7 @@ def _ice_magic(ctx: dict) -> dict:
         return make_result(False, f"Not enough mana ({mana}/{mana_cost})")
 
     diff = max(5, target.get("magic_defense", 10))
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="magic")
 
     dmg = 0
     freeze = False
@@ -133,7 +133,7 @@ def _lightning_magic(ctx: dict) -> dict:
     total_dmg = 0
     stunned = []
     for t in targets:
-        if success_check(lvl, max(5, t.get("magic_defense", 10)), stat, 0)["success"]:
+        if success_check(lvl, max(5, t.get("magic_defense", 10)), stat, 0, mastery_key="magic")["success"]:
             td = damage_formula(8, lvl, stat, mult * 0.8)
             total_dmg += td
             hits += 1

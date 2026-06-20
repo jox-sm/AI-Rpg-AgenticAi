@@ -14,7 +14,7 @@ def _slash(ctx: dict) -> dict:
     mult = ctx.get("damage_multiplier", 1.0)
 
     diff = max(5, target.get("defense", 10) - 2)
-    check = success_check(lvl, diff, stat, mod)
+    check = success_check(lvl, diff, stat, mod, mastery_key="combat_offense")
 
     dmg = 0
     status = []
@@ -43,7 +43,7 @@ def _pierce(ctx: dict) -> dict:
     mult = ctx.get("damage_multiplier", 1.0)
 
     diff = max(5, target.get("defense", 10))
-    check = success_check(lvl, diff, stat, mod)
+    check = success_check(lvl, diff, stat, mod, mastery_key="combat_offense")
 
     dmg = 0
     armor_pen = 0
@@ -72,7 +72,7 @@ def _bludgeon(ctx: dict) -> dict:
     mult = ctx.get("damage_multiplier", 1.0)
 
     diff = max(5, target.get("defense", 10) + 2)
-    check = success_check(lvl, diff, stat, mod)
+    check = success_check(lvl, diff, stat, mod, mastery_key="combat_offense")
 
     dmg = 0
     stun = False
@@ -99,7 +99,7 @@ def _power_attack(ctx: dict) -> dict:
     mult = ctx.get("damage_multiplier", 1.0)
 
     diff = max(5, target.get("defense", 10) + 5)
-    check = success_check(lvl, diff, stat, mod - 3)
+    check = success_check(lvl, diff, stat, mod - 3, mastery_key="combat_offense")
 
     dmg = 0
     if check["success"]:
@@ -127,7 +127,7 @@ def _cleave(ctx: dict) -> dict:
     hits = 0
     for t in targets:
         diff = max(5, t.get("defense", 10))
-        check = success_check(lvl, diff, stat, mod - 2)
+        check = success_check(lvl, diff, stat, mod - 2, mastery_key="combat_offense")
         if check["success"]:
             td = damage_formula(6, lvl, stat, mult * 0.7)
             dmg += td

@@ -10,7 +10,7 @@ def _persuasion(ctx: dict) -> dict:
     mod = ctx.get("modifier", 0)
 
     diff = max(5, target.get("resolve", 10))
-    check = success_check(lvl, diff, stat, mod)
+    check = success_check(lvl, diff, stat, mod, mastery_key="social")
 
     xp = xp_gain(lvl, 1.0, check["success"], check["quality"])
     return make_result(
@@ -28,7 +28,7 @@ def _diplomacy(ctx: dict) -> dict:
     current_relation = target.get("relationship", 0)
 
     diff = max(3, 10 - current_relation // 10)
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="social")
 
     relation_change = 0
     if check["success"]:
@@ -52,7 +52,7 @@ def _intimidate(ctx: dict) -> dict:
     stat = ctx.get("stat_bonus", 0)
 
     diff = max(5, target.get("level", 5) * 2 + target.get("resolve", 5))
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="social")
 
     xp = xp_gain(lvl, 1.2, check["success"], check["quality"])
     return make_result(
@@ -69,7 +69,7 @@ def _deceive(ctx: dict) -> dict:
     stat = ctx.get("stat_bonus", 0)
 
     diff = max(5, target.get("perception", 10))
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="social")
 
     xp = xp_gain(lvl, 1.0, check["success"], check["quality"])
     return make_result(
@@ -86,7 +86,7 @@ def _bargain(ctx: dict) -> dict:
     base_price = ctx.get("base_price", 100)
 
     diff = max(5, target.get("mercantile", 10))
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="social")
 
     discount = 0
     if check["success"]:

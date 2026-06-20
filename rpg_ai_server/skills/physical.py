@@ -11,7 +11,7 @@ def _athletics(ctx: dict) -> dict:
     task_difficulty = ctx.get("difficulty", 10)
 
     diff = max(3, task_difficulty)
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="physical")
 
     xp = xp_gain(lvl, task_difficulty / 10, check["success"], check["quality"])
     return make_result(
@@ -28,7 +28,7 @@ def _acrobatics(ctx: dict) -> dict:
     maneuver_difficulty = ctx.get("difficulty", 10)
 
     diff = max(3, maneuver_difficulty)
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="physical")
 
     xp = xp_gain(lvl, maneuver_difficulty / 10, check["success"], check["quality"])
     return make_result(
@@ -45,7 +45,7 @@ def _endurance(ctx: dict) -> dict:
     duration = ctx.get("duration", 1)
 
     diff = 5 + duration * 3
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="physical")
 
     stamina_gain = 0
     if check["success"]:
@@ -68,7 +68,7 @@ def _reflexes(ctx: dict) -> dict:
     trigger_speed = ctx.get("trigger_speed", 10)
 
     diff = max(3, trigger_speed)
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="physical")
 
     xp = xp_gain(lvl, trigger_speed / 10, check["success"], check["quality"])
     return make_result(
@@ -85,7 +85,7 @@ def _climbing(ctx: dict) -> dict:
     wall_difficulty = ctx.get("difficulty", 10)
 
     diff = max(3, wall_difficulty)
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="physical")
 
     fall_damage = 0
     if not check["success"]:

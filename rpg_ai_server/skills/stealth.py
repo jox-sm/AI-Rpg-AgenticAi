@@ -10,7 +10,7 @@ def _stealth(ctx: dict) -> dict:
     mod = ctx.get("modifier", 0)
 
     diff = max(5, target.get("perception", 10))
-    check = success_check(lvl, diff, stat, mod)
+    check = success_check(lvl, diff, stat, mod, mastery_key="stealth")
 
     xp = xp_gain(lvl, 1.0, check["success"], check["quality"])
     return make_result(
@@ -28,7 +28,7 @@ def _sleight_of_hand(ctx: dict) -> dict:
     mod = ctx.get("modifier", 0)
 
     diff = max(5, target.get("perception", 10) + 5)
-    check = success_check(lvl, diff, stat, mod)
+    check = success_check(lvl, diff, stat, mod, mastery_key="stealth")
 
     xp = xp_gain(lvl, 1.1, check["success"], check["quality"])
     return make_result(
@@ -45,7 +45,7 @@ def _lockpick(ctx: dict) -> dict:
 
     difficulty = target.get("lock_difficulty", 10)
     diff = max(5, difficulty)
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="stealth")
 
     xp = xp_gain(lvl, difficulty / 10, check["success"], check["quality"])
     return make_result(
@@ -62,7 +62,7 @@ def _pickpocket(ctx: dict) -> dict:
     stat = ctx.get("stat_bonus", 0)
 
     diff = max(8, target.get("perception", 10) + target.get("level", 5))
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="stealth")
 
     xp = xp_gain(lvl, 1.3, check["success"], check["quality"])
     return make_result(

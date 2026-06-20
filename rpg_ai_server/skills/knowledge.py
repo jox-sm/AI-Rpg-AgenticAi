@@ -1,9 +1,26 @@
 from __future__ import annotations
 
+import json
+import re
+from collections import Counter
+from pathlib import Path
+
 from ..utils.items_db import ItemsDB
 from .base import make_result, success_check, xp_gain
 
 _ITEMS_DB = ItemsDB()
+_RECIPES: list[dict] | None = None
+
+
+def _load_recipes() -> list[dict]:
+    global _RECIPES
+    if _RECIPES is None:
+        path = Path(_ITEMS_DB.data_dir) / "recipes.json"
+        if path.exists():
+            _RECIPES = json.loads(path.read_text(encoding="utf-8"))
+        else:
+            _RECIPES = []
+    return _RECIPES
 
 
 def _lore(ctx: dict) -> dict:
@@ -13,7 +30,7 @@ def _lore(ctx: dict) -> dict:
 
     difficulty = target.get("obscurity", 10)
     diff = max(3, difficulty)
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="knowledge")
 
     info = ""
     if check["success"]:
@@ -43,7 +60,7 @@ def _arcana(ctx: dict) -> dict:
     item_name = target.get("name", target.get("item_name", ""))
     difficulty = target.get("magic_obscurity", 10)
     diff = max(3, difficulty)
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="knowledge")
 
     info = ""
     db_match = None
@@ -83,7 +100,7 @@ def _history(ctx: dict) -> dict:
 
     difficulty = target.get("age", 10)
     diff = max(3, difficulty)
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="knowledge")
 
     era = ""
     if check["success"]:
@@ -106,7 +123,7 @@ def _medicine(ctx: dict) -> dict:
 
     wound_severity = target.get("wound_severity", 5)
     diff = max(3, wound_severity * 3)
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="knowledge")
 
     healing = 0
     if check["success"]:
@@ -134,7 +151,7 @@ def _healing(ctx: dict) -> dict:
         return make_result(False, f"Not enough mana ({mana}/{mana_cost})")
 
     diff = max(3, target.get("wound_severity", 5) * 2)
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="knowledge")
 
     healing = 0
     if check["success"]:
@@ -159,7 +176,7 @@ def _investigation(ctx: dict) -> dict:
 
     difficulty = target.get("hidden_dc", 10)
     diff = max(3, difficulty)
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="knowledge")
 
     clues = []
     db_results = []
@@ -183,6 +200,144 @@ def _investigation(ctx: dict) -> dict:
     )
 
 
+_WORD_RE = re.compile(r"[a-zA-Z0-9]+")
+
+
+def _bow_tokens(text: str) -> set[str]:
+    return {m.group().lower() for m in _WORD_RE.finditer(text) if len(m.group()) > 1}
+
+
+def _bow_score(query_tokens: set[str], recipe_tokens: set[str]) -> float:
+    if not query_tokens:
+        return 0.0
+    return len(query_tokens & recipe_tokens) / len(query_tokens)
+
+
+def _char_bigrams(text: str, pad: int = 2) -> Counter:
+    padded = "#" * pad + text.lower() + "#" * pad
+    return Counter(padded[i:i+2] for i in range(len(padded) - 1))
+
+
+def _cosine_sim(a: Counter, b: Counter) -> float:
+    num = sum((a & b).values())
+    den = (sum(a.values()) ** 0.5) * (sum(b.values()) ** 0.5)
+    return num / den if den else 0.0
+
+
+def _recipes(ctx: dict) -> dict:
+    lvl = ctx.get("skill_level", 1)
+    target = ctx.get("target", {})
+    stat = ctx.get("stat_bonus", 0)
+    query = target.get("query", target.get("name", target.get("item_name", "")))
+
+    difficulty = target.get("recipe_dc", 10)
+    diff = max(3, difficulty)
+    check = success_check(lvl, diff, stat, 0, mastery_key="knowledge")
+
+    results = []
+    if query and check["success"]:
+        q_tokens = _bow_tokens(query)
+        # Extend query tokens with items-db cross-refs (_src_id, category)
+        db_item = _ITEMS_DB.get_by_name(query)
+        if db_item:
+            src = db_item.get("_src_id") or ""
+            if src:
+                q_tokens.update(_bow_tokens(src))
+            cat = db_item.get("Category") or db_item.get("category") or ""
+            if cat:
+                q_tokens.update(_bow_tokens(cat))
+        else:
+            for item in _ITEMS_DB.search(query, limit=3):
+                src = item.get("_src_id") or ""
+                if src:
+                    q_tokens.update(_bow_tokens(src))
+
+        if not q_tokens:
+            q_tokens = {query.lower()}
+
+        recipes = _load_recipes()
+        scored: list[tuple[float, dict]] = []
+        seen: set[str] = set()
+        for r in recipes:
+            combined = " ".join([
+                r.get("name", ""),
+                r.get("Station", ""),
+                r.get("Required Skill", ""),
+                r.get("Ingredients", ""),
+                r.get("Result", ""),
+            ])
+            r_tokens = _bow_tokens(combined)
+            score = _bow_score(q_tokens, r_tokens)
+            if score > 0:
+                rid = r.get("_src_id", str(r.get("id", "")))
+                if rid not in seen:
+                    seen.add(rid)
+                    scored.append((score, r))
+
+        if not scored:
+            for item in _ITEMS_DB.search(query, limit=5):
+                name = item.get("name", "")
+                src = item.get("_src_id") or ""
+                if name:
+                    q_tokens = _bow_tokens(name)
+                    if src:
+                        q_tokens.update(_bow_tokens(src))
+                    for r in recipes:
+                        combined = " ".join([
+                            r.get("name", ""),
+                            r.get("Station", ""),
+                            r.get("Required Skill", ""),
+                            r.get("Ingredients", ""),
+                            r.get("Result", ""),
+                        ])
+                        r_tokens = _bow_tokens(combined)
+                        score = _bow_score(q_tokens, r_tokens)
+                        if score > 0:
+                            rid = r.get("_src_id", str(r.get("id", "")))
+                            if rid not in seen:
+                                seen.add(rid)
+                                scored.append((score * 0.95, r))
+
+        if scored:
+            scored.sort(key=lambda x: -x[0])
+
+        results = [_format_recipe(r) for _, r in scored]
+
+    count = max(1, min(8, int(lvl * 0.3)))
+    if len(results) > count:
+        results = results[:count]
+
+    result_str = ""
+    if results:
+        lines = []
+        for r in results:
+            lines.append(f"  {r['name']} @ {r['station']} ({r['skill_required']} Lv{r['skill_level']})")
+            lines.append(f"    Ingredients: {r['ingredients']}")
+            lines.append(f"    Result: {r['result']} | Time: {r['crafting_time']} | Success: {r['success_rate']}")
+        result_str = "\n".join(lines)
+
+    xp = xp_gain(lvl, difficulty / 10, check["success"], check["quality"])
+    return make_result(
+        success=check["success"],
+        effect=result_str if result_str else "You don't know any recipes matching that",
+        skill_xp=xp, cooldown=0,
+        attributes={"recipes_found": results, "recipe_count": len(results)},
+   )
+
+
+def _format_recipe(r: dict) -> dict:
+    return {
+        "name": r.get("name", ""),
+        "station": r.get("Station", ""),
+        "skill_required": r.get("Required Skill", ""),
+        "skill_level": r.get("Skill Level", ""),
+        "ingredients": r.get("Ingredients", ""),
+        "result": r.get("Result", ""),
+        "crafting_time": r.get("Crafting Time", ""),
+        "success_rate": r.get("Success Rate", ""),
+    }
+
+
 SKILLS: dict[str, dict] = {
     "lore": {"handler": _lore, "category": "knowledge", "description": "Recall general knowledge and information"},
     "arcana": {"handler": _arcana, "category": "knowledge", "description": "Identify magic items, spells, and phenomena"},
@@ -190,4 +345,5 @@ SKILLS: dict[str, dict] = {
     "medicine": {"handler": _medicine, "category": "knowledge", "description": "Treat wounds and diagnose ailments"},
     "healing": {"handler": _healing, "category": "knowledge", "description": "Restore HP through magical or advanced healing"},
     "investigation": {"handler": _investigation, "category": "knowledge", "description": "Search for clues and hidden details"},
+    "recipes": {"handler": _recipes, "category": "knowledge", "description": "Look up crafting recipes — query by item, ingredient, station, or skill"},
 }

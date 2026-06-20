@@ -11,7 +11,7 @@ def _sword_mastery(ctx: dict) -> dict:
     mult = ctx.get("damage_multiplier", 1.0)
 
     diff = max(5, target.get("defense", 10) - int(lvl * 0.3))
-    check = success_check(lvl, diff, stat, mod)
+    check = success_check(lvl, diff, stat, mod, mastery_key="weapons")
 
     dmg = 0
     if check["success"]:
@@ -35,7 +35,7 @@ def _spear_mastery(ctx: dict) -> dict:
     mult = ctx.get("damage_multiplier", 1.0)
 
     diff = max(5, target.get("defense", 10))
-    check = success_check(lvl, diff, stat, mod + int(lvl * 0.2))
+    check = success_check(lvl, diff, stat, mod + int(lvl * 0.2), mastery_key="weapons")
 
     dmg = 0
     pen = 0
@@ -63,7 +63,7 @@ def _hammer_mastery(ctx: dict) -> dict:
     mult = ctx.get("damage_multiplier", 1.0)
 
     diff = max(5, target.get("defense", 10) + 3)
-    check = success_check(lvl, diff, stat, mod)
+    check = success_check(lvl, diff, stat, mod, mastery_key="weapons")
 
     dmg = 0
     stun = False
@@ -90,7 +90,7 @@ def _archery(ctx: dict) -> dict:
     mult = ctx.get("damage_multiplier", 1.0)
 
     diff = max(5, target.get("dodge", 5) + 5)
-    check = success_check(lvl, diff, stat, mod)
+    check = success_check(lvl, diff, stat, mod, mastery_key="weapons")
 
     dmg = 0
     if check["success"]:
@@ -115,8 +115,8 @@ def _dual_wield(ctx: dict) -> dict:
     mult = ctx.get("damage_multiplier", 1.0)
 
     diff = max(5, target.get("defense", 10))
-    check1 = success_check(lvl, diff, stat, mod - 2)
-    check2 = success_check(lvl, diff, stat, mod - 2)
+    check1 = success_check(lvl, diff, stat, mod - 2, mastery_key="weapons")
+    check2 = success_check(lvl, diff, stat, mod - 2, mastery_key="weapons")
 
     dmg = 0
     hits = 0

@@ -12,7 +12,7 @@ def _tactics(ctx: dict) -> dict:
 
     enemy_level = target.get("level", 5)
     diff = max(5, enemy_level * 2)
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="strategy")
 
     advantage = 0
     if check["success"]:
@@ -36,7 +36,7 @@ def _strategy_skill(ctx: dict) -> dict:
     plan_complexity = ctx.get("complexity", 1)
 
     diff = 5 + plan_complexity * 5
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="strategy")
 
     outcome = ""
     bonus = 0
@@ -62,7 +62,7 @@ def _leadership(ctx: dict) -> dict:
     allies = ctx.get("ally_count", 1)
 
     diff = 5 + allies * 3
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="strategy")
 
     morale = 0
     if check["success"]:
@@ -85,7 +85,7 @@ def _planning(ctx: dict) -> dict:
     prep_time = ctx.get("prep_time", 1)
 
     diff = max(3, 10 - prep_time)
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="strategy")
 
     contingencies = 0
     if check["success"]:

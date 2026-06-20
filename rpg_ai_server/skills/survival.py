@@ -12,7 +12,7 @@ def _tracking(ctx: dict) -> dict:
 
     difficulty = target.get("track_difficulty", 10)
     diff = max(3, difficulty - int(lvl * 0.5))
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="survival")
 
     info = ""
     if check["success"]:
@@ -43,7 +43,7 @@ def _hunting(ctx: dict) -> dict:
 
     size_mod = {"small": 5, "medium": 10, "large": 15, "massive": 22}
     diff = 5 + size_mod.get(prey_size, 10)
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="survival")
 
     harvest = ""
     meat = 0
@@ -69,7 +69,7 @@ def _foraging(ctx: dict) -> dict:
 
     biomes = {"forest": 8, "mountain": 12, "desert": 15, "swamp": 6, "plains": 10}
     diff = biomes.get(biome, 10)
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="survival")
 
     found = []
     if check["success"]:
@@ -92,7 +92,7 @@ def _skinning(ctx: dict) -> dict:
     creature_type = ctx.get("creature_type", "beast")
 
     diff = 5 + {"beast": 0, "monster": 5, "dragon": 15, "magical": 10}.get(creature_type, 5)
-    check = success_check(lvl, diff, stat, 0)
+    check = success_check(lvl, diff, stat, 0, mastery_key="survival")
 
     materials = {}
     if check["success"]:

@@ -93,8 +93,12 @@ class ItemsDB:
             except (json.JSONDecodeError, OSError) as e:
                 print(f"[ItemsDB] Skipping {path.name}: {e}")
                 continue
+            if not isinstance(items, list):
+                continue
             self._items[stem] = items
             for item in items:
+                if not isinstance(item, dict):
+                    continue
                 item["_file"] = stem
                 self._flat.append(item)
                 name = item.get("name", "").lower().strip()
