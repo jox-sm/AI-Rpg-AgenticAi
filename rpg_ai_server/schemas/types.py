@@ -80,10 +80,13 @@ class CharacterStats(BaseModel):
     max_health: int = Field(default=100)
     mana: int = Field(default=50)
     max_mana: int = Field(default=50)
+    strength: int = Field(default=10, ge=1, description="Strength stat for carry capacity & melee")
     skills: Dict[SkillType, int] = Field(default_factory=lambda: {s: 1 for s in SkillType})
     stat_cap: int = Field(default=10, description="Max stat points per level bracket")
     attribute_points: int = Field(default=0)
     damage_resistances: Dict[DamageType, float] = Field(default_factory=dict)
+    carry_capacity: float = Field(default=50.0, ge=0, description="Max weight in lbs (STR * 5)")
+    current_load: float = Field(default=0.0, ge=0, description="Current carried weight in lbs")
 
 
 class Skill(BaseModel):
@@ -101,11 +104,13 @@ class InventoryItem(BaseModel):
     name: str = Field(..., description="Item display name")
     category: ItemCategory = Field(default=ItemCategory.MATERIAL)
     quantity: int = Field(default=1, ge=0)
+    weight: float = Field(default=1.0, ge=0, description="Weight per unit in lbs")
     damage: int = Field(default=0)
     durability: int = Field(default=100)
     max_durability: int = Field(default=100)
     description: str = Field(default="")
     properties: Dict[str, Any] = Field(default_factory=dict)
+    stored_in: Optional[str] = Field(default=None, description="Name of container item holding this, for weight reduction")
 
 
 class Relationship(BaseModel):

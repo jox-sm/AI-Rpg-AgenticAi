@@ -14,6 +14,7 @@ from .tools import (
     dice_roller,
     inventory_checker_and_updater,
     json_data_maker_and_tracker,
+    rarity_enhancer,
     situational_dice,
     skill_updater_and_validator,
     stats_multiplier_and_updater,

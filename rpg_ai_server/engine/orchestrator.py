@@ -10,6 +10,7 @@ from ..redis.game_state import GameStateManager
 from ..redis.output_cache import OutputCache
 from ..schemas.state import GameState
 from ..schemas.types import CharacterStats, GameRequest, Skill
+from ..scripts.world_generator import generate_world, world_to_grid_data, world_to_meta
 from ..utils.logger import logger
 from .graph_builder import build_game_graph
 
@@ -32,13 +33,17 @@ class GameOrchestrator:
     def _build_initial_state(self, request: GameRequest) -> GameState:
         stats = CharacterStats()
 
+        world = generate_world(seed=request.uuid)
+        grid_data = world_to_grid_data(world)
+        world_meta = world_to_meta(world)
+
         initial_state: GameState = {
             "uuid": request.uuid,
             "prompt": request.prompt,
             "input_data": request.data or {},
-            "game_data": request.data or {},
+            "game_data": request.data or {"world": world_meta, "grid": world["grid"]},
             "images": {},
-            "grid_data": {},
+            "grid_data": grid_data,
             "re_description_data": None,
             "context_summary": None,
             "character_stats": stats,

@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from ..utils.items_db import ItemsDB
 from .base import make_result, success_check, xp_gain
+
+_ITEMS_DB = ItemsDB()
 
 
 def _lore(ctx: dict) -> dict:
@@ -37,11 +40,18 @@ def _arcana(ctx: dict) -> dict:
     target = ctx.get("target", {})
     stat = ctx.get("stat_bonus", 0)
 
+    item_name = target.get("name", target.get("item_name", ""))
     difficulty = target.get("magic_obscurity", 10)
     diff = max(3, difficulty)
     check = success_check(lvl, diff, stat, 0)
 
     info = ""
+    db_match = None
+    if item_name:
+        db_match = _ITEMS_DB.get_by_name(item_name)
+        if not db_match:
+            db_match = _ITEMS_DB.search(item_name, limit=3)
+
     if check["success"]:
         info_parts = ["magical properties"]
         if lvl >= 4:
@@ -51,13 +61,18 @@ def _arcana(ctx: dict) -> dict:
         if lvl >= 10:
             info_parts.append("weaknesses")
         info = ", ".join(info_parts)
+        if db_match:
+            if isinstance(db_match, list):
+                info += f" — matched {len(db_match)} items in database"
+            else:
+                info += f" — identified as {db_match.get('name', 'unknown')}"
 
     xp = xp_gain(lvl, difficulty / 10, check["success"], check["quality"])
     return make_result(
         success=check["success"],
         effect=f"Arcana reveals: {info}" if info else "The magic is inscrutable",
         skill_xp=xp, cooldown=0,
-        attributes={"info": info},
+        attributes={"info": info, "db_item": db_match if isinstance(db_match, dict) else None},
     )
 
 
@@ -140,23 +155,31 @@ def _investigation(ctx: dict) -> dict:
     lvl = ctx.get("skill_level", 1)
     target = ctx.get("target", {})
     stat = ctx.get("stat_bonus", 0)
+    query = target.get("search_query", target.get("name", target.get("item_name", "")))
 
     difficulty = target.get("hidden_dc", 10)
     diff = max(3, difficulty)
     check = success_check(lvl, diff, stat, 0)
 
     clues = []
+    db_results = []
     if check["success"]:
         possible = ["footprints", "documents", "hidden compartment", "traces of magic", "witness accounts", "physical evidence"]
         count = 1 + int(lvl * 0.4)
         clues = possible[:min(len(possible), count)]
+
+        if query:
+            db_results = _ITEMS_DB.search(query, limit=count)
+            if db_results:
+                item_names = [i.get("name", "unknown") for i in db_results]
+                clues.append(f"items found: {', '.join(item_names)}")
 
     xp = xp_gain(lvl, difficulty / 10, check["success"], check["quality"])
     return make_result(
         success=check["success"],
         effect=f"You discover: {', '.join(clues)}" if clues else "You find nothing suspicious",
         skill_xp=xp, cooldown=0,
-        attributes={"clues_found": clues},
+        attributes={"clues_found": clues, "db_items_found": db_results},
     )
 
 
