@@ -38,6 +38,9 @@ class GameState(TypedDict):
     processed: bool
     error: Optional[str]
     search_results: str
+    rag_context: str
     tool_results: Annotated[List[str], operator.add]
     game_output: Optional[Dict[str, Any]]
+    conditional_passes: int
+    remaining_steps: int
     __next__: str

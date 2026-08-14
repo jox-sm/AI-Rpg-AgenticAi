@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import asyncio
 import time
 from typing import Any, Dict, Optional
 
+from langgraph.errors import GraphRecursionError
 from langgraph.graph import StateGraph
 
 from ..agents.node4_tool_agent.tools import json_data_maker_and_tracker
+from ..config.settings import settings
 from ..redis.game_state import GameStateManager
 from ..redis.output_cache import OutputCache
 from ..schemas.state import GameState
@@ -13,6 +16,12 @@ from ..schemas.types import CharacterStats, GameRequest, Skill
 from ..scripts.world_generator import generate_world, world_to_grid_data, world_to_meta
 from ..utils.logger import logger
 from .graph_builder import build_game_graph
+
+GRACEFUL_ERROR_STORY = (
+    "A twisting mist swallows the scene before it fully forms. "
+    "The world shudders, glitches, and resets — as if the dungeon itself "
+    "rejected the attempt. Try again."
+)
 
 
 class GameOrchestrator:
@@ -76,8 +85,11 @@ class GameOrchestrator:
             "processed": False,
             "error": None,
             "search_results": "",
+            "rag_context": "",
             "tool_results": [],
             "game_output": None,
+            "conditional_passes": 0,
+            "remaining_steps": settings.app.loop_recursion_limit,
             "__next__": "node4_tool_agent",
         }
 
@@ -126,7 +138,7 @@ class GameOrchestrator:
                 )
                 logger.info(f"Saved initial game state for {request.uuid}")
 
-            result = await self.compiled_graph.ainvoke(initial_state)
+            result = await self._run_graph(initial_state, request.uuid)
 
             output = result.get("game_output")
             if output:
@@ -135,8 +147,10 @@ class GameOrchestrator:
                     request.uuid,
                     {"game_data": output.get("game_data", {}),
                      "story": story,
-                     "character_stats": output.get("game_data", {}).get("character_stats", {})},
-                    ["game_data", "story", "character_stats"],
+                     "character_stats": output.get("game_data", {}).get("character_stats", {}),
+                     "context_summary": result.get("context_summary"),
+                     "decision": result.get("decision")},
+                    ["game_data", "story", "character_stats", "context_summary", "decision"],
                 )
                 await self.game_state_mgr.try_drain(request.uuid, story)
                 logger.info(f"Request {request.uuid} completed successfully")
@@ -146,12 +160,47 @@ class GameOrchestrator:
             return output
 
         except Exception as e:
-            logger.error(f"Failed to process request {request.uuid}: {e}")
+            logger.error(
+                f"Failed to process request {request.uuid}: {type(e).__name__}: {e}",
+                exc_info=True,
+            )
             return {
                 "uuid": request.uuid,
-                "error": str(e),
+                "error": type(e).__name__,
                 "game_data": request.data,
-                "story": f"The adventure encountered an error: {e}",
+                "story": GRACEFUL_ERROR_STORY,
             }
         finally:
             await self.game_state_mgr.release_lock(request.uuid, self.worker_id)
+
+    async def _run_graph(self, state: GameState, uuid: str) -> Dict[str, Any]:
+        """Run the graph with a wall-clock timeout and bounded recursion."""
+
+        async def _keep_lock_alive():
+            while True:
+                await asyncio.sleep(settings.app.lock_refresh_interval)
+                if not await self.game_state_mgr.refresh_lock(uuid, self.worker_id):
+                    logger.warning(f"Lost lock ownership for {uuid}, stopping renewal")
+                    return
+
+        keeper = asyncio.create_task(_keep_lock_alive())
+        try:
+            return await asyncio.wait_for(
+                self.compiled_graph.ainvoke(
+                    state,
+                    config={"recursion_limit": settings.app.loop_recursion_limit},
+                ),
+                timeout=settings.app.request_timeout_seconds,
+            )
+        except GraphRecursionError as e:
+            logger.error(f"Graph recursion limit reached for {uuid}: {e}")
+            raise
+        except asyncio.TimeoutError:
+            logger.error(f"Graph execution timed out for {uuid} after {settings.app.request_timeout_seconds}s")
+            raise
+        finally:
+            keeper.cancel()
+            try:
+                await keeper
+            except asyncio.CancelledError:
+                pass

@@ -7,7 +7,6 @@ from typing import Any, Dict, Optional
 from ..config.settings import settings
 from ..redis.input_queue import InputQueue
 from ..redis.output_cache import OutputCache
-from ..redis.rag_cache import RagCache
 from ..redis.queue import QueueManager
 from ..schemas.types import GameRequest
 from ..utils.logger import logger
@@ -20,13 +19,11 @@ class MultiTaskEngine:
         input_queue: InputQueue,
         output_cache: OutputCache,
         orchestrator: GameOrchestrator,
-        rag_cache: RagCache | None = None,
         queue_manager: QueueManager | None = None,
     ):
         self.input_queue = input_queue
         self.output_cache = output_cache
         self.orchestrator = orchestrator
-        self.rag_cache = rag_cache
         self.queue_mgr = queue_manager
         self._running = False
         self._active_tasks: set = set()

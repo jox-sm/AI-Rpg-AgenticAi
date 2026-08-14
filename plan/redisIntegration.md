@@ -2,41 +2,38 @@
 
 ## Overview
 
-Redis (Upstash) serves as the **central nervous system** between the web server, AI game server, and Chroma worker. It handles game state persistence, request queuing, and RAG text staging using a single Upstash instance with key prefixing and 3 logical databases.
+Redis (Upstash) serves as the **central nervous system** between the web server and the AI game server. It handles game state persistence and request queuing (2 logical databases / key prefixes on a single Upstash instance). **Game memory is not stored in Redis** — narrative retrieval uses **Upstash Vector** (dense cosine index, one namespace per session). No Chroma, no external worker, no DB 2.
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────┐         ┌──────────────────┐         ┌─────────────────┐
-│   Web Server    │         │   AI Game Server │         │   Chroma DB     │
-│   (FastAPI)     │         │   (LangGraph)    │         │   Worker        │
-│                 │         │                  │         │                 │
-│ User message →  │  RPUSH  │ LPOP queue →     │  RPUSH  │ LPOP rag:queue →│
-│ games:queue     ├────────►│ processes →      ├────────►│ embeds →        │
-│                 │         │ HSET state DB1   │         │ stores Chroma   │
-│                 │◄────────┤                  │◄────────┤                 │
-│ reads response  │  GET    │ queries Chroma   │  query  │ reads DB2 RAG   │
-│ from DB 1       │         │ for RAG context  │  GET    │ staging before  │
-│                 │         │                  │         │ Chroma write    │
-└─────────────────┘         └──────────────────┘         └─────────────────┘
-        │                           │                           │
-        └───────────────────────────┼───────────────────────────┘
-                                    │
-                          ┌─────────▼─────────┐
-                          │   Upstash Redis    │
-                          │                    │
-                          │  DB 0: games:queue │
-                          │  DB 1: games:state │
-                          │  DB 2: rag:queue   │
-                          └────────────────────┘
-
-                                    │
-                          ┌─────────▼─────────┐
-                          │    Chroma DB       │
-                          │  (Semantic RAG)    │
-                          └────────────────────┘
+┌─────────────────┐         ┌──────────────────┐         ┌──────────────────┐
+│   Web Server    │         │   AI Game Server │         │  Upstash Vector  │
+│   (Next.js)     │         │   (LangGraph)    │         │  (game memory)   │
+│                 │         │                  │         │                  │
+│ User message →  │  RPUSH  │ LPOP queue →     │  embed  │ upsert           │
+│ input:queue     ├────────►│ processes →      ├────────►│ namespace={uuid} │
+│                 │         │ HSET state DB1   │         │                  │
+│                 │◄────────┤                  │◄────────│ query(top_k=5)   │
+│ reads response  │  GET    │ memory retrieval │  query  │ inject           │
+│ from DB 1       │         │ via Vector       │         │ rag_context      │
+└─────────────────┘         └──────────────────┘         └──────────────────┘
+        │                           │
+        └───────────────────────────┼───────────────────────────┐
+                                    │                           │
+                          ┌─────────▼─────────┐                 │
+                          │   Upstash Redis    │                 │
+                          │                    │                 │
+                          │  DB 0: input:queue │                 │
+                          │  DB 1: games:state │                 │
+                          └────────────────────┘                 │
+                                                                │
+                          ┌────────────────────────────────────▼──┐
+                          │  Upstash Vector — dense index, 384-dim│
+                          │  cosine, namespace per session {uuid} │
+                          └───────────────────────────────────────┘
 ```
 
 ---
@@ -45,9 +42,9 @@ Redis (Upstash) serves as the **central nervous system** between the web server,
 
 ### Redis DB 0 — Queue & Coordination
 ```
-games:queue              → List (LPUSH/LPOP) - pending game requests
-games:queue:delayed      → Sorted Set - retry with backoff
-games:queue:dead         → Sorted Set - failed after max retries
+input:queue              → List (RPUSH/LPOP) - pending game requests
+input:queue:delayed      → Sorted Set - retry with backoff
+input:queue:dead         → Sorted Set - failed after max retries
 workers:{id}:heartbeat   → String - worker health check (TTL 15s)
 ```
 
@@ -59,11 +56,17 @@ games:{uuid}:counter     → Integer - action counter for drain trigger
 games:{uuid}:coord:{x}_{y} → Integer - coordinate→chunk index mapping
 ```
 
-### Redis DB 2 — RAG Staging (drained story/incidents before Chroma)
+### Game Memory (Upstash Vector — replaced the old DB 2 rag staging)
 ```
-rag:queue                → List - compressed story/incidents waiting for Chroma
-rag:{uuid}:{chunk_index} → Hash - gzip-compressed narrative text chunks
+Vector index            → dense, 384-dim (all-MiniLM-L6-v2), COSINE
+vector id               → "{uuid}:chunk:{idx}"  (sequential chunk index)
+namespace               → "{uuid}"  (per-game scoping, up to 100)
+metadata                → { uuid, chunk_index, turn, ts, is_incident, text }
 ```
+
+- **Write (drain):** every 10 actions or major event → decompress story/incidents from DB 1 → `split_into_chunks()` → embed → `index.upsert(vectors, namespace=uuid)`
+- **Read:** `node4_tool_agent` builds a context query → `index.query(vector, top_k=5, include_metadata=True, namespace=uuid)` → `rag_context` injected into the LLM prompt
+- **Why Upstash Vector instead of Redis DB 2 + Chroma?** Upstash Redis has no vector search (its `SEARCH.*` is Tantivy full-text only); Chroma meant a second external DB with its own uptime/billing. Upstash Vector is the same auth model as Upstash Redis, free tier (200M vectors×dims, 10k queries/day), and per-request pricing beyond that.
 
 ### State Hash Fields (DB 1)
 
@@ -88,8 +91,8 @@ HGET games:{uuid}:state incidents       → Gzip-compressed JSON string
 | `games:queue` | 0 | **No TTL** | Queue items processed then deleted |
 | `games:{uuid}:state` | 1 | **1 hour** (sliding) | Active game session, refreshed on every action |
 | `games:{uuid}:lock` | 1 | **30 seconds** | Processing lock, auto-release |
-| `rag:queue` | 2 | **No TTL** | Queue items consumed by Chroma worker |
-| `rag:{uuid}:{chunk_index}` | 2 | **1 hour** | Staging before Chroma ingestion |
+
+**Upstash Vector has no TTL** — memory lives as long as the namespace exists. Namespace = **scenario uuid** (user-chosen name is only a client label in `localStorage["rpg:scenarios"]`). Deletion happens only on `game_over: true`, stale-state sweep, or explicit "Don't save" exit — an exit with "Save" keeps vectors intact for resume. This replaces the old `rag:*` 1h TTL dance (the staging keys no longer exist).
 
 ### Data Freshness Rules
 
@@ -97,17 +100,17 @@ HGET games:{uuid}:state incidents       → Gzip-compressed JSON string
 On every user action:
   ├── Refresh games:{uuid}:state TTL → 1h (sliding window)
   ├── INCR games:{uuid}:counter
-  ├── If counter ≥ 10 OR action is major → drain to DB 2
+  ├── If counter ≥ 10 OR action is major → drain to memory (Upstash Vector)
   └── Queue items deleted after processing (no TTL needed)
 
 On game end or player quits:
   ├── State expires naturally after 1h of inactivity
-  ├── Last drain already pushed pending text to DB 2
+  ├── Last drain already pushed pending text to memory
   └── If player returns within 1h: state still alive, resume instantly
 
 Drain trigger (every 10 actions OR major action):
-  ├── Compress current story/incidents
-  ├── RPUSH rag:queue {"uuid": "abc", "text": "<gzip+base64>", "chunk_count": N}
+  ├── Decompress story/incidents (gzip)
+  ├── split_into_chunks() → embed (384-dim) → upsert to Vector namespace={uuid}
   ├── HDEL games:{uuid}:state story
   ├── HDEL games:{uuid}:state incidents
   └── RESET games:{uuid}:counter → 0
@@ -291,25 +294,27 @@ The full game state, stored as JSON. Only includes the current chunk (center + 8
 
 ---
 
-### C. RAG Staging (DB 2 — before Chroma ingestion)
+### C. Game Memory (Upstash Vector — replaces RAG staging in Redis)
 
-Staged per-chunk after drain trigger, waiting for Chroma worker:
+No staging in Redis anymore. On drain, the AI server embeds and upserts directly:
 
-```json
-{
-  "rag:queue": [
-    {"uuid": "abc", "text": "<gzip+base64 compressed story>", "chunk_count": 2}
-  ],
-  "rag:abc:0": {
-    "text": "<gzip+base64 compressed chunk>",
-    "timestamp": 1718800000
-  },
-  "rag:abc:1": {
-    "text": "<gzip+base64 compressed chunk>",
-    "timestamp": 1718800000
-  }
-}
-```
+```python
+from upstash_vector import Index
+
+index = Index(url=os.environ["UPSTASH_VECTOR_REST_URL"],
+              token=os.environ["UPSTASH_VECTOR_REST_TOKEN"])
+
+vectors = [
+    (f"{uuid}:chunk:{i}", vector, {"uuid": uuid, "chunk_index": i,
+                                   "turn": turn, "is_incident": False})
+    for i, vector in enumerate(embeddings)  # 384-dim floats
+]
+index.upsert(vectors=vectors, namespace=uuid)
+
+# retrieval (node4_tool_agent):
+hits = index.query(vector=query_embedding, top_k=5,
+                   include_metadata=True, namespace=uuid)
+rag_context = "\n---\n".join(h["metadata"].get("text", "") for h in hits)
 ```
 
 ---
@@ -487,7 +492,7 @@ Output:
   └── New incidents (gzip-compressed)
 ```
 
-### Phase 4: Patch-Based Writes + Drain Check (DB 1 → DB 2)
+### Phase 4: Patch-Based Writes + Drain Check (DB 1 → Upstash Vector)
 
 ```
 After processing, patch what changed and check drain trigger:
@@ -511,8 +516,9 @@ Always:
 Drain check:
   ├── INCR games:{uuid}:counter
   ├── If counter ≥ 10 OR LLM flagged is_major:
-  │     ├── Compress story/incidents → gzip+base64
-  │     ├── RPUSH rag:queue (DB 2) '{"uuid":"abc","text":"...","chunk_count":N}'
+  │     ├── Decompress story/incidents (gzip → text)
+  │     ├── split_into_chunks() → embed (384-dim)
+  │     ├── upsert to Upstash Vector, namespace={uuid}
   │     ├── HDEL games:{uuid}:state story
   │     ├── HDEL games:{uuid}:state incidents
   │     └── SET games:{uuid}:counter 0
@@ -528,19 +534,20 @@ Drain check:
 
 Only 1-3 fields change per action (player position, 1-2 monster hp, maybe story). No reason to reupload chunks, allies, buildings that didn't change.
 
-### Phase 5: Chroma Worker (DB 2 → Chroma DB)
+### Phase 5: Memory Ingestion (in-process → Upstash Vector)
 
 ```
-Chroma embedding worker:
-  ├── LPOP rag:queue (DB 2)
-  ├── Read staged chunks: HGETALL rag:{uuid}:{chunk_index}
-  ├── Decompress text (gzip → string)
-  ├── Split into 10k-token chunks (shared split_into_chunks())
-  ├── Generate embeddings with sentence-transformers
-  ├── Store in Chroma DB (HNSW index, per-UUID collection scoping)
-  ├── Delete staged chunks: DEL rag:{uuid}:* (cleanup)
-  └── Rag staging TTL expires naturally from DB 2
+No more external Chroma worker — the AI server embeds on drain:
+
+  1. Decompress story/incidents (gzip → string)
+  2. Split into 10k-token chunks (shared split_into_chunks())
+  3. Generate embeddings with sentence-transformers (384-dim, all-MiniLM-L6-v2)
+  4. index.upsert(vectors=[("{uuid}:chunk:{i}", vec, metadata)], namespace=uuid)
+  5. Optional retry on transient API errors (Upstash Vector is eventually
+     consistent — newly upserted vectors may take a moment to be queryable)
 ```
+
+Embedding runs in the AI server process (or a tiny aux task) — no queue, no staging keys, no TTL bookkeeping.
 
 ---
 
@@ -630,19 +637,29 @@ EXPIRE games:{uuid}:state 3600           # refresh TTL (1h sliding)
 DEL games:{uuid}:lock                    # release lock
 
 # Drain check (every 10 actions or major):
-SELECT 0
-RPUSH rag:queue '{"uuid":"...","text":"<gzip+base64>","chunk_count":2}'
-SELECT 1
 HDEL games:{uuid}:state story incidents  # clear drained fields
+# split → embed → upsert to Upstash Vector:
+# index.upsert(vectors=[("{uuid}:chunk:{i}", vec, meta)], namespace=uuid)
 ```
 
-### Chroma Worker (DB 2 → Chroma)
+### Memory Ingestion (Upstash Vector)
 ```python
-SELECT 2
-LPOP rag:queue                           # get work
-HGETALL rag:{uuid}:0                     # read staged chunk
-# decompress → split → embed → store in Chroma DB
-DEL rag:{uuid}:0                         # cleanup staged chunk
+from upstash_vector import Index
+index = Index(url=os.environ["UPSTASH_VECTOR_REST_URL"],
+              token=os.environ["UPSTASH_VECTOR_REST_TOKEN"])
+
+# write: on drain
+index.upsert(vectors=[(f"{uuid}:chunk:{i}", vec, {"uuid": uuid,
+               "chunk_index": i, "turn": turn, "text": chunk})
+               for i, (chunk, vec) in enumerate(zip(chunks, embeddings))],
+             namespace=uuid)
+
+# read: node4_tool_agent memory retrieval
+hits = index.query(vector=query_embedding, top_k=5,
+                   include_metadata=True, namespace=uuid)
+
+# cleanup: on game_over or 1h state expiry
+index.delete(namespace=uuid)   # or: index.delete(ids=[...], namespace=uuid)
 ```
 
 ---
@@ -651,13 +668,19 @@ DEL rag:{uuid}:0                         # cleanup staged chunk
 
 | Key Type | Count | Avg Size | Total |
 |----------|-------|----------|-------|
-| Queue items | ~50 | 200B | 10KB |
+| Queue items (DB 0) | ~50 | 200B | 10KB |
 | Game states (DB 1) | ~20 | 15KB | 300KB |
-| RAG staging (DB 2) | ~100 | 500B | 50KB |
 | Coordination (locks, heartbeats, counters) | ~50 | 100B | 5KB |
-| **Total** | | | **~365KB** |
+| **Redis total** | | | **~315KB** |
 
-Free tier: 256MB storage, 10k cmds/day. Well within limits for moderate usage. RAG staging holds only compressed text (no embeddings), keeping per-chunk size at ~500B vs 4KB with vectors.
+**Upstash Vector (separate product, own free tier):**
+| | Count | Size |
+|--|-------|------|
+| Vectors (384-dim × 4B float = 1.5KB each) | ~20 games × 50 chunks | ~1.5MB |
+| Metadata (text, turn, is_incident) | same | ~2MB |
+| **Total** | | **~3.5MB** (limit: 200M vectors×dims, 1GB) |
+
+Redis free tier (256MB, 10k cmds/day) only carries queue + state — no vectors, no staging. Vector traffic (upserts + queries) is billed against Upstash Vector's own free tier (10k queries/day).
 
 ---
 
@@ -707,25 +730,28 @@ Free tier: 256MB storage, 10k cmds/day. Well within limits for moderate usage. R
 | `status` field (`idle`/`processing`/`error`) | rpg_ai_server | ⬜ Pending (M5) |
 | `games:{uuid}:coord:{x}_{y}` → chunk index mapping | rpg_ai_server | ⬜ Pending (M8, G3) |
 
-### ─── DB 2 — RAG Staging (prefix `rag:`) ───
+### ─── Game Memory — Upstash Vector (replaces DB 2 rag staging) ───
 
-**Redis key patterns:**
-- `rag:queue` — List, RPUSH on drain, LPOP by Chroma worker
-- `rag:{uuid}:{chunk_index}` — Hash, gzip-compressed text chunks
+**Removed:** `rag:queue` List, `rag:{uuid}:{idx}` Hash, `RagRedisClient`, DB 2 — no staging, no Chroma.
 
 | Item | Project | Status |
 |------|---------|--------|
-| `rag:queue` List — RPUSH on drain trigger | rpg_ai_server | ✅ `RagRedisClient.push_staging` |
-| `rag:queue` LPOP for Chroma worker consumption | rpg_ai_server | ✅ `RagRedisClient.pop_staging` |
-| `rag:{uuid}:{idx}` Hash — read staged chunks | rpg_ai_server | ✅ `RagRedisClient.get_chunk` |
 | Drain trigger — counter ≥ 10 OR major action | rpg_ai_server | ✅ `GameStateManager.try_drain` |
-| Compress story/incidents with gzip+base64 before push | rpg_ai_server | ✅ `compress_text()` in `utils/compression.py` |
+| Compress story/incidents with gzip+base64 in state | rpg_ai_server | ✅ `compress_text()` in `utils/compression.py` |
 | HDEL story/incidents from state after drain | rpg_ai_server | ✅ `GameStateManager.try_drain` |
 | RESET counter to 0 after drain | rpg_ai_server | ✅ `GameStateManager.try_drain` |
-| `RagRedisClient` — falls back to main Upstash instance | rpg_ai_server | ✅ `RagRedisClient.connect()` |
-| `rag:{uuid}:{idx}` staged chunks cleaned on Chroma read | Chroma worker | ❌ Chroma worker responsibility |
-| Content-hash check — skip enqueue if story unchanged | rpg_ai_server | ⬜ Pending (H3) |
 | Major action keywords: death, level_up, quest_complete, boss_kill, new_biome | rpg_ai_server | ✅ Defined in `game_state.py` |
+| `upstash-vector` dependency (`pip install upstash-vector`) | rpg_ai_server | ⬜ To add |
+| `UPSTASH_VECTOR_REST_URL` / `UPSTASH_VECTOR_REST_TOKEN` env vars | rpg_ai_server | ⬜ To add |
+| Embedding model — sentence-transformers `all-MiniLM-L6-v2` (384-dim) | rpg_ai_server | ⬜ To add |
+| `split_into_chunks()` — 10k-token chunks on paragraph boundaries | rpg_ai_server | ⬜ To add |
+| `index.upsert(vectors, namespace=uuid)` on drain | rpg_ai_server | ⬜ To add |
+| `index.query(vector, top_k=5, include_metadata=True, namespace=uuid)` in node4 | rpg_ai_server | ⬜ To add |
+| Inject `rag_context` into LLM prompt | rpg_ai_server | ⬜ To add |
+| Content-hash check — skip upsert if story unchanged | rpg_ai_server | ⬜ Pending (H3) |
+| Namespace cleanup on game_over / state expiry (`index.delete(namespace=uuid)`) | rpg_ai_server | ⬜ Pending |
+| Retry with backoff on transient Vector API errors | rpg_ai_server | ⬜ Pending |
+| Loop guards: router pass cap, RemainingSteps, recursion_limit=60, tool-call limit, futile-action guard | rpg_ai_server | ⬜ Pending — see `plan/loops.md` (L1–L10) |
 
 ### ─── Compression ───
 
@@ -743,28 +769,14 @@ Free tier: 256MB storage, 10k cmds/day. Well within limits for moderate usage. R
 | `GameStateManager` wired into `GameOrchestrator` | rpg_ai_server | ✅ `orchestrator.py` |
 | `QueueManager` handles retry on lock failure / exception | rpg_ai_server | ✅ `multi_tasker.py` + `queue.py` |
 | `MultiTaskEngine` uses `QueueManager.next_request()` | rpg_ai_server | ✅ `multi_tasker.py` |
-| `RagCache` wrapper for DB 2 reads | rpg_ai_server | ✅ `redis/rag_cache.py` |
-| `GamesRedisClient` + `RagRedisClient` created in `main.py` | rpg_ai_server | ✅ `main.py` |
-| `.env.example` — `REDIS_RAG_DB`, `UPSTASH_REDIS_RAG_URL`, `UPSTASH_REDIS_RAG_TOKEN` | rpg_ai_server | ✅ `.env.example` |
-| `settings.py` — `rag_db`, `upstash_rag_url`, `upstash_rag_token` | rpg_ai_server | ✅ `config/settings.py` |
+| ~~`RagCache` wrapper for DB 2 reads~~ — removed with DB 2 | rpg_ai_server | ⬜ Delete `redis/rag_cache.py` |
+| ~~`RagRedisClient` created in `main.py`~~ — replaced by Vector client | rpg_ai_server | ⬜ Remove from `main.py` |
+| ~~`.env.example` — `REDIS_RAG_DB`, `UPSTASH_REDIS_RAG_URL`, `UPSTASH_REDIS_RAG_TOKEN`~~ | rpg_ai_server | ⬜ Replace with `UPSTASH_VECTOR_REST_URL` / `UPSTASH_VECTOR_REST_TOKEN` |
+| ~~`settings.py` — `rag_db`, `upstash_rag_url`, `upstash_rag_token`~~ | rpg_ai_server | ⬜ Replace with vector settings |
 | `games:{uuid}:response` Hash + PUBLISH notify | rpg_ai_server | ⬜ Pending (H4, low priority) |
-| Stale data cleanup — Lua script SCAN + TTL check + DEL | rpg_ai_server | ⬜ Pending (C7) |
-
-### ─── Chroma Worker / Agentic AI RAG (other project) ───
-
-| Item | Project | Status |
-|------|---------|--------|
-| Chroma worker loop — `LPOP rag:queue` → process | chroma-worker | ❌ Build in other project |
-| Decompress text from queue payload | chroma-worker | ❌ Build in other project |
-| `split_into_chunks()` — 10k-token chunks on paragraph boundaries | chroma-worker | ❌ Build in other project |
-| `estimate_tokens()` — `len(text) // 4` | chroma-worker | ❌ Build in other project |
-| Generate embeddings with sentence-transformers (384-dim) | chroma-worker | ❌ Build in other project |
-| Store in Chroma DB — HNSW index, per-UUID collection | chroma-worker | ❌ Build in other project |
-| Collection naming: `game_memory_{uuid}` | chroma-worker | ❌ Build in other project |
-| `DEL rag:{uuid}:*` after Chroma ingestion | chroma-worker | ❌ Build in other project |
-| Chroma similarity search in `node4_tool_agent` | chroma-worker | ❌ Build in other project |
-| Inject `rag_context` into LLM prompt | chroma-worker | ❌ Build in other project |
-| Chroma collection cleanup for abandoned games | chroma-worker | ❌ Build in other project |
+| Stale data cleanup — Lua script SCAN + TTL check + DEL (+ Vector namespace delete) | rpg_ai_server | ⬜ Pending (C7) |
+| `GET /memory/export/{sid}` — full namespace dump via `index.range()` (Save & autosave) | rpg_ai_server | ⬜ Pending |
+| `POST /memory/restore` — upsert locally saved chunks back into namespace | rpg_ai_server | ⬜ Pending |
 | `EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"` | chroma-worker | ✅ Defined in plan |
 | `EMBEDDING_DIM = 384` | chroma-worker | ✅ Defined in plan |
 | `CHUNK_MAX_TOKENS = 10000` | chroma-worker | ✅ Defined in plan |
@@ -775,12 +787,12 @@ Free tier: 256MB storage, 10k cmds/day. Well within limits for moderate usage. R
 |------|--------|
 | Duplicate §3 → §4 renumber | ✅ Done |
 | Schema B dangling deleted | ✅ Done |
-| Architecture diagram fixed (arrows, 3-DB, Chroma) | ✅ Done |
+| Architecture diagram fixed (arrows, 2-DB Redis + Upstash Vector) | ✅ Done |
 | All `edit:` markers removed | ✅ Done |
-| "embedding server" → "Chroma worker" throughout | ✅ Done |
+| Chroma worker sections replaced with Upstash Vector ingestion | ✅ Done |
 | Section 5 → LPOP drain-loop (was BRPOP hybrid) | ✅ Done |
-| Memory budget recalculated (365KB, no embeddings in Redis) | ✅ Done |
-| Key naming convention updated for 3 DBs | ✅ Done |
+| Memory budget recalculated (Redis 315KB, Vector ~3.5MB) | ✅ Done |
+| Key naming convention updated for 2 DBs | ✅ Done |
 | Implementation checklist comprehensive | ✅ This list |
 
 ---
@@ -790,13 +802,17 @@ Free tier: 256MB storage, 10k cmds/day. Well within limits for moderate usage. R
 ```
 games:queue                     → Queue (DB 0) for pending requests
 games:{uuid}:state              → Full game state Hash (DB 1)
-games:{uuid}:rag:{idx}          → RAG chunk staging (DB 2)
 games:{uuid}:lock               → Per-game processing lock (DB 1)
 games:{uuid}:counter            → Action counter since last drain (DB 1)
 games:queue:delayed             → Delayed retry queue (DB 0)
 games:queue:dead                → Dead letter queue (DB 0)
-rag:queue                       → RAG staging queue (DB 2)
 workers:{id}:heartbeat          → Worker health check (DB 0)
+```
+
+**Upstash Vector (no Redis keys):**
+```
+namespace = {uuid}              → per-game memory scoping
+id        = "{uuid}:chunk:{idx}"→ sequential chunk index
 ```
 
 All keys use colon-separated namespaces. UUIDs are game session identifiers generated at game start.
@@ -840,28 +856,26 @@ Line 42 defines `games:{uuid}:rag` as a **Hash**, and line 640 uses `HSET` on it
 
 **Criteria**: Decide single Hash vs separate key-per-chunk. If separate keys, each gets independent TTL. If single Hash, document that all memory expires together.
 
-**Fix Plan**: what get rag is incidents and story not world itself , world is static map no need to make rag for it
-plus rag get updated on every major incidents and story incident then it gets removed from story and incidents and uploaded to rag itself so it has everything to search on it
+**Fix Plan**: **Superseded** — memory left Redis entirely. Chunks are now vectors in Upstash Vector (id `{uuid}:chunk:{idx}`, namespace `{uuid}`), so Redis TTL/expiry questions no longer apply. What gets remembered is **incidents and story**, not the world (the world is a static map — no need to make memory for it). On each major incident/story drain, the drained text is embedded and upserted, then removed from `story`/`incidents` fields — the index always holds everything searchable.
 
 #### C5 — `chunk_5` Is Undefined
-RAG fields are named `chunk_5_story` / `chunk_5_incidents` (lines 344–354, 640) but the `5` is never explained. The spatial `current_chunk` has center `{x:5, y:3}` — is `5` the x-coordinate? A sequential index? A version? There is no mapping function from chunk coordinates to RAG key suffix.
+Legacy issue about `chunk_5_story` / `chunk_5_incidents` naming (previously lines 344–354, 640). No mapping function from chunk coordinates to RAG key suffix was defined.
 
-**Criteria**: Define a deterministic chunk key scheme (e.g., `chunk_{x}_{y}`) so the AI server and Chroma worker agree on which chunk to read/write.
+**Criteria**: Define a deterministic chunk key scheme so the ingester and retriever agree on chunk identity.
 
-**Fix Plan**: Use **sequential chunk index** (0, 1, 2...) mapped via `games:{uuid}:coord:{x}_{y}` → index. `chunk_key(uuid, index) = "games:{uuid}:rag:{index}"`. Coordinate stored as metadata, not baked into key. On player move to new `{x, y}`, check coord→index mapping; if absent, `INCR games:{uuid}:rag:counter` → assign new index. Share `split_into_chunks()` and `chunk_key()` functions between AI server and Chroma worker.
-Edit:{chunks are actually 2d matrix each cell has a whole object at its location so it's 3d in 2d space. and current block only so it be memory efficient.}
+**Fix Plan**: Use **sequential chunk index** (0, 1, 2...) as the vector id suffix in Upstash Vector: `"{uuid}:chunk:{idx}"`, coordinate/turn stored in metadata, not baked into id. `split_into_chunks()` is used once (AI server side, at drain).
 
-#### C6 — No Vector Index Needed (Chroma on Separate Server)
-RAG retrieval is handled by **Chroma DB** running on a separate server, not in Redis. Redis DB 2 only stages compressed text chunks before the Chroma worker ingests them. Redis does zero vector operations — no embedding scan, no HGETALL, no cosine similarity. The Chroma worker handles embeddings, indexing (HNSW by default), and similarity search externally.
+#### C6 — No Vector Store in Redis (Upstash Vector instead of Chroma)
+Legacy: "RAG retrieval is handled by Chroma DB on a separate server, Redis DB 2 only stages compressed text."
 
-**Fix Plan**: Redis DB 2 is purely a staging queue. Chroma worker LPOPs `rag:queue`, decompresses, chunks, embeds, stores in Chroma with per-UUID scoping. AI server queries Chroma directly for RAG retrieval (not Redis). No FT.CREATE, no vector index in Redis.
+**Fix Plan**: **Superseded by Upstash Vector.** Redis does zero vector operations. Embeddings and similarity search live in Upstash Vector (dense cosine index, namespace per session). The AI server embeds and upserts directly at drain time — no staging queue, no Chroma, no `FT.CREATE` anywhere.
 
 #### C7 — Stale Data Cleanup Logic Is Broken
 Line 606: `SCAN for games:{uuid}:state keys with TTL < now`. `TTL` returns **seconds remaining** (e.g., 36000), not a Unix timestamp. Comparing `36000 < 1718800000` is always true (deletes everything) or `36000 < 30` is always false (deletes nothing). This is mathematically nonsensical.
 
 **Criteria**: Use `TTL < threshold_seconds` (e.g., `TTL < 60` means "expiring within 60 seconds") or check `OBJECT IDLETIME`.
 
-**Fix Plan**: Write Lua script: `SCAN 0 MATCH games:*:state COUNT 100` → for each key, `TTL key` → if `TTL >= 0 AND TTL < 60`, extract UUID, `DEL games:{uuid}:state games:{uuid}:rag:* games:{uuid}:lock`. Runs atomically — no race between TTL check and DELETE. Run via cron every 5–10 min. Alternative: use `OBJECT IDLETIME` for LRU-style eviction of keys untouched for >24h.
+**Fix Plan**: Write Lua script: `SCAN 0 MATCH games:*:state COUNT 100` → for each key, `TTL key` → if `TTL >= 0 AND TTL < 60`, extract UUID, `DEL games:{uuid}:state games:{uuid}:lock` + `index.delete(namespace=uuid)` (Upstash Vector cleanup). Runs atomically — no race between TTL check and DELETE. Run via cron every 5–10 min. Alternative: use `OBJECT IDLETIME` for LRU-style eviction of keys untouched for >24h.
 
 ### HIGH Severity Issues
 
@@ -880,11 +894,11 @@ Sections "Base64 Encoding" (line 359) and "Data Flow" (line 400) are both labele
 **Fix Plan**: Already done — section 4 deleted, Python snippet merged into §3.
 
 #### H3 — Unconditional Embedding on Every Action
-The AI server RPUSHes to `rag:queue` on **every** action (line 491), even when story/incidents haven't changed. The Chroma worker then regenerates and overwrites the same RAG field (line 511) with identical data.
+Legacy: AI server pushed to `rag:queue` on every action; Chroma worker re-embedded identical data.
 
-**Criteria**: Only trigger embedding when story or incidents actually changed. Use a content-hash check or dirty flag.
+**Criteria**: Only embed when story or incidents actually changed. Use a content-hash check or dirty flag.
 
-**Fix Plan**: Before enqueueing, compute `sha256(story + incidents)` and compare to stored hash. Skip `RPUSH rag:queue` if unchanged. Store hash in `games:{uuid}:state:content_hash`. Also detect which specific chunks changed — include `chunk_ids` in embed payload so Chroma worker doesn't re-embed unchanged chunks. Drain also respects this: only enqueue on drain trigger (every 10 actions or major action), not on every action.
+**Fix Plan**: Compute `sha256(story + incidents)` and compare to a stored hash; skip upsert if unchanged. Store hash as `games:{uuid}:state` field `content_hash`. Drain already limits embedding to every 10 actions or major action — never per-action.
 
 #### H4 — No Response/Notification to Web Server
 Web server receives `202 Accepted` (line 408) but has no way to learn the outcome — no result queue, no pub/sub channel, no webhook. The diagram shows "reads response" with `GET` (line 20) but no response key pattern is defined.
@@ -893,18 +907,18 @@ Web server receives `202 Accepted` (line 408) but has no way to learn the outcom
 
 **Fix Plan**: Web server pre-creates `games:{uuid}:response` Hash with `status=pending` before enqueueing. AI server writes `status=success` + `story` + `incidents` + `summary` + `version` after Phase 4, then `PUBLISH games:{uuid}:notify {response_id}`. Web server subscribes for real-time notification (or polls with timeout fallback). `EXPIRE games:{uuid}:response 60`. Architecture diagram: replace vague `GET` arrow with "reads `games:{uuid}:response`".
 
-#### H5 — Orphaned RAG After State Expiry
-State TTL is 24h (line 67), RAG TTL is 7d (line 68). When state expires, RAG persists for up to 6 more days with no active game session — wasted storage.
+#### H5 — Orphaned Memory After State Expiry
+Legacy: state TTL 24h vs RAG TTL 7d left orphaned RAG for days.
 
-**Criteria**: Either delete RAG on game end, or set RAG TTL to match state TTL (24h) and only extend on embedding.
+**Criteria**: Memory must not outlive an abandoned session.
 
-**Fix Plan**: Set RAG TTL to **1h** (same as state), not 7d. Refresh TTL on successful Chroma write only. Add LangGraph cleanup node: when `state.game_over == True`, `DEL games:{uuid}:rag:*`. Stale-cleanup (C7) also picks up orphaned RAG since they now share state TTL. Client saves game state to local cache on session end — server does not persist beyond 1h sliding window.
+**Fix Plan**: Upstash Vector namespaces have no TTL — cleanup is explicit: LangGraph cleanup node deletes the namespace when `state.game_over == True` (`index.delete(namespace=uuid)`), and the stale-data cleanup (C7) does the same when state TTL expires. On exit, the player keeps the memory locally (`localStorage["rpg:memory:{id}"]`, scenario registry) — on entry, expired sessions are restored from that blob via `POST /memory/restore`. Server does not persist beyond 1h sliding window.
 #### H6 — EXPIRE on RAG Hash Expires Everything Together
-Line 641: `EXPIRE games:{uuid}:rag 604800`. If RAG is a Hash, `EXPIRE` sets one TTL for the entire hash. All old and new chunks share the same expiry — newly written chunks inherit the original 7-day clock, not a fresh one.
+Legacy: `EXPIRE games:{uuid}:rag 604800` on a Hash gave all chunks one shared clock.
 
-**Criteria**: Use separate keys per chunk (`games:{uuid}:rag:{chunk_id}`) with independent TTLs.
+**Criteria**: Chunks/vectors must not share expiry.
 
-**Fix Plan**: Already resolved by C4 fix — separate keys per chunk means each `EXPIRE` targets one key. `HSET games:{uuid}:rag:0 text ...` then `EXPIRE games:{uuid}:rag:0 86400`. Chunk 0 and chunk 1 expire independently.
+**Fix Plan**: **Superseded** — no RAG keys in Redis. Each vector is independent in Upstash Vector; deletion is by namespace or by id. No TTL bookkeeping needed.
 
 #### H7 — Compression: Use gzip/zstd Instead of Raw Text
 Story/incidents are the largest fields in the state Hash. Storing them as raw JSON strings wastes Redis memory. Narrative text compresses extremely well (60-80% reduction with gzip/zstd).
@@ -913,18 +927,14 @@ Story/incidents are the largest fields in the state Hash. Storing them as raw JS
 
 **Fix Plan**: Use `gzip.compress(text.encode("utf-8"))` → `base64.b64encode()` before HSET. Reverse on HGET. Python's built-in `gzip` module requires no dependencies. For better performance, use `pyzstd` (Zstandard). Size comparison for 80KB story: raw=80KB, gzip+base64=~24KB (70% reduction).
 #### H8 — Memory Budget Underestimates
-- **State size**: Estimated 5KB (line 651). Realistic: 15–30KB (player + allies + monsters + 9 chunks of blocks with physics + buildings)
-- **RAG size**: Estimated 2KB (line 652). A 384-dim embedding vector alone is ~1.5KB; with text + timestamp + JSON, each is 2.5–4KB. For 768-dim models, double.
-- **Chunk count**: 100 chunks (line 652) × 2 chunks/turn × 50 turns/day × 7 days × 20 players = ~14,000 chunks = **~35MB**, not 200KB
+- **State size**: Estimated 5KB. Realistic: 15–30KB (player + allies + monsters + 9 chunks of blocks with physics + buildings)
+- **Vector size**: A 384-dim embedding is ~1.5KB; with text + metadata JSON, 2.5–4KB per chunk. 768-dim models double that.
 
 **Criteria**: Recalculate with realistic per-state sizes, include Redis overhead (30–50%), and model worst-case growth.
 
-**Fix Plan**: Adopt 3-tier budget model:
-- **Low** (10 games, 200 chunks/game, 384-dim): ~8.7 MB
-- **Medium** (50 games, 500 chunks/game, 384-dim): ~106 MB
-- **High** (200 games, 500 chunks/game, 768-dim): ~1.4 GB
-Redis holds only current chunks (3×3 area around player) and compresses story/incidents. Each chunk updates on player move or attack — old chunks expire via TTL, no unbounded accumulation.
-Per-game: state 28KB (with 40% overhead), RAG 4.2KB/chunk (384-dim) or 7KB (768-dim). Add `maxmemory-policy allkeys-lru` to Redis config. Add runtime `INFO memory` check for proactive eviction when `used_memory > maxmemory * 0.9`.
+**Fix Plan**: Two budgets:
+- **Redis** (queue + state only): Low 10 games ~3MB, Medium 50 games ~15MB, High 200 games ~60MB. `maxmemory-policy allkeys-lru` + runtime `INFO memory` check at 90%.
+- **Upstash Vector** (embeddings + metadata, free tier 200M vectors×dims / 1GB): a game session with ~200 chunks × 3KB ≈ 600KB; 100 concurrent sessions ≈ 60MB — far inside the free limit. Namespace cleanup on game over keeps it bounded.
 
 #### H9 — No Field-Level Change Detection
 The plan says "only patch what changed" (lines 478–484) but provides no diff logic, dirty-bit tracking, or change detection. If the AI server writes back all fields naively, patching is no better than full SET.
@@ -946,12 +956,12 @@ The plan says "only patch what changed" (lines 478–484) but provides no diff l
 |---|-------|-------|----------|----------|
 | M1 | Retry counter stored in state (24h TTL) — if processing spans >24h, counter resets, causing infinite retry loop | 587–593 | Store retry count on the queue item itself | Move `retry_count` and `max_retries` into queue item JSON. Error handler increments on item, not state. Item survives state TTL expiry. |
 | M2 | No exponential backoff on retry — items re-queued immediately, burn Redis commands | 587–593 | Add `retry_delay` field, use `ZADD` with score=time+delay instead of `RPUSH` | Replace `RPUSH` with `ZADD games:queue:delayed {score=now+delay}`. Delay = `5 × 2^retry_count` (5, 10, 20, 40s). Background mover coroutine transfers due items back to main stream every 1s. |
-| M3 | Embed queue item `{"uuid":"abc"}` lacks chunk context — Chroma worker must re-read full state to find which chunk changed | 491 | Include `chunk_id` in embed queue payload | Expand payload to `{"uuid": "abc", "chunk_ids": [0, 1], "action": "embed"}`. Include only changed chunks. Chroma worker reads only those chunks instead of full HGETALL. |
+| M3 | Embed payload lacked chunk context — ingester had to re-read full state | 491 | Include `chunk_index` in the built metadata | Vector metadata carries `{uuid, chunk_index, turn, is_incident}` — the upsert payload IS the chunk context. No re-reads. |
 | M4 | No `updated_at` / `version` field on game state — impossible to implement optimistic locking | 103–258 | Add `version` (integer, incremented on each write) | Add `version` field to state Hash. Increment on every HSET batch. Include in response Hash. Future: use WATCH on version for optimistic CAS. |
 | M5 | No `status` field on game state — can't detect double-processing or stale locks | 103–258 | Add `status` field: `idle` / `processing` | Add `status` to state Hash: `"idle" → "processing" → "idle" | "error"`. Check before lock acquisition: if `status == "processing"`, re-queue with backoff instead of processing in parallel. |
-| M6 | Coordinated cleanup races with active sessions — SCAN may delete RAG for a session that just refreshed its state | 603–609 | Use Lua script for atomic TTL-check-and-delete | Same Lua script as C7: SCAN → TTL check → also check lock TTL. Only delete if lock is absent/expired (session not active). All operations atomic within EVAL. |
+| M6 | Coordinated cleanup races with active sessions — SCAN may delete memory for a session that just refreshed its state | 603–609 | Use Lua script for atomic TTL-check-and-delete + namespace delete | Same Lua script as C7: SCAN → TTL check → also check lock TTL. Only delete if lock is absent/expired (session not active). All operations atomic within EVAL, then `index.delete(namespace=uuid)`. |
 | M7 | Schema B exists as dangling code block after Schema A — no fence, no heading, no purpose stated | 261–335 | Remove or label clearly | Resolved by C1 — delete lines 260–336 entirely. Schema A is canonical. |
-| M8 | Chunk coordinate vs chunk key in RAG — no function maps `{x, y}` to RAG field name | 344, 640 | Define `chunk_key(x, y) → "chunk_{x}_{y}"` | Use sequential index with coord→index mapping. `chunk_key(uuid, idx) = "games:{uuid}:rag:{idx}"`. `coord_key(uuid, x, y) = "games:{uuid}:coord:{x}_{y}" → idx`. Share function between servers. |
+| M8 | Chunk coordinate vs chunk key in RAG — no function maps `{x, y}` to RAG field name | 344, 640 | Define deterministic chunk identity | Vector id = `"{uuid}:chunk:{idx}"` (sequential index). Coordinates/turn are metadata, not ids. No coord→index mapping needed. |
 | M9 | Queue item has no `retry_count` — yet retry logic says "increment retry counter in game state" | 93–99, 591 | Add `retry_count` to queue item JSON | Add `retry_count: 0` and `max_retries: 3` to queue item on enqueue. Error handler increments on item, sends to DLQ when exhausted. |
 | M10 | Count-based polling describes batch BRPOP but BRPOP is single-item — hybrid is just time-based with join | 552–556 | Rename "batch" to "time-based with drain loop" | Rename strategies: "Time-based" → "Fixed-interval", "Count-based" → remove (misleading), "Hybrid" → "Drain-loop". Rename `BATCH_SIZE` → `DRAIN_LIMIT`. |
 | M11 | No worker heartbeat / health check — no way to detect dead workers with claimed items | absent | Add heartbeat key per worker with short TTL | `workers:{worker_id}:heartbeat` with TTL 15s, updated every 5s. Include current game UUID. Background reclaim checks lock owners against heartbeat — stale locks from dead workers get DEL'd. |
@@ -961,21 +971,21 @@ The plan says "only patch what changed" (lines 478–484) but provides no diff l
 
 | # | Question | Resolution |
 |---|----------|------------|
-| U1 | What does `chunk_5` mean? | Placeholder. Now: sequential `chunk_index` (0, 1, 2...) with coord→index mapping via `games:{uuid}:coord:{x}_{y}` → index. |
-| U2 | Hash vs multiple keys for RAG? | **Multiple keys**: `games:{uuid}:rag:{chunk_index}` per chunk, each with independent TTL. |
+| U1 | What does `chunk_5` mean? | Placeholder. Now: sequential `chunk_index` (0, 1, 2...) as vector id suffix `"{uuid}:chunk:{idx}"`. |
+| U2 | Hash vs multiple keys for RAG? | **Superseded** — no RAG keys in Redis. One Upstash Vector namespace per game, one vector per chunk. |
 | U3 | How does web server read response? | New `games:{uuid}:response` Hash written by AI server. `PUBLISH games:{uuid}:notify` for real-time notification. Web server polls or subscribes. |
 | U4 | Is Schema B an older draft? | Yes — earlier draft with 2D coords, D&D stats, no world model. Delete (see C1 fix). |
-| U5 | Chunk mapping on player move? | Old chunk persists until its 24h TTL. New chunk gets next sequential index. Stored metadata preserves `{x, y}` for spatial queries. |
+| U5 | Chunk mapping on player move? | Chunks are narrative, not spatial. Each drain appends new vectors with `{turn, chunk_index}` metadata; retrieval is similarity-based, not spatial. |
 | U6 | Embedding model / dimensions? | **384-dim `all-MiniLM-L6-v2`** (sentence-transformers). Config setting: `EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"`, `DIM=384`. |
-| U7 | "Batch" in batch processing? | Misleading name. Renamed to "Drain-loop" — poll once, then drain up to N items via non-blocking pops.
+| U7 | "Batch" in batch processing? | Misleading name. Renamed to "Drain-loop" — poll once, then drain up to N items via non-blocking pops. |
 
 ---
 
-## 12. Agentic AI Integration with RAG (Chroma DB)
+## 12. Agentic AI Integration with Memory (Upstash Vector)
 
 ### Overview
 
-The RAG system uses **Chroma DB** on a separate server for semantic memory retrieval. Redis handles staging (compressed text chunks in DB 2) and the Chroma worker embeds and indexes them. The LangGraph AI agent queries Chroma directly for relevant past memories and injects them into the LLM's context window.
+Semantic game memory lives in **Upstash Vector** — a dense cosine index, one namespace per session (`{uuid}`). The AI server embeds and upserts at drain time (no Chroma, no staging queue, no external worker).
 
 ### Architecture
 
@@ -985,41 +995,32 @@ Player Action → LangGraph Pipeline
     ┌───────────────┼───────────────┐
     ▼               ▼               ▼
 node5_context   node4_tool_agent   node6_story_generator
-  injection        (Chroma query)    (LLM produces text)
+  injection     (Vector query)     (LLM produces text)
                                      │
                                      ▼
                                node7_output_pusher
                                      │
                           ┌──────────┴──────────┐
                           ▼                     ▼
-                   compress story/incidents   detect drain trigger
-                   gzip+base64                (10 actions OR major)
+                   decompress story       detect drain trigger
+                   (gzip → text)          (10 actions OR major)
                           │                     │
                           └──────────┬──────────┘
                                      ▼
-                          RPUSH rag:queue (DB 2)
+                          split → embed → upsert
+                          Upstash Vector, namespace={uuid}
                                      │
-                          ┌──────────┴──────────┐
-                          ▼                     ▼
-                    Chroma Worker          rag:{uuid}:{idx}
-                    (embeds, indexes)      (staging, 1h TTL)
-                          │
-                          ▼
-                     Chroma DB
-                    (HNSW index, per-UUID scoping)
-                          │
-                          ▼
-                     node4_tool_agent
-                    (Chroma similarity search)
+                                     ▼
+                          node4_tool_agent
+                          (index.query → rag_context)
 ```
 
-### Chunk Splitting Function (Shared Between AI Server & Chroma Worker)
+### Chunk Splitting & Embedding (AI Server Side)
 
 ```python
-import hashlib, gzip, base64
+import gzip, base64
 
 CHUNK_MAX_TOKENS = 10000
-CHROMA_COLLECTION_PREFIX = "game_memory_"
 EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 EMBEDDING_DIM = 384
 
@@ -1051,75 +1052,78 @@ def decompress_text(encoded: str) -> str:
     return gzip.decompress(compressed).decode("utf-8")
 ```
 
-### Agentic AI Memory Retrieval Flow (via Chroma)
+### Memory Write Flow (on drain)
+
+```python
+from upstash_vector import Index
+from sentence_transformers import SentenceTransformer
+
+index = Index(url=os.environ["UPSTASH_VECTOR_REST_URL"],
+              token=os.environ["UPSTASH_VECTOR_REST_TOKEN"])
+model = SentenceTransformer(EMBEDDING_MODEL)  # loaded once at boot
+
+async def drain_to_memory(uuid: str, story_gz: str, incidents_gz: str, turn: int):
+    text = decompress_text(story_gz) + "\n\n" + decompress_text(incidents_gz)
+    chunks = split_into_chunks(text)
+    vectors = model.encode(chunks).tolist()          # list[list[float]] 384-dim
+    index.upsert(
+        vectors=[
+            (f"{uuid}:chunk:{i}", vectors[i],
+             {"uuid": uuid, "chunk_index": i, "turn": turn, "text": chunks[i]})
+            for i in range(len(chunks))
+        ],
+        namespace=uuid,
+    )
+```
+
+### Agentic AI Memory Retrieval Flow (via Upstash Vector)
 
 ```
-node4_tool_agent (enriched with RAG from Chroma):
+node4_tool_agent (enriched with memory from Upstash Vector):
   │
   ├── 1. Build query from current context:
   │       query_text = f"Location: {loc}. Recent events: {events[:5]}. Active: {quests}"
   │
-  ├── 2. Query Chroma DB:
-  │       collection = chroma.get_collection(f"game_memory_{uuid}")
-  │       results = collection.query(
-  │           query_texts=[query_text],
-  │           n_results=5,
-  │           include=["documents", "distances", "metadatas"]
-  │       )
+  ├── 2. Embed query with the SAME model (384-dim)
   │
-  ├── 3. Inject into LangGraph state:
-  │       state.rag_context = "\n---\n".join(results["documents"][0])
+  ├── 3. Query Upstash Vector:
+  │       hits = index.query(vector=q_vec, top_k=5,
+  │                          include_metadata=True, namespace=uuid)
+  │
+  ├── 4. Inject into LangGraph state:
+  │       state.rag_context = "\n---\n".join(h["metadata"]["text"] for h in hits)
   │       # ~2000 chars of relevant past memory
   │
-  ├── 4. Tools execute with RAG context available
+  ├── 5. Tools execute with RAG context available
   │
-  └── 5. LLM prompt now includes:
+  └── 6. LLM prompt now includes:
         "PREVIOUS MEMORIES: {rag_context}"
         → Coherent narrative that references past events
 ```
 
-### Chroma Worker Flow
-
-```python
-async def chroma_worker_loop():
-    chroma_client = chromadb.Client(CHROMA_HOST)
-    while True:
-        raw = await redis.lpop("rag:queue")
-        if not raw:
-            await asyncio.sleep(1)
-            continue
-        item = json.loads(raw)
-        uuid = item["uuid"]
-        text = decompress_text(item["text"])
-        chunks = split_into_chunks(text)
-        collection = chroma_client.get_or_create_collection(
-            f"game_memory_{uuid}",
-            embedding_function=sentence_transformer_ef(EMBEDDING_MODEL)
-        )
-        collection.add(
-            documents=chunks,
-            ids=[f"{uuid}:chunk:{i}" for i in range(len(chunks))],
-            metadatas=[{"uuid": uuid, "chunk_index": i} for i in range(len(chunks))]
-        )
-```
-
 ### Memory Lifecycle
 
-| Turn | Action | RAG State | Agent Memory |
-|------|--------|-----------|--------------|
-| 1 | Player enters forest | Chroma: chunk 0 "entered dark forest" | — |
-| 2 | Fights goblins | Story drains (10 actions), Chroma: chunk 1 "fought 3 goblins" | Chroma query → chunk 0 context |
-| 3 | Travels to cave | Story drains, Chroma: chunk 2 "arrived at cave" | Chroma query → "You remember the goblin fight" |
-| 1h idle | — | Redis TTL expires, state gone | Chroma persists (server-side DB) |
+| Turn | Action | Memory State | Agent Memory |
+|------|--------|--------------|--------------|
+| 1 | Player enters forest | Vector ns: chunk 0 "entered dark forest" | — |
+| 2 | Fights goblins | Story drains (10 actions), Vector ns: chunk 1 "fought 3 goblins" | query → chunk 0 context |
+| 3 | Travels to cave | Story drains, Vector ns: chunk 2 "arrived at cave" | query → "You remember the goblin fight" |
+| 10 | Autosave (every 10 msgs) | drain fires → client exports ns → `localStorage["rpg:memory:{id}"]` refreshed | — |
+| 1h idle | — | Redis state TTL expires | Vectors persist (no TTL) |
+| Exit (player leaves) | client saves (export) or discards (optional `index.delete(namespace)`) | namespace intact while unsaved | client-driven, see fullstack folder |
+| Resume / new entry | restore saved chunks via `/memory/restore`, or fresh namespace | memory works from turn 1 | client-driven, see fullstack folder |
+| game over | cleanup node | `index.delete(namespace=uuid)` | gone |
+
+**Scenario lifecycle note (server side):** a scenario = user-chosen name (client label) + uuid (Upstash Vector namespace, `{uuid}` so renames never touch vectors). Exit never destroys vectors — only `game_over`, stale sweep, or explicit "Don't save → delete". Autosave piggybacks the existing `counter ≥ 10` drain (sets an `autosave` flag in drained state). Client flows (registry, popups) are owned by the fullstack folder. Full contract: `REDIS_API.md` → "Scenario Lifecycle".
 
 ### Key Properties
 
-- **External RAG**: Chroma DB handles all vector operations — embedding, HNSW indexing, similarity search
-- **Redis staging**: DB 2 only holds compressed text temporarily before Chroma ingestion
-- **Per-game scoping**: Chroma collection per UUID, prefix `game_memory_{uuid}`
-- **Compressed**: Story/incidents gzip-compressed in Redis, decompressed before embedding
-- **Deterministic chunking**: Same `split_into_chunks()` on AI server and Chroma worker
-- **No Redis vector ops**: Zero FT.SEARCH, zero brute-force cosine, zero HGETALL of embeddings
+- **Managed vector store**: Upstash Vector handles indexing + similarity search (no self-hosted Chroma, no worker service to run)
+- **Per-game scoping**: namespace per UUID (up to 100 namespaces on free tier)
+- **Compressed in Redis**: story/incidents stay gzip-compressed in state; decompressed only at drain
+- **Deterministic chunking**: `split_into_chunks()` used once, in the AI server
+- **No Redis vector ops**: zero FT.SEARCH, zero embeddings stored in Redis
+- **Same embedding model** for write and query (`all-MiniLM-L6-v2`, 384-dim) — mismatch silently degrades recall
 
 ---
 
@@ -1129,10 +1133,10 @@ async def chroma_worker_loop():
 
 | # | Conflict | Status | Resolution |
 |---|----------|--------|------------|
-| ~~V1~~ | ~~C4 drain vs §12 accumulate~~ | **RESOLVED** | §12 rewritten for Chroma DB. Story/incidents drain from DB 1 to DB 2 → Chroma worker. Embedding reads from drain payload, not state. |
-| ~~V2~~ | ~~H5 1h TTL vs TTL table~~ | **RESOLVED** | All TTLs updated to 1h sliding window. EXPIRE refreshed on every action. Client cache removed — 1h server-only with session extension. |
-| ~~V3~~ | ~~Base64 vs §12~~ | **RESOLVED** | Compression section finalized (gzip+base64 for storage). |
-| ~~V4~~ | ~~C6 no vector index vs FT.SEARCH~~ | **RESOLVED** | FT.SEARCH removed. Chroma DB handles all vector operations. Redis does zero vector ops. |
+| ~~V1~~ | ~~C4 drain vs §12 accumulate~~ | **RESOLVED** | §12 rewritten for Upstash Vector. Story/incidents drain from DB 1 → embedded → upserted to Vector namespace. No Redis staging. |
+| ~~V2~~ | ~~H5 1h TTL vs TTL table~~ | **RESOLVED** | Redis TTLs at 1h sliding. Vector namespaces have no TTL — cleaned explicitly on game over / stale cleanup. |
+| ~~V3~~ | ~~Base64 vs §12~~ | **RESOLVED** | Compression section finalized (gzip+base64 for Redis storage). |
+| ~~V4~~ | ~~C6 no vector index vs FT.SEARCH~~ | **RESOLVED** | No FT.SEARCH anywhere. Upstash Vector handles all vector operations. Redis does zero vector ops. |
 | ~~V5~~ | ~~H4 no response vs diagram~~ | **RESOLVED** | Architecture diagram updated. No response channel — 202 is final. Polling or SSE TBD later. |
 
 ### PERFORMANCE CLAIMS — Audit Results
@@ -1140,7 +1144,7 @@ async def chroma_worker_loop():
 | # | Claim | Verdict | Analysis |
 |---|-------|---------|----------|
 | P1 | **H7: Compression with gzip/zstd** | **CORRECT** | gzip compresses narrative text 60-80%. With base64 wrapper (+33%), net reduction is still 60-80%. zstd at level 3 achieves 65-85% reduction with faster decompression. Recommended approach. |
-| P2 | **C6: O(n) scan fine for 200k tokens** | **Correct conclusion, wrong reasoning** | At 10k-token chunks, 200k tokens = 20 chunks. Cosine on 20×384-dim ≈ 7,680 float ops = microseconds. But C4 drain means RAG accumulates ALL drained chunks — 50 drains × 10k = 500k tokens = 50 chunks. Still fast (~1ms). The metric is chunk count, not tokens. At 500+ chunks O(n) still <10ms. FT.SEARCH from §12 is overkill at current scale but forward-looking. |
+| P2 | **Embedding cost at drain** | **CORRECT** | 10k-token chunks → ~20 chunks × 384-dim per drain. sentence-transformers batches this in one call (<1s on CPU for 20 short chunks). The 10-action drain window keeps total embedding calls ~90% lower than per-action. |
 | P3 | **H3: Batch embed every 10 actions** | **CORRECT** | ~90% reduction in embedding runs vs per-action. 20 chunks per batch max. Un-embedded window of 9 actions is acceptable — story stays in state for working memory. |
 | P4 | **H5: 1h TTL + client cache** | **PROBLEMATIC** | Introduces split-brain (client cache vs Redis) and data loss risk (0-59min window). See G5 for full analysis. |
 | P5 | **H8: Only 3×3 chunks in Redis** | **Already correct** | Original design (line 103) already states "center + 8 surrounding = 3×3 grid." No change needed. |
@@ -1149,25 +1153,25 @@ async def chroma_worker_loop():
 
 | # | Gap | Owner | Status | Suggestion |
 |---|-----|-------|--------|------------|
-| G1 | **No drain node defined** | C4 | **DONE** | `GameStateManager.try_drain()` in `redis/game_state.py`. Checks counter ≥ 10 or major action. Compresses, RPUSHes to DB 2 `rag:queue`, HDELs from DB 1. |
-| G2 | **Chroma worker reads from queue payload** | C4 + §12 | **DONE** | Chroma worker LPOPs `rag:queue` and reads decompressed text from payload. Separate process. |
+| G1 | **No drain node defined** | C4 | **DONE** | `GameStateManager.try_drain()` in `redis/game_state.py`. Checks counter ≥ 10 or major action. HDELs story/incidents from DB 1 and triggers embed+upsert to Vector. |
+| G2 | **Ingestion ownership** | C4 + §12 | **DONE** | In-process: AI server splits, embeds, upserts at drain. No external worker. |
 | G3 | **"Major action" undefined** | C4 + H3 | **HIGH** | Define list: `DEATH`, `LEVEL_UP`, `QUEST_COMPLETE`, `BOSS_KILL`, `NEW_BIOME`. LLM sets `is_major: true` flag. |
 | G4 | **No response path for web server** | H4 | **LOW** | Accepted. 202 is final. User polls or SSE endpoint added later. |
 | ~~G5~~ | ~~Client cache undefined~~ | H5 | **RESOLVED** | Cache removed. 1h server-only TTL with sliding window — no client-side complexity. |
 | G6 | **Decompression in pipeline** | H7 + §12 | **DONE** | `decompress_text()` available in `utils/compression.py`. Compression applied in save/load paths. |
 | G7 | **No action counter mechanism** | H3 | **DONE** | `INCR games:{uuid}:counter` via `GamesRedisClient.incr()`. Reset on drain via `set_counter()`. Threshold = 10. |
-| G8 | **Chroma collection management** | §12 | **MEDIUM** | Define collection naming: `game_memory_{uuid}`. Cleanup strategy for abandoned collections. |
-| G9 | **Old key structure references** | §2 | **DONE** | Already updated to 3 DBs. |
-| G10 | **Commands summary outdated** | All | **DONE** | Already updated for LPUSH/LPOP, 3 DBs, Chroma worker. |
-| G11 | **Implementation checklist missing items** | All | **DONE** | Checklist updated with all implemented items. |
+| G8 | **Namespace management** | §12 | **MEDIUM** | Namespace = `{scenario uuid}` (name is a client label). Cleanup on game over (`index.delete(namespace=uuid)`), stale-state sweep (C7), or "Don't save" exit; "Save" exit keeps the namespace for resume via `/memory/restore`. |
+| G9 | **Old key structure references** | §2 | **DONE** | Already updated to 2 DBs + Vector. |
+| G10 | **Commands summary outdated** | All | **DONE** | Already updated for RPUSH/LPOP, 2 DBs, Vector upsert/query. |
+| G11 | **Implementation checklist missing items** | All | **DONE** | Checklist updated with all implemented items + new Vector items. |
 
 ### RECOMMENDED RESOLUTIONS — Applied
 
 All contradictions resolved via debate decisions:
-- **LPUSH/LPOP** for queue (no Streams, at-most-once accepted)
+- **RPUSH/LPOP** for queue (no Streams, at-most-once accepted)
 - **SETNX lock** for concurrency (100-200ms < re-running LangGraph)
-- **Chroma DB** for vector storage (separate server, Redis DB 2 only stages text)
+- **Upstash Vector** for memory (no Chroma, no DB 2 staging — managed vector store)
 - **1h sliding TTL** with session extension on every action (no client cache)
-- **Drain pattern**: story/incidents → DB 2 `rag:queue` → Chroma worker on major event or every 10 actions
+- **Drain pattern**: story/incidents → split → embed → upsert to Vector on major event or every 10 actions
 - **No response channel**: 202 Accepted is final, SSE/polling added later
 - **gzip+base64**: compress before storing, decompress on read, 60-80% reduction

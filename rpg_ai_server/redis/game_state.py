@@ -3,7 +3,9 @@ from __future__ import annotations
 import json
 from typing import Any, Dict, Optional
 
-from .client import GamesRedisClient, RagRedisClient
+from .client import GamesRedisClient
+from .vector_memory import GameMemory, split_into_chunks
+from ..config.settings import settings
 from ..utils.compression import compress_text
 from ..utils.logger import logger
 
@@ -12,15 +14,20 @@ DRAIN_THRESHOLD = 10
 
 
 class GameStateManager:
-    def __init__(self, games_client: GamesRedisClient, rag_client: RagRedisClient):
+    def __init__(self, games_client: GamesRedisClient, memory: Optional[GameMemory] = None):
         self._games = games_client
-        self._rag = rag_client
+        self._memory = memory
 
-    async def acquire_lock(self, uuid: str, worker_id: str, ttl: int = 30) -> bool:
+    async def acquire_lock(self, uuid: str, worker_id: str, ttl: int | None = None) -> bool:
+        ttl = ttl or settings.app.lock_ttl_seconds
         return await self._games.acquire_lock(uuid, worker_id, ttl)
 
     async def release_lock(self, uuid: str, worker_id: str) -> bool:
         return await self._games.release_lock(uuid, worker_id)
+
+    async def refresh_lock(self, uuid: str, worker_id: str, ttl: int | None = None) -> bool:
+        ttl = ttl or settings.app.lock_ttl_seconds
+        return await self._games.refresh_lock(uuid, worker_id, ttl)
 
     async def load_state(self, uuid: str) -> Optional[Dict[str, Any]]:
         raw = await self._games.hgetall(uuid)
@@ -40,7 +47,7 @@ class GameStateManager:
             if value is not None:
                 serialized = json.dumps(value, default=str)
                 await self._games.hset(uuid, field, serialized)
-        await self._games.expire(uuid, 3600)
+        await self._games.expire(uuid, settings.redis.ttl_seconds)
 
     async def save_initial_state(
         self,
@@ -53,18 +60,34 @@ class GameStateManager:
             compressed = compress_text(story)
             await self._games.hset(uuid, "story", compressed)
         await self._games.hset(uuid, "counter", "0")
-        await self._games.expire(uuid, 3600)
+        await self._games.expire(uuid, settings.redis.ttl_seconds)
 
     async def try_drain(self, uuid: str, story: str, is_major: bool = False):
+        """Move the running story buffer into vector memory once it overflows.
+
+        Vectors are never deleted on drain — only exported to the game's
+        Upstash Vector namespace; the Redis story field is cleared to keep
+        the state hash small.
+        """
         counter = await self._games.incr(uuid)
         if counter < DRAIN_THRESHOLD and not is_major and not await self._is_major_action(story):
             return False
-        compressed = compress_text(story)
-        payload = {"uuid": uuid, "text": compressed, "chunk_count": 1}
-        await self._rag.push_staging(payload)
+        if self._memory is None:
+            logger.warning(f"No vector memory configured, keeping story buffer for {uuid}")
+            return False
+        chunks = split_into_chunks(story)
+        if not chunks:
+            await self._games.hdel(uuid, "story")
+            await self._games.set_counter(uuid, 0)
+            return False
+        try:
+            await self._memory.upsert_chunks(uuid, chunks, turn=counter, is_incident=is_major)
+        except Exception as e:
+            logger.error(f"Drain failed for {uuid}: {e}")
+            return False
         await self._games.hdel(uuid, "story")
         await self._games.set_counter(uuid, 0)
-        logger.info(f"Drain triggered for {uuid} (counter={counter}, major={is_major})")
+        logger.info(f"Drained {len(chunks)} chunk(s) for {uuid} to vector memory (counter={counter}, major={is_major})")
         return True
 
     async def _is_major_action(self, story: str) -> bool:

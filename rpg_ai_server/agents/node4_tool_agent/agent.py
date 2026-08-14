@@ -6,7 +6,14 @@ from typing import Any, Dict
 from langchain.agents import create_agent
 from langgraph.checkpoint.memory import MemorySaver
 
+try:
+    from langchain.agents.middleware import ToolCallLimitMiddleware
+except ImportError:
+    ToolCallLimitMiddleware = None
+
 from ...config.models import get_tool_agent_model
+from ...config.settings import settings
+from ...redis.vector_memory import GameMemory
 from ...schemas.state import GameState
 from ...utils.logger import logger
 from .tools import (
@@ -105,13 +112,51 @@ Analyze the current game state and use the appropriate tools to process this tur
 
 Previous context/search results: {context}
 
+Previous memories from long-term story memory:
+{memories}
+
 Process this turn and update all game mechanics accordingly."""
+
+
+_memory: GameMemory | None = None
+
+
+async def _retrieve_memories(uuid: str, prompt: str) -> str:
+    """Query the game's long-term story memory (Upstash Search) for the
+    current action; returns formatted hits for prompt injection, or "" when
+    memory is not configured / fails (the agent must keep working either way)."""
+    global _memory
+    if not settings.search.configured:
+        return ""
+    try:
+        if _memory is None:
+            _memory = GameMemory()
+        hits = await _memory.query(uuid, prompt, top_k=settings.search.top_k)
+        if not hits:
+            return ""
+        blocks = []
+        for i, hit in enumerate(hits, 1):
+            text = str(hit.get("content", {}).get("text", ""))
+            if not text:
+                continue
+            meta = hit.get("metadata", {})
+            turn = meta.get("turn", "?")
+            score = hit.get("score", 0.0)
+            blocks.append(f"[memory {i} | turn {turn} | relevance {score:.2f}]\n{text[:1500]}")
+        return "\n\n".join(blocks)
+    except Exception as e:
+        logger.error(f"[Node 4] Memory retrieval failed: {e}")
+        return ""
 
 
 async def node4_tool_agent(state: GameState) -> Dict[str, Any]:
     logger.info(f"[Node 4] Tool agent processing for UUID {state['uuid']}")
 
     try:
+        middleware = []
+        if ToolCallLimitMiddleware is not None:
+            middleware.append(ToolCallLimitMiddleware(run_limit=settings.app.max_tool_calls))
+
         agent = create_agent(
             model=get_tool_agent_model(),
             tools=[
@@ -126,12 +171,15 @@ async def node4_tool_agent(state: GameState) -> Dict[str, Any]:
             ],
             system_prompt=TOOL_AGENT_SYSTEM_PROMPT,
             checkpointer=MemorySaver(),
+            middleware=middleware,
         )
 
         stats = state.get("character_stats")
         skills = state.get("skills", [])
         inventory = state.get("inventory", [])
         relationships = state.get("relationships", [])
+
+        rag = await _retrieve_memories(state["uuid"], state.get("prompt", ""))
 
         prompt = TOOL_AGENT_PROMPT_TEMPLATE.format(
             uuid=state["uuid"],
@@ -141,6 +189,7 @@ async def node4_tool_agent(state: GameState) -> Dict[str, Any]:
             inventory_count=len(inventory),
             relationship_count=len(relationships),
             context=state.get("search_results", "")[:2000],
+            memories=rag,
         )
 
         messages = [
@@ -164,6 +213,7 @@ async def node4_tool_agent(state: GameState) -> Dict[str, Any]:
 
         return {
             "tool_results": [str(result["messages"][-1].content)],
+            "rag_context": rag,
         }
 
     except Exception as e:

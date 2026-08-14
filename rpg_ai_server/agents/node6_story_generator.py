@@ -39,6 +39,9 @@ STORY_USER_PROMPT_TEMPLATE = """Generate the next narrative beat for this D&D ga
 CONTEXT:
 {context_summary}
 
+PREVIOUS MEMORY:
+{rag_context}
+
 ENVIRONMENT:
 {grid_summary}
 
@@ -81,7 +84,12 @@ async def node6_story_generator(state: GameState) -> Dict[str, Any]:
             context_str = state.get("prompt", "No context available")
 
         tool_results = state.get("tool_results", [])
-        tool_results_str = "\n".join(tool_results[-3:]) if tool_results else "No mechanics processed yet."
+        # Filter out error strings that would mislead the story generator
+        filtered_tool_results = [
+            r for r in tool_results
+            if "error" not in r.lower()
+        ]
+        tool_results_str = "\n".join(filtered_tool_results[-3:]) if filtered_tool_results else "No mechanics processed yet."
 
         search_info = f"\nLore Research: {state.get('search_results', 'N/A')[:300]}" if state.get("search_results") else ""
 
@@ -95,6 +103,7 @@ async def node6_story_generator(state: GameState) -> Dict[str, Any]:
 
         prompt = STORY_USER_PROMPT_TEMPLATE.format(
             context_summary=context_str,
+            rag_context=state.get("rag_context", "") or "",
             grid_summary=grid_summary,
             search_info=search_info,
             inventory_summary=inv_summary,

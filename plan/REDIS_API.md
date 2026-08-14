@@ -14,13 +14,12 @@ python -m uvicorn rpg_ai_server.redis_api:app --port 8000
 
 ## Redis Layer
 
-Four logical databases via key prefixes (single Upstash or local Redis instance).
+Three logical databases via key prefixes (single Upstash or local Redis instance). Game memory is **not** in Redis — it lives in **Upstash Vector** (separate product, dense cosine index, one namespace per session).
 
 | Prefix | Client Class | Purpose |
 |--------|-------------|---------|
 | `input:` | `InputRedisClient` | Request queue, delayed retry, dead letter, worker heartbeats |
 | `games:` | `GamesRedisClient` | Per-game state hashes, counters, distributed locks |
-| `rag:` | `RagRedisClient` | RAG staging queue + chunk storage (separate Upstash instance optional) |
 | `output:` | `OutputRedisClient` | LLM output cache with TTL |
 
 All clients inherit from `RedisClient` which wraps `upstash_redis.AsyncRedis` (Upstash REST-based).
@@ -28,9 +27,26 @@ All clients inherit from `RedisClient` which wraps `upstash_redis.AsyncRedis` (U
 ### Connection
 
 - Lazily connects on first use via `_get_input()`, `_get_games()`, etc.
-- Singletons stored as module-level globals (`_input`, `_games`, `_rag`, `_output`)
-- On `startup` event: all four connect
-- On `shutdown` event: all four disconnect
+- Singletons stored as module-level globals (`_input`, `_games`, `_output`)
+- On `startup` event: all connect
+- On `shutdown` event: all disconnect
+
+---
+
+## Game Memory (Upstash Vector)
+
+```
+Upstash Vector (one dense index, dimension 384, cosine):
+  namespace = {uuid}                per-game scoping (up to 100 namespaces)
+  vector id = "{uuid}:chunk:{idx}"  sequential chunk index
+  metadata  = { uuid, chunk_index, turn, ts, is_incident, text }
+```
+
+- `pip install upstash-vector`, env `UPSTASH_VECTOR_REST_URL` / `UPSTASH_VECTOR_REST_TOKEN`
+- **Write (drain):** every 10 actions or major event (death/level_up/quest_complete/boss_kill/new_biome) → decompress story/incidents → `split_into_chunks()` → embed (384-dim) → `index.upsert(..., namespace=uuid)`
+- **Read:** `node4_tool_agent` builds a context query → `index.query(vector, top_k=5, include_metadata=True, namespace=uuid)` → inject as `rag_context` into the prompt
+
+- No `rag:` prefix, no `rag:queue`, no Chroma — the old DB 2 staging layer is gone.
 
 ---
 
@@ -67,14 +83,17 @@ All clients inherit from `RedisClient` which wraps `upstash_redis.AsyncRedis` (U
 | `DELETE` | `/games/{uuid}/lock` | `worker_id` | Release lock (compare-and-delete) |
 | `POST` | `/games/{uuid}/expire` | `ttl` | EXPIRE state hash |
 
-### RAG Staging (rag:)
+### Memory (Upstash Vector)
 
 | Method | Path | Params | Description |
 |--------|------|--------|-------------|
-| `POST` | `/rag/staging/push` | body `payload` | RPUSH to `rag:queue` |
-| `GET` | `/rag/staging/pop` | — | LPOP from `rag:queue` |
-| `GET` | `/rag/staging/count` | — | LLEN of `rag:queue` |
-| `GET` | `/rag/chunk/{uuid}/{index}` | — | GET stored chunk |
+| `POST` | `/memory/query` | `vector`, `top_k`, `namespace` | Similarity search (top_k ≈ 5) |
+| `POST` | `/memory/upsert` | `namespace`, `vectors` | Embed + upsert chunks for a scenario |
+| `DELETE` | `/memory/clear` | `namespace` | Reset a scenario's memory (game_over / "Don't save") |
+| `GET` | `/memory/export/{sid}` | — | Dump full namespace (vectors + metadata) — Save & autosave |
+| `POST` | `/memory/restore` | `namespace`, `chunks` | Resume: upsert locally saved chunks back into a namespace |
+
+`namespace` = **scenario uuid** (never the display name — the name is a client-side label owned by the fullstack folder). Full lifecycle: `REDIS_API.md` → "Scenario Lifecycle".
 
 ### Output Cache (output:)
 
@@ -128,8 +147,8 @@ LangGraph Pipeline (7 nodes)
   ▼
 Redis output:{uuid}
   │
-  └── try_drain() → RAG staging queue (rag:queue)
-      at 10 actions or major events
+  └── try_drain() → Upstash Vector (namespace={uuid})
+      at 10 actions or major events: split → embed → upsert
 ```
 
 ### 7-Node LangGraph Pipeline
@@ -213,7 +232,7 @@ ItemsDB guards against non-list JSON roots (`if not isinstance(items, list): con
 
 - **Queue:** RPUSH/LPOP FIFO; delayed ZADD with exponential backoff (`5 × 2^n` seconds); max 3 retries then dead letter
 - **Lock:** SET NX EX 30s; compare-and-delete on release; auto-expires on crash
-- **Drain:** Every 10 actions or on death/level_up/quest_complete/boss_kill/new_biome → gzip story → push to RAG staging → reset counter
+- **Drain:** Every 10 actions or on death/level_up/quest_complete/boss_kill/new_biome → split story/incidents into chunks → embed → upsert to Upstash Vector (namespace per uuid) → reset counter
 - **Backpressure:** Memory check every 100 requests; at 90%+ usage, back off 3s
 
 ### Worker System
@@ -241,7 +260,6 @@ ItemsDB guards against non-list JSON roots (`if not isinstance(items, list): con
 | `rpg_ai_server/redis/client.py` | Base + 4 client classes (284 lines) |
 | `rpg_ai_server/redis/game_state.py` | GameStateManager (72 lines) |
 | `rpg_ai_server/redis/queue.py` | QueueManager (83 lines) |
-| `rpg_ai_server/redis/rag_cache.py` | RagCache wrapper (32 lines) |
 | `rpg_ai_server/config/settings.py` | RedisConfig + ModelConfig + AppConfig |
 | `rpg_ai_server/engine/orchestrator.py` | Game lifecycle (157 lines) |
 | `rpg_ai_server/engine/multi_tasker.py` | Concurrent drain loop (134 lines) |

@@ -1,12 +1,52 @@
 from __future__ import annotations
 
 import json
+import ssl
 from typing import Any, Dict, Optional, List
 
-from upstash_redis import AsyncRedis as UpstashRedis
+import httpx
 
 from ..config.settings import settings
 from ..utils.logger import logger
+
+
+def _patch_httpx_legacy_tls() -> None:
+    """Upstash's edge requires legacy TLS renegotiation approval on pooled
+    connections. Modern OpenSSL (3.0+) disables this by default, which makes
+    long-lived SDK clients fail with UNSAFE_LEGACY_RENEGOTIATION_DISABLED.
+    Replace httpx clients with subclasses that inject a default SSLContext
+    with OP_LEGACY_SERVER_CONNECT (subclass keeps openai etc. subclassing
+    httpx.Client working)."""
+    if getattr(httpx, "Client", None) is _LegacyTLSClient:
+        return
+    httpx.Client = _LegacyTLSClient
+    httpx.AsyncClient = _LegacyTLSAsyncClient
+
+
+def _legacy_ssl_context() -> ssl.SSLContext:
+    ctx = ssl.create_default_context()
+    if hasattr(ssl, "OP_LEGACY_SERVER_CONNECT"):
+        ctx.options |= ssl.OP_LEGACY_SERVER_CONNECT
+    return ctx
+
+
+class _LegacyTLSClient(httpx.Client):
+    def __init__(self, *args, **kwargs):
+        if kwargs.get("verify") is None:
+            kwargs["verify"] = _legacy_ssl_context()
+        super().__init__(*args, **kwargs)
+
+
+class _LegacyTLSAsyncClient(httpx.AsyncClient):
+    def __init__(self, *args, **kwargs):
+        if kwargs.get("verify") is None:
+            kwargs["verify"] = _legacy_ssl_context()
+        super().__init__(*args, **kwargs)
+
+
+_patch_httpx_legacy_tls()
+
+from upstash_redis import AsyncRedis as UpstashRedis
 
 
 class RedisClient:
@@ -185,43 +225,6 @@ class OutputRedisClient(RedisClient):
         return await self.dbsize()
 
 
-class RagRedisClient(RedisClient):
-    def __init__(self):
-        super().__init__(prefix="rag")
-
-    async def connect(self):
-        if self._client is None:
-            url = settings.redis.upstash_rag_url or settings.redis.upstash_rest_url
-            token = settings.redis.upstash_rag_token or settings.redis.upstash_rest_token
-            if not url or not token:
-                raise RuntimeError(
-                    "RAG Redis URL and token must be set in environment "
-                    "(UPSTASH_REDIS_RAG_URL / UPSTASH_REDIS_RAG_TOKEN)"
-                )
-            self._client = UpstashRedis(url=url, token=token)
-            logger.info(f"Connected to RAG Redis (prefix={self.prefix})")
-
-    async def push_staging(self, payload: Dict[str, Any]) -> bool:
-        await self.connect()
-        serialized = json.dumps(payload)
-        await self.client.rpush(self._key("queue"), serialized)
-        return True
-
-    async def pop_staging(self) -> Optional[Dict[str, Any]]:
-        await self.connect()
-        raw = await self.client.lpop(self._key("queue"))
-        if raw is None:
-            return None
-        return json.loads(raw)
-
-    async def get_chunk(self, uuid: str, index: int) -> Optional[Dict[str, Any]]:
-        return await self.get_json(f"{uuid}:{index}")
-
-    async def staging_count(self) -> int:
-        await self.connect()
-        return await self.client.llen(self._key("queue"))
-
-
 class GamesRedisClient(RedisClient):
     def __init__(self):
         super().__init__(prefix="games")
@@ -263,7 +266,7 @@ class GamesRedisClient(RedisClient):
         result = await self.client.set(
             self._key(f"{uuid}:lock"), worker_id, nx=True, ex=ttl
         )
-        return result is not None
+        return bool(result)
 
     async def release_lock(self, uuid: str, worker_id: str) -> bool:
         await self.connect()
