@@ -5,8 +5,11 @@ from typing_extensions import TypedDict
 import operator
 
 from .types import (
+    BudgetUsage,
     CharacterStats,
+    ChatMessage,
     ContextSummary,
+    DecisionReport,
     GridCell,
     ImageData,
     InventoryItem,
@@ -17,7 +20,7 @@ from .types import (
 )
 
 
-class GameState(TypedDict):
+class GameState(TypedDict, total=False):
     uuid: str
     prompt: str
     input_data: Dict[str, Any]
@@ -44,3 +47,12 @@ class GameState(TypedDict):
     conditional_passes: int
     remaining_steps: int
     __next__: str
+    # Re-imagined additions (generous local, OpenRouter-only)
+    context: str
+    chat_log: List[ChatMessage]
+    decision_report: Optional[DecisionReport]
+    budget: Optional[BudgetUsage]
+    next_node: str
+    router_trace: List[Dict[str, Any]]
+    force_exit_reason: Optional[str]
+    turn_id: str

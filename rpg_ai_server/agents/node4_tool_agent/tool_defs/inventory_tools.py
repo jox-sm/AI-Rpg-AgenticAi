@@ -90,7 +90,7 @@ async def inventory_checker_and_updater(
     elif action == "add":
         try:
             if item_json:
-                new_item_data = json.loads(item_json) if isinstance(item_json, str) else json.loads(item_json)
+                new_item_data = json.loads(item_json) if isinstance(item_json, str) else item_json
             elif item_name:
                 db_item = _ITEMS_DB.get_by_name(item_name)
                 if db_item:

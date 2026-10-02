@@ -46,30 +46,41 @@ class SearchConfig:
 
 @dataclass
 class ModelConfig:
-    gemini_model: str = field(default_factory=lambda: os.getenv("GEMINI_MODEL", "gemini-2.0-flash"))
+    gemini_model: str = field(default_factory=lambda: os.getenv("GEMINI_MODEL", "gemini-2.0-flash"))  # legacy, unused — all LLM via OpenRouter
     image_model: str = field(default_factory=lambda: os.getenv("IMAGE_MODEL", "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"))
-    redescription_model: str = field(default_factory=lambda: os.getenv("REDESCRIPTION_MODEL", "openrouter/owl-alpha"))
-    tool_agent_model: str = field(default_factory=lambda: os.getenv("TOOL_AGENT_MODEL", "qwen/qwen3-coder:free"))
-    context_injector_model: str = field(default_factory=lambda: os.getenv("CONTEXT_INJECTOR_MODEL", "nvidia/nemotron-3-super-120b-a12b:free"))
-    story_model: str = field(default_factory=lambda: os.getenv("STORY_MODEL", "qwen/qwen3-coder:free"))
+    redescription_model: str = field(default_factory=lambda: os.getenv("REDESCRIPTION_MODEL", "google/gemma-4-26b-a4b-it:free"))
+    tool_agent_model: str = field(default_factory=lambda: os.getenv("TOOL_AGENT_MODEL", "qwen/qwen3.8-27b:free"))
+    context_injector_model: str = field(default_factory=lambda: os.getenv("CONTEXT_INJECTOR_MODEL", "google/gemma-4-31b-it:free"))
+    story_model: str = field(default_factory=lambda: os.getenv("STORY_MODEL", "qwen/qwen3.8-27b:free"))
+    classifier_model: str = field(default_factory=lambda: os.getenv("CLASSIFIER_MODEL", "liquid/lfm-2.5-2.6b:free"))
+    scraper_user_agent: str = field(default_factory=lambda: os.getenv("SCRAPER_USER_AGENT", "RPG-AI-Server/1.0 (+local)"))
+    scraper_timeout_seconds: float = field(default_factory=lambda: float(os.getenv("SCRAPER_TIMEOUT_SECONDS", "15.0")))
+    scraper_cache_ttl_seconds: int = field(default_factory=lambda: int(os.getenv("SCRAPER_CACHE_TTL_SECONDS", "86400")))
 
 
 @dataclass
 class AppConfig:
-    max_concurrent_requests: int = field(default_factory=lambda: int(os.getenv("MAX_CONCURRENT_REQUESTS", "100")))
+    max_concurrent_requests: int = field(default_factory=lambda: int(os.getenv("MAX_CONCURRENT_REQUESTS", "16")))
     output_memory_threshold: float = field(default_factory=lambda: float(os.getenv("OUTPUT_MEMORY_THRESHOLD", "90.0")))
     backoff_seconds: float = field(default_factory=lambda: float(os.getenv("BACKOFF_SECONDS", "3.0")))
     log_level: str = field(default_factory=lambda: os.getenv("LOG_LEVEL", "INFO"))
     openrouter_api_key: Optional[str] = field(default_factory=lambda: os.getenv("OPENROUTER_API_KEY", None))
     openrouter_base_url: str = field(default_factory=lambda: os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"))
-    google_api_key: Optional[str] = field(default_factory=lambda: os.getenv("GOOGLE_API_KEY", None))
+    google_api_key: Optional[str] = field(default_factory=lambda: os.getenv("GOOGLE_API_KEY", None))  # legacy, LLMs via OpenRouter only
     loop_recursion_limit: int = field(default_factory=lambda: int(os.getenv("LOOP_RECURSION_LIMIT", "60")))
-    router_max_passes: int = field(default_factory=lambda: int(os.getenv("ROUTER_MAX_PASSES", "4")))
+    router_max_passes: int = field(default_factory=lambda: int(os.getenv("ROUTER_MAX_PASSES", "3")))
     max_tool_calls: int = field(default_factory=lambda: int(os.getenv("MAX_TOOL_CALLS", "15")))
-    request_timeout_seconds: float = field(default_factory=lambda: float(os.getenv("REQUEST_TIMEOUT_SECONDS", "120.0")))
+    request_timeout_seconds: float = field(default_factory=lambda: float(os.getenv("REQUEST_TIMEOUT_SECONDS", "60.0")))
     remaining_steps_min: int = field(default_factory=lambda: int(os.getenv("REMAINING_STEPS_MIN", "10")))
     lock_ttl_seconds: int = field(default_factory=lambda: int(os.getenv("LOCK_TTL_SECONDS", "30")))
     lock_refresh_interval: float = field(default_factory=lambda: float(os.getenv("LOCK_REFRESH_INTERVAL", "10.0")))
+    # Generous local budgets (agreed 2026-09-30, local run, no USD meter)
+    max_llm_calls_per_turn: int = field(default_factory=lambda: int(os.getenv("MAX_LLM_CALLS_PER_TURN", "12")))
+    max_tokens_per_turn: int = field(default_factory=lambda: int(os.getenv("MAX_TOKENS_PER_TURN", "24000")))
+    context_max_chars: int = field(default_factory=lambda: int(os.getenv("CONTEXT_MAX_CHARS", "8000")))
+    chat_log_max_turns: int = field(default_factory=lambda: int(os.getenv("CHAT_LOG_MAX_TURNS", "40")))
+    drain_threshold: int = field(default_factory=lambda: int(os.getenv("DRAIN_THRESHOLD", "25")))
+    worker_id: str = field(default_factory=lambda: os.getenv("WORKER_ID", ""))
 
 
 @dataclass

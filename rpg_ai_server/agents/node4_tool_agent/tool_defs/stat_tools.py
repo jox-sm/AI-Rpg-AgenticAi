@@ -51,13 +51,11 @@ async def stats_multiplier_and_updater(
         stats.max_health += 10 + stats.level
         stats.max_mana += 5 + stats.level // 2
 
-    stats.health = stats.max_health
-    stats.mana = stats.max_mana
     stats.carry_capacity = stats.strength * 5
-    stats.current_load = 0.0
-
-    if stats.level >= 2:
-        stats.stat_cap = STAT_CAP_TABLE.get(stats.level, 10 + (stats.level - 1) * 2)
+    if level_ups > 0 or should_level_up:
+        stats.health = stats.max_health
+        stats.mana = stats.max_mana
+        stats.current_load = 0.0
 
     return json.dumps(stats.model_dump(), indent=2)
 

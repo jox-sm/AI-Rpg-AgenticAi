@@ -1,72 +1,97 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any, Dict, List
+from urllib.parse import quote_plus
 
-from langchain_google_genai import ChatGoogleGenerativeAI
+import httpx
 from langchain_core.tools import tool
-from langchain.agents import create_agent
 
 from ..config.settings import settings
-from ..config.models import create_gemini_model
 from ..schemas.state import GameState
 from ..utils.logger import logger
 
+try:
+    from scrapy import Selector
+except Exception:  # scrapy optional at import time, required in requirements
+    Selector = None
+
+
+async def _fetch_and_extract(url: str, timeout: float) -> str:
+    async with httpx.AsyncClient(
+        timeout=timeout,
+        headers={"User-Agent": settings.models.scraper_user_agent},
+        follow_redirects=True,
+    ) as client:
+        r = await client.get(url)
+        r.raise_for_status()
+        html = r.text
+    if Selector is None:
+        return html[:1500]
+    sel = Selector(text=html)
+    # Strip scripts/styles, keep readable text
+    for bad in sel.css("script, style, nav, footer, header"):
+        bad.drop()
+    text = " ".join(t.strip() for t in sel.css("main p::text, article p::text, p::text").getall() if t.strip())
+    return text[:1500] if text else html[:1500]
+
 
 @tool
-async def google_web_search(query: str) -> str:
-    """Search the web for real-time information.
-    Use this tool when the game requires current facts, lore verification,
-    or real-world information that the model cannot know internally.
+async def scrapy_lore_search(query: str) -> str:
+    """Scrape SRD-legal D&D sources for lore/rules (replaces Gemini google_search).
 
+    Uses httpx fetch + Scrapy Selector parsing. No Google API key needed.
     Args:
-        query: The search query string (2-10 words for best results)
+        query: 2-10 word lore query (monster/spell/rule name best)
     """
     try:
-        search_model = ChatGoogleGenerativeAI(
-            model=settings.models.gemini_model,
-            temperature=0.0,
-            google_api_key=settings.app.google_api_key,
-        )
-        search_model_with_search = search_model.bind_tools(
-            [{"google_search": {}}],
-            tool_choice="google_search",
-        )
-        result = await search_model_with_search.ainvoke(query)
-        return str(result.content)
+        q = (query or "")[:120]
+        # Direct wiki page guess first (fast path), then DuckDuckGo HTML fallback
+        slug = q.lower().replace(" ", "-").replace("'", "")
+        candidates = [
+            f"https://www.dnd5e.wikidot.com/{slug}",
+            f"https://html.duckduckgo.com/html/?q={quote_plus('dnd 5e ' + q)}",
+        ]
+        parts: List[str] = []
+        for url in candidates:
+            try:
+                parts.append(f"[source {url}]\n" + await _fetch_and_extract(url, settings.models.scraper_timeout_seconds))
+                if parts[-1].strip():
+                    break
+            except Exception as e:
+                logger.warning(f"Scrape miss {url}: {e}")
+                continue
+        text = "\n\n".join(p for p in parts if p.strip())[:1500]
+        return text or "No lore found."
     except Exception as e:
-        logger.error(f"Web search failed: {e}")
+        logger.error(f"Scrapy lore search failed: {e}")
         return f"Search unavailable: {e}"
 
 
+# Legacy alias (was Gemini google_search tool; kept so old imports don't break)
+async def google_web_search(query: str) -> str:
+    return await scrapy_lore_search.ainvoke({"query": query})
+
+
 async def node1_web_search(state: GameState) -> Dict[str, Any]:
-    logger.info(f"[Node 1] Web search triggered for UUID {state['uuid']}")
-    search_query = state.get("decision", None)
-    query = state["prompt"]
-    if search_query and hasattr(search_query, "search_query") and search_query.search_query:
-        query = search_query.search_query
-
+    logger.info(f"[Node 1] Scrapy lore search for UUID {state.get('uuid')}")
+    decision = state.get("decision_report") or {}
+    query = state.get("prompt", "")
+    if isinstance(decision, dict) and decision.get("search_query"):
+        query = decision["search_query"]
+    elif state.get("decision") and hasattr(state["decision"], "search_query"):
+        try:
+            if state["decision"].search_query:
+                query = state["decision"].search_query
+        except Exception:
+            pass
     try:
-        agent = create_agent(
-            model=create_gemini_model(temperature=0.3),
-            tools=[google_web_search],
-            system_prompt=(
-                "You are a D&D lore researcher. Search the web for accurate information "
-                "about monsters, items, spells, locations, and rules when the game requires it. "
-                "Return factual data that the game master can use."
-            ),
-        )
-        result = await agent.ainvoke({
-            "messages": [
-                {"role": "system", "content": f"Research needed for game UUID: {state['uuid']}"},
-                {"role": "user", "content": query},
-            ]
-        })
-        search_results = result["messages"][-1].content
+        search_results = await scrapy_lore_search.ainvoke({"query": query})
+        if not isinstance(search_results, str):
+            search_results = str(search_results)
     except Exception as e:
-        logger.error(f"Node 1 web search agent failed: {e}")
+        logger.error(f"Node 1 scrapy search failed: {e}")
         search_results = f"Search error: {e}"
-
     return {
-        "search_results": search_results,
+        "search_results": search_results[:2000],
         "needs_search": False,
     }

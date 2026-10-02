@@ -133,6 +133,9 @@ async def dice_roller(
     except ValueError:
         return json.dumps({"error": f"Invalid dice type: {dice}"})
 
+    if not 1 <= count <= 100:
+        raise ValueError("count must be between 1 and 100")
+
     from ....scripts.dice_engine import Dice as SCDice, roll as sc_roll
 
     sides = DICE_MAP[dice_type]

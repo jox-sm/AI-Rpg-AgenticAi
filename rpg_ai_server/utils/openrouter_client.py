@@ -46,9 +46,20 @@ class OpenRouterDirectClient:
         if response_format:
             body["response_format"] = response_format
 
-        response = await client.post("/chat/completions", json=body)
+        # NOTE: no leading slash — httpx replaces base_url path on absolute paths,
+        # which dropped /api/v1 and caused 404s on every direct call.
+        response = await client.post("chat/completions", json=body)
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+        # Flaky free-tier providers sometimes return 200 with no usable choice
+        # (overload envelopes). Fail loudly so node fallbacks trigger.
+        try:
+            content = data["choices"][0]["message"]["content"]
+        except (KeyError, IndexError, TypeError) as e:
+            raise RuntimeError(f"empty/unparseable LLM envelope: {str(data)[:200]}") from e
+        if not content:
+            raise RuntimeError("empty LLM content")
+        return data
 
     async def extract_json(
         self,

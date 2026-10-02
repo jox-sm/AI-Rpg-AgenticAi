@@ -7,26 +7,13 @@ Repos: AI server `D:\AI agent` (Python FastAPI + LangGraph), web app `D:\deepsla
 
 ## 0. Credentials & Env (live)
 
-### Upstash Search (game memory) — LIVE
-- URL: `https://polished-turtle-43316-gcp-usc1-search.upstash.io`
-- Token: `AB4FMHBvbGlzaGVkLXR1cnRsZS00MzMxNi1nY3AtdXNjMWFkbWluWXpNek5EQTFOR1V0TkRjNU15MDBOR1ptTFRoak1qQXRZbU5sWTJaa1pqZGtZMkpr`
-- Index name: `game-memory`
-- Where: `rpg_ai_server\.env` → `UPSTASH_SEARCH_REST_URL` / `UPSTASH_SEARCH_REST_TOKEN`, `SEARCH_INDEX_NAME=game-memory`
-
-### Upstash Redis (core ops: queue/state/locks/output) — LIVE
-- URL: `https://handy-longhorn-80079.upstash.io`
-- Token: `gQAAAAAAATjPAAIgcDJlMTQ2NmM4NGE4OWY0OGVjOGUyZTkzMjUwYTRjYTZmOQ`
-- Where: `rpg_ai_server\.env` → `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`
-- Verified: `GET /ping` → `PONG`
-- DEAD hosts (all DNS-failed, instances deleted): `dynamic-stag-74768.upstash.io` (old server .env), `rational-falcon-116542.upstash.io` (web .env), `discussion-intense-retrospeedy-93747.db.redis.io` (web redisqueue).
-
-### LLM keys (already in `.env`)
-- `OPENROUTER_API_KEY=YOUR_OPENROUTER_KEY_HERE`
-- `GOOGLE_API_KEY=AIzaSyYOUR_GOOGLE_KEY_HERE`
-- Model map (`ModelConfig`): gemini-2.0-flash / nvidia nemotron-3-nano-omni-30b (image) / openrouter owl-alpha (redescriptor) / qwen3-coder:free (tool agent) / nemotron-3-super-120b (context injector) / qwen3-coder:free (story)
-
-### LLM-independent env (loop guards) in `AppConfig` + `.env`
-`LOOP_RECURSION_LIMIT=60`, `ROUTER_MAX_PASSES=4`, `MAX_TOOL_CALLS=15`, `REQUEST_TIMEOUT_SECONDS=120.0`, `REMAINING_STEPS_MIN=10`, `LOCK_TTL_SECONDS=30`, `LOCK_REFRESH_INTERVAL=10.0`, `MAX_CONCURRENT_REQUESTS=1000`, `OUTPUT_MEMORY_THRESHOLD=90.0`, `BACKOFF_SECONDS=3.0`
+> SUPERSEDED 2026-10-03: credentials rotate; never store live secrets in docs.
+> Current live hosts/keys live ONLY in gitignored `rpg_ai_server/.env`.
+> - Upstash Search: configured in `.env` (`UPSTASH_SEARCH_REST_URL/TOKEN`, index `game-memory`). Old host `polished-turtle-43316...` retired.
+> - Upstash Redis: configured in `.env` (`UPSTASH_REDIS_REST_URL/TOKEN`). Old host `handy-longhorn-80079` and all DNS-dead hosts (`dynamic-stag-74768`, `rational-falcon-116542`, `discussion-intense-...`) retired.
+> - LLM: `OPENROUTER_API_KEY` in `.env` (OpenRouter-only; Gemini path removed).
+> - Model map (live-verified 2026-10-03): classifier `liquid/lfm-2.5-2.6b:free`, image `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`, redescription `google/gemma-4-26b-a4b-it:free`, tool/story `qwen/qwen3.8-27b:free`, context `google/gemma-4-31b-it:free`. Dead: `owl-alpha`, `qwen3-coder:free`, `llama-3.2-3b:free`, `gemini-2.0-flash`.
+> - Loop guards (generous local): `LOOP_RECURSION_LIMIT=60`, `ROUTER_MAX_PASSES=3`, `MAX_TOOL_CALLS=15`, `REQUEST_TIMEOUT_SECONDS=60.0`, `MAX_LLM_CALLS_PER_TURN=12`, `CONTEXT_MAX_CHARS=8000`, `CHAT_LOG_MAX_TURNS=40`, `DRAIN_THRESHOLD=25`, `MAX_CONCURRENT_REQUESTS=16`.
 
 ---
 

@@ -54,6 +54,11 @@ class RedisClient:
         self.prefix = prefix
         self._client: Optional[UpstashRedis] = None
 
+    async def _eval_lua(self, script: str, keys: list[str], args: list[str]):
+        """Run Lua atomically via EVAL; raise to let caller fall back if unsupported."""
+        await self.connect()
+        return await self.client.eval(script, keys=keys, args=args)
+
     async def connect(self):
         if self._client is None:
             if not settings.redis.use_upstash:
@@ -189,11 +194,29 @@ class InputRedisClient(RedisClient):
     async def pop_delayed_due(self, max_score: float) -> list[Dict[str, Any]]:
         await self.connect()
         key = self._key("queue:delayed")
-        raw_items = await self.client.zrangebyscore(key, 0, max_score)
+        # Atomic Lua: range + rem in one step (2 procs race fix).
+        lua = (
+            "local items = redis.call('ZRANGEBYSCORE', KEYS[1], 0, ARGV[1]) "
+            "if #items > 0 then redis.call('ZREMRANGEBYSCORE', KEYS[1], 0, ARGV[1]) end "
+            "return items"
+        )
+        try:
+            raw_items = await self._eval_lua(lua, [key], [str(max_score)])
+        except Exception as e:
+            logger.warning(f"EVAL pop_delayed_due unsupported, fallback non-atomic: {e}")
+            raw_items = await self.client.zrangebyscore(key, 0, max_score)
+            if not raw_items:
+                return []
+            await self.client.zremrangebyscore(key, 0, max_score)
         if not raw_items:
             return []
-        await self.client.zremrangebyscore(key, 0, max_score)
-        return [json.loads(r) for r in raw_items]
+        out = []
+        for r in raw_items:
+            try:
+                out.append(json.loads(r))
+            except Exception:
+                logger.error("Poison delayed item skipped (invalid JSON)")
+        return out
 
     async def push_dead(self, item: Dict[str, Any]):
         await self.connect()
@@ -251,9 +274,10 @@ class GamesRedisClient(RedisClient):
         await self.connect()
         return await self.client.incr(self._key(f"{uuid}:counter"))
 
-    async def set_counter(self, uuid: str, value: int) -> bool:
+    async def set_counter(self, uuid: str, value: int, ttl: Optional[int] = None) -> bool:
         await self.connect()
-        await self.client.set(self._key(f"{uuid}:counter"), str(value))
+        ttl = ttl or settings.redis.ttl_seconds
+        await self.client.set(self._key(f"{uuid}:counter"), str(value), ex=ttl)
         return True
 
     async def expire(self, uuid: str, ttl: int) -> bool:
@@ -271,17 +295,52 @@ class GamesRedisClient(RedisClient):
     async def release_lock(self, uuid: str, worker_id: str) -> bool:
         await self.connect()
         key = self._key(f"{uuid}:lock")
-        current = await self.client.get(key)
-        if current == worker_id:
-            await self.client.delete(key)
-            return True
-        return False
+        lua = "if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) else return 0 end"
+        try:
+            result = await self._eval_lua(lua, [key], [worker_id])
+            return bool(result)
+        except Exception as e:
+            logger.warning(f"EVAL release_lock unsupported, fallback check-then-del: {e}")
+            current = await self.client.get(key)
+            if current == worker_id:
+                await self.client.delete(key)
+                return True
+            return False
 
     async def refresh_lock(self, uuid: str, worker_id: str, ttl: int = 30) -> bool:
         await self.connect()
         key = self._key(f"{uuid}:lock")
-        current = await self.client.get(key)
-        if current == worker_id:
-            await self.client.expire(key, ttl)
+        lua = "if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('EXPIRE', KEYS[1], ARGV[2]) else return 0 end"
+        try:
+            result = await self._eval_lua(lua, [key], [worker_id, str(ttl)])
+            return bool(result)
+        except Exception as e:
+            logger.warning(f"EVAL refresh_lock unsupported, fallback check-then-expire: {e}")
+            current = await self.client.get(key)
+            if current == worker_id:
+                await self.client.expire(key, ttl)
+                return True
+            return False
+
+    async def touch_game_keys(self, uuid: str, ttl: int) -> bool:
+        """Atomically refresh TTL on state+counter (fixes TTL skew)."""
+        await self.connect()
+        lua = (
+            "redis.call('EXPIRE', KEYS[1], ARGV[1]) "
+            "redis.call('EXPIRE', KEYS[2], ARGV[1]) "
+            "return 1"
+        )
+        try:
+            await self._eval_lua(
+                lua,
+                [self._key(f"{uuid}:state"), self._key(f"{uuid}:counter")],
+                [str(ttl)],
+            )
             return True
-        return False
+        except Exception:
+            await self.client.expire(self._key(f"{uuid}:state"), ttl)
+            try:
+                await self.client.expire(self._key(f"{uuid}:counter"), ttl)
+            except Exception:
+                pass
+            return True

@@ -41,7 +41,7 @@ content:        { sid: <uuid>, text: "<chunk text>" }
 metadata:       { sid: <uuid>, turn, index, is_incident, ts }
 ```
 
-- **Write path:** on drain trigger (major action OR counter ≥ 10), the AI server splits story/incidents into chunks (token-budgeted, ~512 tokens, 32-token overlap) and upserts them — Upstash Search embeds server-side, so the client never sends vectors and no model runs locally.
+- **Write path:** on drain trigger (major action OR counter ≥ 25), the AI server splits story/incidents into chunks (token-budgeted, ~512 tokens, 32-token overlap) and upserts them — Upstash Search embeds server-side, so the client never sends vectors and no model runs locally.
 - **Read path:** `node4_tool_agent` builds a text query from current context → `POST /memory/query {namespace, query}` → hybrid search scoped by filter `@metadata.sid = '<sid>'` → hits (`id, score, content, metadata`) injected as `rag_context` into the LLM prompt.
 - **Why Upstash Search instead of Upstash Vector / Redis Search?** AI-hybrid relevance with zero client embedding infra: no sentence-transformers, no dimension planning, no per-game namespaces. Upstash Redis Search is Tantivy full-text only; Upstash Vector would still require an embedding step client-side or a second model service.
 - **Filter syntax** is SQL-like; metadata keys are prefixed `@metadata.` (e.g. `@metadata.sid = 'x' AND @metadata.is_incident = 1`).
@@ -118,8 +118,8 @@ key:   rpg:memory:{id}   → exported search-memory blob for that scenario
 4. Documents are never destroyed on exit — only on real game_over (or explicit delete)
 ```
 
-**Autosave — every 10 messages:**
-- The drain already fires at `counter ≥ 10`; it sets `autosave` flag in the drained state. The client reads it after the action → auto-exports → refreshes `rpg:memory:{id}` in the background. Worst case on crash: 10 messages lost.
+**Autosave — every 25 messages:**
+- The drain already fires at `counter ≥ 25`; it sets `autosave` flag in the drained state. The client reads it after the action → auto-exports → refreshes `rpg:memory:{id}` in the background. Worst case on crash: 25 messages lost.
 - The same `rpg:memory:{id}` blob is used by the resume flow (2b), so autosave and manual save never diverge.
 
 - **Size check:** ~200 chunks × ~1KB JSON (text + metadata, no vectors) ≈ 200KB — fits localStorage (5MB) comfortably.
@@ -335,7 +335,8 @@ Memory (Upstash Search, shared index filtered by sid):
 - Trigger POST fails     → trigger:busy auto-expires in 30s, retries on next action
 - Worker POST fails      → FastAPI retries (3 attempts, backoff)
 - SSE connection drops   → client reconnects, polls last known event
-- Graph loop runaway     → guarded: router pass cap + RemainingSteps + recursion_limit=60
+- Graph loop runaway     → guarded: router passes=3, 60s wall, budget/LLM-call force-exit to story
+                           → see engine/graph_v2.py (`_budget_exhausted`, `react_router_node`)
                           → GraphRecursionError → graceful "the story grows quiet" output
                           → see plan/loops.md
 ```
@@ -343,6 +344,8 @@ Memory (Upstash Search, shared index filtered by sid):
 ---
 
 ## Game Architecture (from graphify-out)
+
+> NOTE: third-party analysis output for a different repo's backend — not this system; kept for reference only.
 
 Graph analysis of the existing game backend (320 files indexed).
 
@@ -465,46 +468,31 @@ export async function GET(req: Request) {
 
 Solved by #3 — no Redis event key, no polling, no overwrite. Each worker callback directly writes to the open SSE connection for that session. Multiple events in quick succession are queued by the stream writer.
 
-### 5. Missing `/trigger` endpoint — to be added
+### 5. `/trigger` endpoint — implemented (see `redis_api.py`)
 
-The FastAPI `redis_api.py` needs a `POST /trigger` endpoint. Per the plan's drain pattern (atomic rename):
+Current behavior (atomic rename drain):
 
 ```python
 @app.post("/trigger")
 async def trigger():
-    # 1. Get the busy lock (redundant check — Next.js already set it)
-    busy = await redis.get("trigger:busy")
+    busy = await raw.get("trigger:busy")
     if not busy:
-        return {"error": "not triggered"}, 409
-
-    # 2. Atomic drain: RENAME input:queue → input:queue:processing
+        raise HTTPException(status_code=409, detail="not triggered")  # raise, not tuple
     try:
-        await redis.rename("input:queue", "input:queue:processing")
-    except:
+        await raw.rename("input:queue", "input:queue:processing")
+    except Exception:
         return {"ok": True, "items": 0}  # queue empty
-
-    # 3. Process all items
-    items = []
-    while True:
-        item = await redis.lpop("input:queue:processing")
-        if not item:
-            break
-        items.append(json.loads(item))
-
-    for item in items:
-        sid = item["uuid"]
-        # load state
-        state = await games.hgetall(f"games:{sid}:state")
-        # run orchestration...
-        # write output + state...
-        await redis.set(f"output:{sid}", json.dumps(output), ex=3600)
-        # callback to Next.js
-        await callback_nextjs(sid)
-
-    # 4. Cleanup
-    await redis.delete("input:queue:processing")
-    await redis.delete("trigger:busy")
-    return {"ok": True, "items": len(items)}
+    items, failed = [], 0
+    while (raw_item := await raw.lpop("input:queue:processing")) is not None:
+        try:
+            items.append(json.loads(raw_item))
+        except (json.JSONDecodeError, TypeError, ValueError):
+            failed += 1  # poison guard: skip bad item, keep draining
+            continue
+    ...  # per item: HGETALL state → output → Next.js webhook
+    await raw.delete("input:queue:processing")  # cleanup only after all items
+    await raw.delete("trigger:busy")
+    return {"ok": True, "items": len(processed), "processed": processed, "failed": failed}
 ```
 
 ### 6. FastAPI callback URL — env var ✔
@@ -523,9 +511,9 @@ New sessions get their initial state written *before* the first action is queued
 
 ~50-200KB per snapshot is fine for 2MB Safari limit. Multiple saves accumulate only while `sessionStorage` lives (tab open). 10min snapshot = 1 save in storage at a time.
 
-### 10. Adding `/trigger` endpoint ✔
+### 10. `/trigger` endpoint ✔
 
-Confirmed — I'll add `POST /trigger` to `redis_api.py` with the atomic rename drain pattern from the plan. Also need a `/trigger` route in Next.js that sets `trigger:busy` and calls the AI server.
+Done — `POST /trigger` exists in `redis_api.py` with the atomic rename drain pattern (raises 409 when `trigger:busy` unset, per-item poison guard with `failed` count, cleanup after all items). Next.js sets `trigger:busy` (SET NX EX 30) and calls the AI server.
 
 ### State & Data
 

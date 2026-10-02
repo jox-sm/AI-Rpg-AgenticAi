@@ -1,8 +1,11 @@
 import asyncio
 
+from rpg_ai_server.config.settings import settings
 from rpg_ai_server.redis.game_state import DRAIN_THRESHOLD, GameStateManager
 from rpg_ai_server.redis.vector_memory import GameMemory
 from tests.fakes import FakeGamesClient, FakeSearchIndex
+
+THRESHOLD = settings.app.drain_threshold
 
 
 def _run(coro):
@@ -38,22 +41,23 @@ def test_load_state_missing_returns_none():
 def test_save_initial_state():
     games, _, mgr = _make_manager()
     _run(mgr.save_initial_state("u1", {"hp": 1}, story="Once upon a time..."))
-    assert games.hashes["u1"]["counter"] == "0"
+    # Single string counter with TTL (was hash-field split-brain)
+    assert games.counters["u1"] == 0
     assert games.hashes["u1"]["game_data"] is not None
 
 
 def test_drain_below_threshold_does_not_upsert():
     games, mem, mgr = _make_manager()
-    for _ in range(DRAIN_THRESHOLD - 1):
+    for _ in range(THRESHOLD - 1):
         _run(mgr.try_drain("u1", "Small story."))
     assert not mem._index.data
-    assert games.counters["u1"] == DRAIN_THRESHOLD - 1
+    assert games.counters["u1"] == THRESHOLD - 1
 
 
 def test_drain_at_threshold_upserts_to_search():
     games, mem, mgr = _make_manager()
     _run(mgr.save_state("u1", {"story": "Small story."}, ["story"]))
-    for _ in range(DRAIN_THRESHOLD):
+    for _ in range(THRESHOLD):
         _run(mgr.try_drain("u1", "Small story."))
     assert _docs(mem, "u1")
     assert games.counters["u1"] == 0
@@ -88,7 +92,7 @@ def test_drain_marks_incident_metadata():
 def test_drain_without_memory_keeps_story():
     games, _, mgr = _make_manager(memory=False)
     _run(mgr.save_state("u1", {"story": "Small story."}, ["story"]))
-    for _ in range(DRAIN_THRESHOLD):
+    for _ in range(THRESHOLD):
         _run(mgr.try_drain("u1", "Small story."))
     assert "story" in games.hashes.get("u1", {})
 
@@ -106,7 +110,7 @@ def test_drain_when_memory_fails_keeps_story():
     mgr._memory = GameMemory(index=BoomIndex())
 
     _run(mgr.save_state("u1", {"story": "Small story."}, ["story"]))
-    for _ in range(DRAIN_THRESHOLD):
+    for _ in range(THRESHOLD):
         _run(mgr.try_drain("u1", "Small story."))
     assert "story" in games.hashes.get("u1", {})
     assert not BoomIndex.data
@@ -114,7 +118,7 @@ def test_drain_when_memory_fails_keeps_story():
 
 def test_drain_empty_story_clears_buffer():
     games, mem, mgr = _make_manager()
-    for _ in range(DRAIN_THRESHOLD):
+    for _ in range(THRESHOLD):
         _run(mgr.try_drain("u1", ""))
     assert not _docs(mem, "u1")
 

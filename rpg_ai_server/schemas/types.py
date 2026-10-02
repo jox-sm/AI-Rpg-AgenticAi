@@ -148,3 +148,30 @@ class NodeDecision(BaseModel):
     image_uuids: List[str] = Field(default_factory=list)
     should_redescribe: bool = Field(default=False)
     redescribe_uuids: List[str] = Field(default_factory=list)
+
+
+class ChatMessage(BaseModel):
+    role: str = Field(default="user", description="user|assistant|system")
+    text: str = Field(default="")
+    turn: int = Field(default=0, ge=0)
+
+
+class BudgetUsage(BaseModel):
+    llm_calls: int = Field(default=0, ge=0)
+    tokens_est: int = Field(default=0, ge=0)
+    started_at: float = Field(default=0.0)
+
+
+class DecisionReport(BaseModel):
+    intent: str = Field(default="explore", description="attack|defend|cast|flee|social|explore|craft|rest")
+    target: str = Field(default="")
+    monster_move: str = Field(default="attack", description="attack|defend|flee|buff|debuff|none")
+    buffs: List[str] = Field(default_factory=list)
+    debuffs: List[str] = Field(default_factory=list)
+    damage_hint: str = Field(default="")
+    needs_search: bool = Field(default=False)
+    needs_image: bool = Field(default=False)
+    needs_redescribe: bool = Field(default=False)
+    search_query: str = Field(default="")
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    reason: str = Field(default="")

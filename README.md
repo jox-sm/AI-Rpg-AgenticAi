@@ -7,7 +7,7 @@
 ![LangGraph](https://img.shields.io/badge/LangGraph-1E2A4A?style=flat)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-> **An async open-world RPG powered by a 7-node LangGraph AI pipeline and a Redis-backed architecture.**
+> **An async open-world RPG powered by a LangGraph v2 react pipeline and a Redis-backed architecture.**
 
 ---
 
@@ -20,9 +20,9 @@ An AI-driven **D&D-style game engine** where every action is processed by a mult
 ```
 ┌──────────────┐     ┌──────────────┐     ┌──────────────────────┐
 │   Browser    │◄───►│   Next.js    │◄───►│   Redis (Upstash)    │
-│  (Client)    │ SSE │   Frontend   │     │  ┌────────────────┐  │
-└──────────────┘     └──────────────┘     │  │  DB 0: Queue    │  │
-                                          │  │  DB 1: State    │  │
+│  (Client)    │ SSE │   Frontend   │     │  single REST instance│
+└──────────────┘     └──────────────┘     │  prefixes: input: /  │
+                                          │  output: / games:    │
                                           │  └────────────────┘  │
                                           └──────────┬───────────┘
                                                      │
@@ -40,8 +40,8 @@ An AI-driven **D&D-style game engine** where every action is processed by a mult
 | Component | Role | Tech |
 |-----------|------|------|
 | **Next.js Frontend** | HTTP/SSE client connections, game sessions, UI rendering | Next.js 16, TypeScript |
-| **FastAPI AI Server** | Processes game requests through a 7-node LangGraph pipeline | Python, FastAPI |
-| **Redis (Upstash)** | Shared state, queues, and caching | 2 isolated databases |
+| **FastAPI AI Server** | Processes game requests through the LangGraph v2 react pipeline | Python, FastAPI |
+| **Redis (Upstash)** | Shared state, queues, and caching | Single Upstash REST instance (`input:`/`output:`/`games:` prefixes) |
 | **Upstash Search** | Game memory / RAG — AI-hybrid retrieval of narrative history | Semantic + full-text, shared index filtered by sid |
 
 ---
@@ -51,7 +51,7 @@ An AI-driven **D&D-style game engine** where every action is processed by a mult
 - [System Architecture](#system-architecture)
 - [Project Structure](#project-structure)
 - [RPG AI Server](#rpg-ai-server)
-  - [7-Node LangGraph Pipeline](#7-node-langgraph-pipeline)
+  - [LangGraph v2 Pipeline](#langgraph-v2-pipeline)
   - [Data Flow](#data-flow)
   - [Redis Layer](#redis-layer)
   - [Concurrency & Backpressure](#concurrency--backpressure)
@@ -66,56 +66,65 @@ An AI-driven **D&D-style game engine** where every action is processed by a mult
 - [Frontend Integration (Next.js)](#frontend-integration-nextjs)
 - [Setup & Running](#setup--running)
 - [Configuration Reference](#configuration-reference)
-PLA- [Edge Cases & Defensive Design](#edge-cases--defensive-design)
+- [Edge Cases & Defensive Design](#edge-cases--defensive-design)
 
 ---
 
 ## RPG AI Server
 
-### 7-Node LangGraph Pipeline
+### LangGraph v2 Pipeline
 
 ```
-START → Node5 (Context) → Router → [Node1/2/3 loops] → Node4 (Tools) → Node6 (Story) → Node7 (Output) → END
+START → classifier → react_router ⇄ {search|image|redescribe} → mechanics (6-way parallel fan-out) → context_refresh → summarizer → story → pusher → END
 ```
 
 | Node | Role | Model | Trigger |
 |------|------|-------|---------|
-| **1** | 🔍 Web search for lore & rules | `gemini-2.0-flash` | `needs_search` |
-| **2** | 🖼️ Image → 15×15 grid analysis | `nemotron-nano` | `needs_image_processing` |
-| **3** | ♻️ Re-describe grid (time/narrative) | `owl-alpha` | `needs_re_description` |
-| **4** | 🛠️ Tool agent (dice, combat, stats, inventory) | `qwen-coder` | Every turn |
-| **5** | 📝 Context summarization | `nemotron-super` | Every turn |
-| **6** | 📖 Story generation (2nd person, <500 words) | `qwen-coder` | Every turn |
-| **7** | 📤 Push result to Redis DB 1 | — | Final |
+| **classifier** | Intent + flag classification (search/image/redescribe/mechanics) | `liquid/lfm-2.5-2.6b:free` | Every turn (entry) |
+| **search (ex-Node1)** | Scrapy lore scrape (httpx + Scrapy Selector, no Gemini/LLM) | — | `needs_search` |
+| **image (ex-Node2)** | Image → 15×15 grid analysis | `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` | `needs_image_processing` |
+| **redescribe (ex-Node3)** | Re-describe grid (time/narrative) | `google/gemma-4-26b-a4b-it:free` | `needs_re_description` |
+| **mechanics (ex-Node4)** | Parallel pure mechanics fan-out (dice/damage/stats/skill/inventory/json, no LLM agent loop) | — | Every turn |
+| **summarizer (ex-Node5)** | Context summarization | `google/gemma-4-31b-it:free` | Every turn |
+| **story (ex-Node6)** | Story generation (2nd person, <500 words) | `qwen/qwen3.8-27b:free` | Every turn |
+| **pusher (ex-Node7)** | Push result to `output:` prefix | — | Final |
+
+ReAct router is re-entrant (search/image/redescribe loop back to the router) with a max of 3 passes (`ROUTER_MAX_PASSES`), then forces `story`.
 
 ### Data Flow
 
 ```
 1. Client sends action → Next.js
-2. Next.js pushes {uuid, prompt} → Redis DB 0 (input:queue)
-3. FastAPI polls queue → loads game state from Redis DB 1
-4. Runs through LangGraph pipeline → writes output to Redis DB 1
+2. Next.js pushes {uuid, prompt} → single Upstash instance, `input:queue`
+3. FastAPI polls queue → loads game state (`games:` prefix)
+4. Runs through LangGraph v2 pipeline → writes output (`output:` prefix)
 5. Next.js pushes result to client via Server-Sent Events (SSE)
 6. Client merges delta into local state and renders UI
 ```
 
 ### Redis Layer
 
-| Database | Purpose | Key Pattern | TTL |
+Single Upstash REST instance (`UPSTASH_REDIS_REST_URL/TOKEN`), namespaced by key prefix — no separate DB numbers.
+
+| Prefix | Purpose | Key Pattern | TTL |
 |----------|---------|-------------|-----|
-| **DB 0** | Input queue & coordination | `input:queue`, `trigger:busy` | — |
-| **DB 1** | Game state + output cache | `games:{sid}:state`, `output:{sid}` | 1 hour |
+| **`input:`** | Input queue & coordination | `input:queue`, `input:queue:delayed`, `input:queue:dead`, `input:workers:{id}:heartbeat` | — |
+| **`output:`** | Output cache | `output:{sid}` | 1 hour |
+| **`games:`** | Game state + counters + locks | `games:{sid}:state`, `games:{sid}:counter`, `games:{sid}:lock` | 1 hour |
 
 **Key classes in `redis/client.py`:**
 - `RedisClient` — base wrapper with `set_json`, `get_json`, `memory_percent()`
-- `InputRedisClient` — `pop_request()` from DB 0
-- `OutputRedisClient` — `push_result()` to DB 1
+- `InputRedisClient` (`prefix="input"`) — `pop_request()` from `input:queue`
+- `OutputRedisClient` (`prefix="output"`) — `push_result()` to `output:{sid}`
+- `GamesRedisClient` (`prefix="games"`) — state hashes, counters, locks (`hset`/`hgetall`, `acquire_lock`/`release_lock`, `touch_game_keys`)
 
 ### Concurrency & Backpressure
 
 | Layer | Mechanism | Threshold |
 |-------|-----------|-----------|
-| **Cap** | `asyncio.Semaphore` | 100 concurrent requests |
+| **Cap** | `asyncio.Semaphore` (`MAX_CONCURRENT_REQUESTS`) | 16 concurrent requests |
+| **Deadline** | Per-request timeout (`REQUEST_TIMEOUT_SECONDS`) | 60s |
+| **Router** | ReAct router passes (`ROUTER_MAX_PASSES`) | 3 passes, then force `story` |
 | **Memory** | Redis `INFO memory` | >90% → 3s backoff |
 | **Idle** | `await asyncio.sleep(0.1)` | No items in queue |
 
@@ -270,7 +279,7 @@ Multi-category crafting with worker support and a full recipe database.
 
 Narrative memory lives in **Upstash Search** (separate from Redis — Upstash Redis has no vector/AI search).
 
-- Story/incident text is drained from game state on major events or every 10 actions
+- Story/incident text is drained from game state on major events or every 25 actions (`DRAIN_THRESHOLD`)
 - Text is split into chunks (~512 tokens, overlap 32) and upserted to the **AI-hybrid search index** (`game-memory`); Upstash embeds server-side, no local model
 - Games share one index, scoped by the `sid` field (content + metadata) with id prefix `{sid}:`
 - Retrieval: build a text query from current context → `search(query, limit=top_k, filter="@metadata.sid = '<sid>'")` → inject top memories into the prompt as `PREVIOUS MEMORIES`
@@ -280,7 +289,7 @@ Narrative memory lives in **Upstash Search** (separate from Redis — Upstash Re
 - Each scenario has a user-chosen name (client label) + uuid (the `sid` embedded in every memory document)
 - Entry: found by uuid → continue live, or `/memory/restore` from the saved blob if Redis TTL expired; not found → fresh game
 - Exit: Save (export via `fetch(prefix='{sid}:')`) or Don't save (optional wipe via delete filter) — documents survive unless explicitly deleted
-- Autosave: every 10 messages (drain trigger) the client refreshes its local blob
+- Autosave: every 25 messages (drain trigger) the client refreshes its local blob
 - Client-side flow (registry, popups) is owned by the fullstack folder — see `REDIS_API.md` "Scenario Lifecycle" for the server contract
 
 ---
@@ -301,7 +310,7 @@ Narrative memory lives in **Upstash Search** (separate from Redis — Upstash Re
 1. New scenario: generate `sid` (uuid), write initial state to Redis; memory starts filling on first drain
 2. Existing scenario: found → load from Redis (or `/memory/restore` from the saved blob if expired); not found → new game
 3. TTL refresh on every action (1 hour timeout)
-4. Autosave: every 10 messages, drain fires → memory export blob refreshed (client-owned)
+4. Autosave: every 25 messages, drain fires → memory export blob refreshed (client-owned)
 5. Exit: Save (export namespace) or Don't save (discard advances) — client-owned flow
 
 **SSE Push Pattern:**
@@ -316,9 +325,9 @@ Narrative memory lives in **Upstash Search** (separate from Redis — Upstash Re
 ### Prerequisites
 
 - Python 3.10+
-- Redis server (or Upstash account)
-- OpenRouter API key
-- Google Gemini API key
+- Upstash Redis REST instance (`UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`)
+- OpenRouter API key (`OPENROUTER_API_KEY`, all LLM calls are OpenRouter-only)
+- Optional: Upstash Search pair (`UPSTASH_SEARCH_REST_URL` + `UPSTASH_SEARCH_REST_TOKEN`) for game memory/RAG
 
 ### Installation
 
@@ -342,11 +351,9 @@ cp .env.example .env
 ### Environment Variables
 
 ```bash
-# Redis Configuration
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_INPUT_DB=0
-REDIS_OUTPUT_DB=1
+# Single Upstash Redis REST instance (prefixes input:/output:/games:)
+UPSTASH_REDIS_REST_URL=your-upstash-url
+UPSTASH_REDIS_REST_TOKEN=your-upstash-token
 REDIS_TTL_SECONDS=3600
 
 # Upstash Search (game memory)
@@ -355,15 +362,15 @@ UPSTASH_SEARCH_REST_TOKEN=your-search-token
 SEARCH_INDEX_NAME=game-memory
 SEARCH_TOP_K=3
 
-# OpenRouter API
+# OpenRouter API (all LLM calls; no Gemini key needed)
 OPENROUTER_API_KEY=sk-or-v1-your-key-here
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 
-# Google Gemini API
-GOOGLE_API_KEY=your-google-gemini-key
-
 # System Configuration
-MAX_CONCURRENT_REQUESTS=100
+MAX_CONCURRENT_REQUESTS=16
+REQUEST_TIMEOUT_SECONDS=60.0
+ROUTER_MAX_PASSES=3
+DRAIN_THRESHOLD=25
 OUTPUT_MEMORY_THRESHOLD=90.0
 BACKOFF_SECONDS=3.0
 LOG_LEVEL=INFO
@@ -382,11 +389,10 @@ python -m rpg_ai_server.main
 ### Testing
 
 ```bash
-# Push a test request to the input queue (DB 0)
-redis-cli -n 0 SET test-uuid '{"prompt":"A goblin approaches...","sid":"test-session"}' EX 3600
+# Push a test request to the input queue (input: prefix)
+# (use the Upstash dashboard or REST client against key `input:queue`)
 
-# Read the result from the output cache (DB 1)
-redis-cli -n 1 GET test-uuid
+# Read the result from the output cache (output: prefix, key `output:{sid}`)
 ```
 
 ---
@@ -395,19 +401,23 @@ redis-cli -n 1 GET test-uuid
 
 ### Model Configuration
 
+All LLM calls go through OpenRouter only (no Gemini API key).
+
 | Node | Model | Provider | Temperature | Max Tokens |
 |------|-------|----------|-------------|------------|
-| **1 (Web Search)** | `gemini-2.0-flash` | Google | 0.3 | Default |
-| **2 (Image)** | `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` | OpenRouter | 0.1 | 8,192 |
-| **3 (Re-describe)** | `openrouter/owl-alpha` | OpenRouter | 0.2 | 65,536 |
-| **4 (Tools)** | `qwen/qwen3-coder:free` | OpenRouter | 0.3 | 8,192 |
-| **5 (Context)** | `nvidia/nemotron-3-super-120b-a12b:free` | OpenRouter | 0.1 | 2,048 |
-| **6 (Story)** | `qwen/qwen3-coder:free` | OpenRouter | 0.7 | 8,192 |
-| **7 (Output)** | — | — | — | — |
+| **classifier** | `liquid/lfm-2.5-2.6b:free` | OpenRouter | 0.3 | Default |
+| **search (ex-Node1)** | — (Scrapy lore scrape, no LLM) | — | — | — |
+| **image** | `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` | OpenRouter | 0.1 | 8,192 |
+| **redescribe** | `google/gemma-4-26b-a4b-it:free` | OpenRouter | 0.2 | 65,536 |
+| **mechanics (ex-Node4)** | — (parallel pure mechanics, no LLM agent loop) | — | — | — |
+| **summarizer (context)** | `google/gemma-4-31b-it:free` | OpenRouter | 0.1 | 2,048 |
+| **tool + story** | `qwen/qwen3.8-27b:free` | OpenRouter | tool 0.3 / story 0.7 | 8,192 |
+| **pusher** | — | — | — | — |
 
 **API Patterns:**
-- **LangChain wrappers** (Nodes 1, 4): For agent/tool-calling loops.
-- **Direct HTTP** (Nodes 2, 3, 5, 6): Simpler prompt→response flow with finer control over `response_format`.
+- **Scrapy tool** (search): httpx fetch + Scrapy Selector parsing, no LLM call.
+- **Pure functions** (mechanics): 6-way `asyncio.gather` fan-out with deterministic merge, no LLM agent loop (legacy `node4_tool_agent` LangChain agent is unwired in v2).
+- **Direct OpenRouter HTTP** (classifier/image/redescribe/summarizer/story): prompt→response flow with finer control over `response_format`.
 
 ---
 
@@ -420,7 +430,7 @@ redis-cli -n 1 GET test-uuid
 | 3 | LLM API timeout | `try/except` per node, pipeline continues |
 | 4 | Memory pressure spike | Back off 3s, recheck, loop |
 | 5 | Orphaned requests | Redis TTL auto-expires (1h default) |
-| 6 | Concurrent storm (100+) | Semaphore queues excess tasks |
+| 6 | Concurrent storm (16+) | Semaphore queues excess tasks |
 | 7 | State explosion | Context summarization caps at 500 chars |
 | 8 | Tool agent infinite loop | LangChain recursion limit + bounded execution; full loop-guard suite (router pass cap, tool-call limit, futile-action guard, `RemainingSteps` degradation) — see `plan/loops.md` |
 | 9 | Invalid dice type | Returns structured error JSON |

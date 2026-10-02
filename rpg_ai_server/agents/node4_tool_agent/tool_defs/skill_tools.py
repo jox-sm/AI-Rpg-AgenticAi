@@ -61,7 +61,7 @@ async def use_skill(
         else:
             name = str(s).lower()
         if name == skill_name.lower():
-            skill_level = float(s.get("level", s.get("value", 1)))
+            skill_level = int(float(s.get("level", s.get("value", 1))))
             break
 
     handler = skill["handler"]

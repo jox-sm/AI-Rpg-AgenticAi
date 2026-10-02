@@ -35,6 +35,9 @@ async def json_data_maker_and_tracker(
     except (json.JSONDecodeError, TypeError):
         data_store = {}
 
+    if not isinstance(data_store, dict):
+        raise ValueError("existing data corrupt")
+
     if data_type not in data_store:
         data_store[data_type] = {}
 

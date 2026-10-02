@@ -18,7 +18,7 @@
 
 ## 1. Project Overview
 
-**Asynchronous D&D RPG AI Server** built with **LangGraph**, **LangChain**, and **Google Gemini SDK**. Processes game requests via Redis queue through a 7-node LangGraph pipeline (3 conditional service nodes, 2 main processing nodes, 1 reactive tool agent, 1 output node), pushing results to a second Redis DB.
+**Asynchronous D&D RPG AI Server** built with **LangGraph** and **LangChain**, **OpenRouter-only** for all LLM calls (no Gemini SDK, no Google key). Processes game requests via a single Upstash Redis (prefix-separated queue/state/output) through a v2 LangGraph graph: entry classifier → re-entrant ReAct router over 3 conditional service nodes → parallel pure mechanics fan-out → context refresh → summarizer → story → pusher.
 
 **Key principles:** Strict separation of concerns | Multi-tenant async concurrency | Memory-aware throttling | API-agnostic model layer via OpenRouter.
 
@@ -27,10 +27,10 @@
 ## 2. System Architecture
 
 ### Data Flow
-1. **Frontend** pushes `{uuid, prompt, data, images}` into **Redis DB 0**
-2. **MultiTaskEngine** polls DB 0, spawns concurrent `asyncio` tasks
-3. Each request runs the LangGraph pipeline: `Node5 (context) → Router → [Node1/2/3 if needed, loop] → Node4 (tools) → Node6 (story) → Node7 (output)`
-4. Result pushed to **Redis DB 1**; frontend reads by UUID
+1. **Frontend** pushes `{uuid, prompt, data, images}` into Upstash Redis under the **`input:`** prefix
+2. **MultiTaskEngine** polls `input:`, spawns concurrent `asyncio` tasks (semaphore cap 16)
+3. Each request runs the v2 graph: `classifier → react_router ⇄ {search | image | redescribe} (≤3 passes) → mechanics (6 parallel pure sub-nodes) → context_refresh → summarizer → story → pusher`
+4. Result pushed under the **`output:`** prefix (long-lived game state under **`games:`**); frontend reads by UUID
 
 ---
 
@@ -46,22 +46,30 @@ rpg_ai_server/
 │   ├── enums.py                    # 8 enums (Terrain, TimeOfDay, EntityType...)
 │   ├── types.py                    # 14 Pydantic models
 │   └── state.py                    # LangGraph GameState TypedDict
-├── redis/                          # Persistence & queueing
-│   ├── client.py                   # Base + InputRedisClient + OutputRedisClient
-│   ├── input_queue.py              # Poll/pop from DB 0
-│   └── output_cache.py             # Push + memory monitoring to DB 1
+├── redis/                          # Persistence & queueing (single Upstash, prefixes)
+│   ├── client.py                   # Base RedisClient (upstash_redis AsyncRedis REST) + Input/Output/Games clients (prefixes input:/output:/games:)
+│   ├── queue.py                    # Queue helpers
+│   ├── input_queue.py              # Poll/pop from input: prefix
+│   ├── game_state.py               # Per-game state, locks, story-buffer drain (threshold 25)
+│   ├── vector_memory.py            # Upstash Vector game memory (drain target)
+│   └── output_cache.py             # Push + memory monitoring to output: prefix
 ├── agents/                         # AI/LLM business logic
-│   ├── node1_web_search.py         # Gemini web search
-│   ├── node2_image_processor.py    # Image → 15×15 grid (Nemotron)
-│   ├── node3_redescriptor.py       # Re-description (OWL-alpha)
-│   ├── node4_tool_agent/           # 6 D&D tools + create_agent
-│   ├── node5_context_injector.py   # Context summarization (Nemotron Super)
-│   ├── node6_story_generator.py    # Story generation (Qwen Coder)
-│   └── node7_output_pusher.py      # Result → Redis DB 1
+│   ├── classifier.py               # Entry intent classifier (lfm-2.5, deterministic fast-path + LLM)
+│   ├── node1_web_search.py         # Scrapy lore scrape (httpx + scrapy.Selector, no key)
+│   ├── node2_image_processor.py    # Image → 15×15 grid (Nemotron Nano)
+│   ├── node3_redescriptor.py       # Re-description (gemma-4-26b)
+│   ├── node4_parallel.py           # 6 pure mechanics sub-nodes (parallel fan-out, ordered merge)
+│   ├── node4_tool_agent/           # Legacy 6 D&D tools + create_agent (kept for compat)
+│   ├── node5_context_injector.py   # Context summarization (gemma-4-31b)
+│   ├── node6_story_generator.py    # Story generation (qwen3.8-27b)
+│   └── node7_output_pusher.py      # Result → output: prefix
 ├── engine/                         # Orchestration
-│   ├── graph_builder.py            # StateGraph + router
-│   ├── orchestrator.py             # GameOrchestrator
+│   ├── graph_v2.py                 # v2 StateGraph (classifier → react router → mechanics → story → pusher)
+│   ├── graph_builder.py            # Legacy graph builder (compat)
+│   ├── orchestrator.py             # GameOrchestrator (rolling context/chat_log, allowlist merge)
 │   └── multi_tasker.py             # MultiTaskEngine, backpressure
+├── tests/                          # Hard-test files (graph_v2, orchestrator, atomic redis/engine, loops, queue, locks)
+│   ├── test_graph_v2.py / test_orchestrator_hard.py / test_engine_atomic.py / ...
 ├── utils/                          # Shared utilities
 │   ├── logger.py                   # Structured logging
 │   └── openrouter_client.py        # Direct HTTP client for OpenRouter
@@ -82,23 +90,32 @@ rpg_ai_server/
 
 ## 4. Redis Layer
 
-**Two databases:** DB 0 (Input) — request queue `uuid → {prompt, data, images, timestamp}`, TTL 1h; DB 1 (Output) — result cache `uuid → {game_data, story, context_summary, timestamp}`, TTL 1h.
+**Single Upstash Redis, three prefixes:** `input:` (request queue `uuid → {prompt, data, images, timestamp}`, TTL 1h); `output:` (result cache `uuid → {game_data, story, context_summary, timestamp}`, TTL 1h); `games:` (long-lived per-game state hash + lock + story buffer/counter for vector-memory drain). `REDIS_HOST`/`PORT`/`DBs` remain only as an unused local fallback; production uses `UPSTASH_REDIS_REST_URL`/`TOKEN`.
 
-**`redis/client.py`** — `RedisClient` wraps `redis.asyncio.Redis` with `set_json/get_json/memory_percent()`. Subclasses: `InputRedisClient` adds `pop_request()`, `OutputRedisClient` adds `push_result()`.
+**`redis/client.py`** — `RedisClient` wraps `upstash_redis.AsyncRedis` (REST) with `set_json/get_json/memory_percent()` and prefix namespacing. Subclasses: `InputRedisClient` (`prefix="input:"`) adds `pop_request()`, `OutputRedisClient` (`prefix="output:"`) adds `push_result()`, `GamesRedisClient` (`prefix="games:"`) adds hash/lock/counter ops.
 
-**`redis/input_queue.py`** — `InputQueue`: `next_request()` → pops first key from DB 0, returns `GameRequest` or `None`; `queue_size()`.
+**`redis/queue.py`** — queue helpers shared by the poll loop.
 
-**`redis/output_cache.py`** — `OutputCache`: `store_result()` → pushes to DB 1; `memory_pressure_ok()` → checks maxmemory threshold; `count()`.
+**`redis/input_queue.py`** — `InputQueue`: `next_request()` → pops first key under `input:`, returns `GameRequest` or `None`; `queue_size()`.
+
+**`redis/game_state.py`** — `GameStateManager`: per-game lock, allowlist state load/save, story-buffer append + `try_drain()` → exports overflow to vector memory every 25 turns (`DRAIN_THRESHOLD`).
+
+**`redis/vector_memory.py`** — `GameMemory`: Upstash Vector namespaced per game (`{sid}:` id prefix); drain target for the story buffer.
+
+**`redis/output_cache.py`** — `OutputCache`: `store_result()` → pushes under `output:`; `memory_pressure_ok()` → checks maxmemory threshold; `count()`.
 
 ---
 
 ## 5. LangGraph Orchestrator
 
-### Graph Structure (`engine/graph_builder.py`)
-Pipeline: `START → Node5 → Router → (Node1|Node2|Node3 loop) → Node4 → Node6 → Node7 → END`
+### Graph Structure (`engine/graph_v2.py`)
+v2 topology: `START → classifier → react_router ⇄ {search | image | redescribe} (≤3 passes) → mechanics → context_refresh → summarizer → story → pusher → END`. (Legacy `graph_builder.py` kept for compat.)
 
-### Router Logic
-Priority: `needs_search` → Node1, `needs_image_processing` → Node2, `needs_re_description` → Node3. After any conditional completes, `route_from_conditional()` re-checks flags — if any still `True`, loops to Router; else proceeds to Node4.
+### Router Logic (ReAct)
+Entry `classifier_node` writes a `DecisionReport` (intent, monster_move, buffs/debuffs, `needs_search/image/redescribe`) and mirrors legacy `needs_*` flags. `react_router` picks `next_node` among `search | image |redescribe | mechanics | story` (priority search → image → redescribe, re-entrant so image+search both happen across passes). Budget-first terminators force to `story`: passes ≥ `ROUTER_MAX_PASSES` (3), LLM calls ≥ `MAX_LLM_CALLS_PER_TURN` (12), or elapsed ≥ `REQUEST_TIMEOUT_SECONDS` (60s). Tool nodes loop back to the router while flags remain, else fall through to `mechanics`.
+
+### context_refresh
+Runs after mechanics: appends the last tool summary to the rolling `context` string (capped at `CONTEXT_MAX_CHARS`, 8000), no LLM. Full `summarizer` (Node 5) still runs after it so story sees fresh results.
 
 ### State Schema (`schemas/state.py`)
 ```python
@@ -116,23 +133,31 @@ class GameState(TypedDict):
     processed: bool; error: Optional[str]; search_results: str
     tool_results: Annotated[List[str], operator.add]
     game_output: Optional[Dict]; __next__: str
+    # v2 additions
+    context: str; chat_log: List[ChatMessage]  # rolling memory (8000 chars / 40 turns)
+    decision_report: Optional[DecisionReport]; budget: Optional[BudgetUsage]
+    next_node: str; router_trace: List[Dict[str, Any]]; force_exit_reason: Optional[str]
+    conditional_passes: int; remaining_steps: int; turn_id: str
 ```
 
 ---
 
 ## 6. Node Deep Dive
 
-### Node 1 — Gemini Web Search (Conditional)
-`agents/node1_web_search.py` — **Model:** `gemini-2.0-flash` via `langchain-google-genai`. **Trigger:** real-world lore, rules, or current facts needed. Creates `ChatGoogleGenerativeAI`, binds `google_search` tool, invokes LangChain agent. Sets `state["search_results"]`, clears `needs_search`. Gemini chosen for native Google Search grounding with citations.
+### Classifier — Intent Classifier (Entry)
+`agents/classifier.py` — **Model:** `liquid/lfm-2.5-2.6b:free` via OpenRouter direct HTTP. **Two stages:** deterministic fast-path first (images attached → image flag; time-change keywords → redescribe flag; lore keywords → search flag — no LLM cost), then LLM JSON classification (intent, target, monster_move, buffs/debuffs, needs_* flags, confidence; confidence < 0.6 routes straight to mechanics). Writes `decision_report` + mirrors legacy `needs_*` flags for the router.
+
+### Node 1 — Scrapy Lore Search (Conditional)
+`agents/node1_web_search.py` — **No model, no Google key.** `scrapy_lore_search` tool fetches SRD-legal D&D sources via `httpx` and parses readable text with `scrapy.Selector` (script/style/nav stripped, 1500-char cap). **Trigger:** lore/rules outside state. Sets `state["search_results"]`, clears `needs_search`. (Legacy `google_web_search` alias kept so old imports don't break.) Scraper tuned via `SCRAPER_USER_AGENT` / `SCRAPER_TIMEOUT_SECONDS` (15s) / `SCRAPER_CACHE_TTL_SECONDS` (86400).
 
 ### Node 2 — Image Processor (Conditional)
 `agents/node2_image_processor.py` — **Model:** `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` via OpenRouter direct HTTP. **Trigger:** images in request. Iterates images, prompts for **15×15 grid** (225 cells) with `response_format: json_object`. Each cell: `items[], ores[], entities[], terrain, prerequisites[], cell[x,y], description`. Validates into `GridCell` Pydantic models, sets `needs_image_processing = False`. 15×15 = ∼150ft × 150ft encounter area at 10ft/cell.
 
 ### Node 3 — Re-Description Engine (Conditional)
-`agents/node3_redescriptor.py` — **Model:** `openrouter/owl-alpha` (1M context) via OpenRouter. **Trigger:** in-game time passage requiring environment updates. Receives grid + time change; model changes entities (nocturnal/undead at night), keeps items/ores static, updates descriptions. OWL-alpha's 1M context handles full 225-cell grid in one pass.
+`agents/node3_redescriptor.py` — **Model:** `google/gemma-4-26b-a4b-it:free` via OpenRouter. **Trigger:** in-game time passage requiring environment updates. Receives grid + time change; model changes entities (nocturnal/undead at night), keeps items/ores static, updates descriptions.
 
-### Node 4 — Tool Agent (Reactive)
-`agents/node4_tool_agent/` — **Model:** `qwen/qwen3-coder:free` via OpenRouter. LangChain `create_agent` with `MemorySaver`. **6 tools:**
+### Node 4 — Parallel Mechanics (Fan-out)
+`agents/node4_parallel.py` — **No LLM (pure code).** Each of 6 sub-nodes (dice, damage, stats, skill, inventory, json) gets a deep-copied immutable snapshot of state, runs concurrently via `asyncio.gather`, and merges deterministically in order (dice→damage→stats→skill→inventory→json). No Redis writes here (merge + pusher own persistence); idempotent via `turn_id`. **6 tools (semantics unchanged):**
 - `dice_roller(dice, count, advantage, disadvantage, modifier, reason)` — d4–d100, advantage/disadvantage
 - `damage_multiplier(base_damage, damage_type, monster_type, position, ...)` — elemental × positional multipliers
 - `stats_multiplier_and_updater(stats, monster, exp, difficulty)` — built-in XP table, level-up logic
@@ -140,41 +165,42 @@ class GameState(TypedDict):
 - `inventory_checker_and_updater(inventory, action, ...)` — currency-aware (gold/silver/copper/platinum)
 - `json_data_maker_and_tracker(action, ...)` — arbitrary structured data, relationship system (−100 to +100)
 
-Agent loop: reduce cooldowns → process combat → check inventory → update relationships → return summary.
+Agent loop: reduce cooldowns → process combat → check inventory → update relationships → return summary. (Legacy `agents/node4_tool_agent/` LangChain agent kept for compat.)
 
-### Node 5 — Context Injector (Main)
-`agents/node5_context_injector.py` — **Model:** `nvidia/nemotron-3-super-120b-a12b:free` via OpenRouter. First node. Collects all game state (prompt, input, grid, search, tools), compresses into `ContextSummary` JSON: `active_quests, current_location, party_members, recent_events, inventory_summary, key_items, time_of_day, weather, narrative_context`. 120B model excels at structured extraction.
+### Node 5 — Context Injector / Summarizer (Main)
+`agents/node5_context_injector.py` — **Model:** `google/gemma-4-31b-it:free` via OpenRouter. Runs after `context_refresh`. Collects all game state (prompt, input, grid, search, tools), compresses into `ContextSummary` JSON: `active_quests, current_location, party_members, recent_events, inventory_summary, key_items, time_of_day, weather, narrative_context`.
 
 ### Node 6 — Story Generator (Main)
-`agents/node6_story_generator.py` — **Model:** `qwen/qwen3-coder:free` via OpenRouter. After Node 4. Aggregates context + grid + tool results; generates narrative (2nd person POV, <500 words, D&D 5e flavor, temperature 0.7). Stores in `state["story_output"]`.
+`agents/node6_story_generator.py` — **Model:** `qwen/qwen3.8-27b:free` via OpenRouter. After the summarizer. Aggregates context + grid + tool results; generates narrative (2nd person POV, <500 words, D&D 5e flavor, temperature 0.7). Stores in `state["story_output"]`.
 
 ### Node 7 — Output Pusher
-`agents/node7_output_pusher.py` — Final node. Builds `GameOutput` (uuid, game_data, story, context_summary, timestamp), calls `OutputCache.store_result()`, sets `state["processed"] = True`.
+`agents/node7_output_pusher.py` — Final node. Builds `GameOutput` (uuid, game_data, story, context_summary, timestamp), calls `OutputCache.store_result()` (Upstash `output:` prefix), sets `state["processed"] = True`.
 
 ---
 
 ## 7. Model Configuration
 
-| Node | Model | Provider | Via | Temp | Max Tokens |
+| Stage | Model | Provider | Via | Temp | Max Tokens |
 |------|-------|----------|-----|------|------------|
-| 1 | `gemini-2.0-flash` | Google | `langchain-google-genai` | 0.3 | Default |
-| 2 | `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` | OpenRouter | Direct HTTP | 0.1 | 8,192 |
-| 3 | `openrouter/owl-alpha` | OpenRouter | Direct HTTP | 0.2 | 65,536 |
-| 4 | `qwen/qwen3-coder:free` | OpenRouter | `langchain-openai` | 0.3 | 8,192 |
-| 5 | `nvidia/nemotron-3-super-120b-a12b:free` | OpenRouter | Direct HTTP | 0.1 | 2,048 |
-| 6 | `qwen/qwen3-coder:free` | OpenRouter | Direct HTTP | 0.7 | 8,192 |
+| classifier | `liquid/lfm-2.5-2.6b:free` | OpenRouter | Direct HTTP | 0.0 | 512 |
+| search (Node 1) | — (Scrapy: httpx + scrapy.Selector) | — | — | — | — |
+| 2 (image) | `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` | OpenRouter | Direct HTTP | 0.1 | 8,192 |
+| 3 (redescribe) | `google/gemma-4-26b-a4b-it:free` | OpenRouter | Direct HTTP | 0.2 | 32,768 |
+| 4 (mechanics) | — (6 pure sub-nodes, no LLM) | — | — | — | — |
+| 5 (context) | `google/gemma-4-31b-it:free` | OpenRouter | Direct HTTP | 0.1 | 4,096 |
+| 6 (story) | `qwen/qwen3.8-27b:free` | OpenRouter | Direct HTTP | 0.7 | 16,384 |
 
-**Two API patterns:** Nodes 1 & 4 use LangChain wrappers (need agent/tool-calling loop). Nodes 2,3,5,6 use direct HTTP (simpler prompt→response, finer control over `response_format`).
+**Single API pattern:** all LLM calls go via the direct-HTTP OpenRouter client (`httpx`, `response_format` control, 120s default timeout). No LangChain model wrappers in the hot path, no Gemini SDK, no Google key. (Legacy `create_gemini_model` / `GOOGLE_API_KEY` kept in settings for import compat only.)
 
 ---
 
 ## 8. Multi-Tasking Engine
 
-`engine/multi_tasker.py` — `MultiTaskEngine` with `asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)` (default 100). Per-request: pop from Redis → acquire semaphore → `asyncio.create_task()`. Completion callbacks auto-clean active task set.
+`engine/multi_tasker.py` — `MultiTaskEngine` with `asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)` (default 16). Per-request: pop from Redis → acquire semaphore → `asyncio.create_task()`. Completion callbacks auto-clean active task set.
 
 **Main loop:** `while running: check memory pressure (every 100 reqs) → pop request → acquire semaphore → create task → track → repeat`
 
-**Memory backpressure:** Every 100 requests, checks Redis output DB memory %. If ≥90%: back off 3s, recheck, loop until <90%.
+**Memory backpressure:** Every 100 requests, checks Upstash output memory %. If ≥90%: back off 3s, recheck, loop until <90%.
 
 ---
 
@@ -182,8 +208,8 @@ Agent loop: reduce cooldowns → process combat → check inventory → update r
 
 | Layer | Mechanism | Scope | Trigger |
 |-------|-----------|-------|---------|
-| 1. Concurrency cap | `asyncio.Semaphore` | Per-request | Reaches `MAX_CONCURRENT_REQUESTS` (100) |
-| 2. Memory monitoring | Redis `INFO memory` | Per-100-requests | Output DB > 90% |
+| 1. Concurrency cap | `asyncio.Semaphore` | Per-request | Reaches `MAX_CONCURRENT_REQUESTS` (16) |
+| 2. Memory monitoring | Upstash `INFO memory` | Per-100-requests | Output data > 90% |
 | 3. Empty queue backoff | `await asyncio.sleep(0.1)` | Per-iteration | No requests in queue |
 
 ---
@@ -212,20 +238,20 @@ Agent loop: reduce cooldowns → process combat → check inventory → update r
 
 ## 11. Setup & Running
 
-**Prerequisites:** Python 3.10+, Redis, OpenRouter API key, Google Gemini API key.
+**Prerequisites:** Python 3.10+, Upstash Redis (REST URL + token), OpenRouter API key. No Google/Gemini key needed (Node 1 uses Scrapy).
 
 ```bash
 cd rpg_ai_server
 python -m venv venv && source venv/bin/activate  # or venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env  # edit with your keys
+cp .env.example .env  # edit with your keys (placeholders only — never commit secrets)
 ```
 
-**Required env vars:** `OPENROUTER_API_KEY`, `GOOGLE_API_KEY`.
+**Required env vars:** `OPENROUTER_API_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`.
 
-**Run:** `redis-server` then `python -m rpg_ai_server.main`.
+**Run:** `python -m rpg_ai_server.main`.
 
-**Test:** Push to DB 0 via `redis-cli -n 0 SET <uuid> '{...}' EX 3600`, read result from DB 1 via `redis-cli -n 1 GET <uuid>`.
+**Test:** Push to the `input:` prefix, read result from the `output:` prefix by UUID (see `tests/test_queue.py`, `tests/test_redis_api.py`).
 
 ---
 
@@ -233,12 +259,19 @@ cp .env.example .env  # edit with your keys
 
 ```
 Settings
-├── redis: RedisConfig          host, port (6379), input_db (0), output_db (1), password?, ttl (3600)
-├── models: ModelConfig         gemini_model, image_model, redescription_model,
-│                               tool_agent_model, context_injector_model, story_model
-└── app: AppConfig              max_concurrent (100), memory_threshold (90%), backoff (3s),
+├── redis: RedisConfig          upstash_rest_url/token (single Upstash, prefixes input:/output:/games:),
+│                               host/port/input_db/output_db/password?/ttl (3600) as unused local fallback
+├── models: ModelConfig         classifier_model (lfm-2.5), image_model (nemotron-nano),
+│                               redescription_model (gemma-4-26b), tool_agent_model + story_model (qwen3.8-27b),
+│                               context_injector_model (gemma-4-31b), scraper_user_agent/timeout/cache_ttl
+│                               (gemini_model + google_api_key legacy, unused)
+├── search: SearchConfig        upstash_search_url/token?, index_name, top_k, reranking, weights/chunking
+└── app: AppConfig              max_concurrent (16), memory_threshold (90%), backoff (3s),
                                 log_level (INFO), openrouter_api_key?, openrouter_base_url,
-                                google_api_key?
+                                loop_recursion_limit (60), router_max_passes (3), max_tool_calls (15),
+                                request_timeout (60s), locks (ttl 30s / refresh 10s),
+                                max_llm_calls_per_turn (12), max_tokens_per_turn (24000),
+                                context_max_chars (8000), chat_log_max_turns (40), drain_threshold (25)
 ```
 
 ---
@@ -247,27 +280,28 @@ Settings
 
 | Concept | Location | Purpose |
 |---------|----------|---------|
-| `StateGraph` | `graph_builder.py` | Graph construction |
+| `StateGraph` | `graph_v2.py` (`graph_builder.py` legacy) | Graph construction |
 | `TypedDict` state | `schemas/state.py` | Typed shared state |
 | `Annotated[list, operator.add]` | `schemas/state.py` | Accumulating reducers |
-| `add_node()` | `graph_builder.py` | Register 7 nodes + router |
-| `add_edge()` | `graph_builder.py` | Fixed edges (START→N5, N4→N6→N7→END) |
-| `add_conditional_edges()` | `graph_builder.py` | Router + loop-back |
-| `create_agent` | Nodes 1 & 4 | Tool-calling agent loops |
-| `MemorySaver` | Node 4 | Agent memory for tool loop |
+| `add_node()` | `graph_v2.py` | Register classifier + router + 3 conditionals + mechanics + refresh + summarizer + story + pusher |
+| `add_edge()` | `graph_v2.py` | Fixed edges (START→classifier→router, mechanics→refresh→summarizer→story→pusher→END) |
+| `add_conditional_edges()` | `graph_v2.py` | ReAct router + re-entrant tool loop-back |
+| `asyncio.gather` fan-out | `node4_parallel.py` | 6 pure mechanics sub-nodes on immutable snapshots |
 
 ## Appendix B: OpenRouter Direct Client
 
-`utils/openrouter_client.py` — wraps `httpx.AsyncClient`: `chat_completion()` with optional `response_format`, `extract_json()` convenience, auto-injected headers, 120s timeout for OWL-alpha. Used by Nodes 2,3,5,6.
+`utils/openrouter_client.py` — wraps `httpx.AsyncClient`: `chat_completion()` with optional `response_format`, `extract_json()` convenience, auto-injected headers, 120s default timeout. Used by the classifier and Nodes 2,3,5,6. (Node 1 needs no LLM — Scrapy; Node 4 is pure code.)
 
 ## Appendix C: Key Design Decisions
 
 | Decision | Rationale |
 |----------|-----------|
-| Two Redis databases | Different access patterns (FIFO pop vs keyed read) and lifecycles |
-| Conditional flags in state | Clean router decisions without hardcoded flow |
-| Separate tool agent | Complex game mechanics warrant dedicated agent with 6 tools |
-| Context as first node | Prevents token overflow for downstream nodes |
-| Direct HTTP for most nodes | Faster and more controllable than LangChain wrappers |
-| `asyncio.Semaphore` | Simpler than thread pool; all operations are async |
+| Single Upstash Redis with prefixes | One managed instance; `input:`/`output:`/`games:` separate queue, results, and long-lived state without multi-DB ops |
+| Entry classifier + ReAct router | Cheap deterministic fast-path first; LLM only when ambiguous; re-entrant passes handle multi-need turns |
+| Budget terminators (passes/calls/deadline) | Force-to-story guarantees bounded latency and cost per turn |
+| Parallel pure mechanics (Node 4) | Snapshot fan-out + ordered merge: no shared mutable state, no races, deterministic |
+| Rolling `context` string + `chat_log` caps | 8000-char context + 40-turn log keep prompts bounded; vector drain every 25 turns preserves history |
+| Context refresh after mechanics | Story/summarizer see fresh tool results (was stale context-first) |
+| Direct HTTP for all LLM calls | Faster and more controllable than LangChain wrappers; single client, uniform `response_format` |
+| `asyncio.Semaphore` (16) | Simpler than thread pool; all operations are async; 16 bounds Upstash + LLM concurrency |
 | Memory check every 100 requests | Balances overhead with responsiveness |

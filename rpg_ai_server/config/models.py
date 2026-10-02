@@ -7,11 +7,17 @@ from .settings import settings
 
 
 def create_gemini_model(temperature: float = 0.0) -> ChatGoogleGenerativeAI:
+    # Legacy — all LLM calls go via OpenRouter. Kept for import compat only.
     return ChatGoogleGenerativeAI(
         model=settings.models.gemini_model,
         temperature=temperature,
         google_api_key=settings.app.google_api_key,
     )
+
+
+def get_classifier_model():
+    # OpenRouter-only classifier (agreed 2026-09-30, gemini-2.0 unavailable).
+    return create_openrouter_model(settings.models.classifier_model, temperature=0.0, max_tokens=512)
 
 
 def create_openrouter_model(

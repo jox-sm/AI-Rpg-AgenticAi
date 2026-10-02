@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import sys
@@ -28,28 +29,44 @@ _games: GamesRedisClient | None = None
 _output: OutputRedisClient | None = None
 _memory: GameMemory | None = None
 
+# Guards lazy singletons: two concurrent first-requests must not both connect.
+_connect_lock: asyncio.Lock | None = None
+
+
+def _lock() -> asyncio.Lock:
+    global _connect_lock
+    if _connect_lock is None:
+        _connect_lock = asyncio.Lock()
+    return _connect_lock
+
 
 async def _get_input() -> InputRedisClient:
     global _input
     if _input is None:
-        _input = InputRedisClient()
-        await _input.connect()
+        async with _lock():
+            if _input is None:
+                _input = InputRedisClient()
+                await _input.connect()
     return _input
 
 
 async def _get_games() -> GamesRedisClient:
     global _games
     if _games is None:
-        _games = GamesRedisClient()
-        await _games.connect()
+        async with _lock():
+            if _games is None:
+                _games = GamesRedisClient()
+                await _games.connect()
     return _games
 
 
 async def _get_output() -> OutputRedisClient:
     global _output
     if _output is None:
-        _output = OutputRedisClient()
-        await _output.connect()
+        async with _lock():
+            if _output is None:
+                _output = OutputRedisClient()
+                await _output.connect()
     return _output
 
 
@@ -92,7 +109,7 @@ async def trigger():
     # 1. Verify trigger:busy is set (Next.js locked before calling)
     busy = await raw.get("trigger:busy")
     if not busy:
-        return {"error": "not triggered"}, 409
+        raise HTTPException(status_code=409, detail="not triggered")
 
     # 2. Atomic drain — RENAME to processing queue
     try:
@@ -102,11 +119,16 @@ async def trigger():
 
     # 3. LPOP all items
     items = []
+    failed = 0
     while True:
         raw_item = await raw.lpop("input:queue:processing")
         if raw_item is None:
             break
-        items.append(json.loads(raw_item))
+        try:
+            items.append(json.loads(raw_item))
+        except (json.JSONDecodeError, TypeError, ValueError):
+            failed += 1
+            continue
 
     # 4. Process each item
     processed = []
@@ -132,11 +154,11 @@ async def trigger():
         except Exception as e:
             processed.append(f"{sid}:error:{e}")
 
-    # 5. Cleanup
+    # 5. Cleanup (only after attempting all items)
     await raw.delete("input:queue:processing")
     await raw.delete("trigger:busy")
 
-    return {"ok": True, "items": len(processed), "processed": processed}
+    return {"ok": True, "items": len(processed), "processed": processed, "failed": failed}
 
 
 # ── Health ──
@@ -153,7 +175,10 @@ async def health():
 @app.post("/queue/push")
 async def queue_push(uuid: str = Query(...), data: str = Query(...)):
     c = await _get_input()
-    parsed = json.loads(data)
+    try:
+        parsed = json.loads(data)
+    except (json.JSONDecodeError, TypeError, ValueError):
+        raise HTTPException(status_code=422, detail="Invalid JSON")
     await c.push_request(uuid, parsed)
     return {"ok": True, "uuid": uuid}
 
@@ -202,7 +227,7 @@ async def queue_dead_push(item: dict):
 async def game_state_get(uuid: str):
     c = await _get_games()
     raw = await c.hgetall(uuid)
-    if raw is None:
+    if not raw:
         raise HTTPException(404, "Game not found")
     decoded = {}
     for field, value in raw.items():
@@ -376,8 +401,8 @@ async def dbsize(prefix: str = Query(default="")):
     c = prefix_map.get(prefix)
     if c is None:
         all_keys = []
-        for p, client in prefix_map.items():
-            cl = await client
+        for getter in (_get_input, _get_games, _get_output):
+            cl = await getter()
             ks = await cl.keys("*")
             all_keys.extend(ks)
         return {"dbsize": len(all_keys)}

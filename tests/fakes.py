@@ -138,8 +138,12 @@ class FakeGamesClient:
         self.counters[uuid] = self.counters.get(uuid, 0) + 1
         return self.counters[uuid]
 
-    async def set_counter(self, uuid, value):
+    async def set_counter(self, uuid, value, ttl=None):
         self.counters[uuid] = value
+        return True
+
+    async def touch_game_keys(self, uuid, ttl):
+        self.expires.append((uuid, ttl))
         return True
 
     async def expire(self, uuid, ttl):
@@ -204,6 +208,15 @@ class FakeInputClient:
     async def set_heartbeat(self, worker_id, game_uuid, ttl=15):
         self.heartbeats.append((worker_id, game_uuid))
         return True
+
+    async def get_heartbeat(self, worker_id):
+        for wid, game_uuid in reversed(self.heartbeats):
+            if wid == worker_id:
+                return game_uuid
+        return None
+
+    async def get_all_keys(self):
+        return [f"queue:{i}" for i in range(len(self.queue))]
 
 
 class FakeOutputClient:

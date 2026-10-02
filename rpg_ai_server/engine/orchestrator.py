@@ -26,20 +26,30 @@ GRACEFUL_ERROR_STORY = (
 
 class GameOrchestrator:
     def __init__(self, output_cache: OutputCache, game_state_mgr: GameStateManager, worker_id: str = ""):
+        import uuid as _uuid
         self.output_cache = output_cache
         self.game_state_mgr = game_state_mgr
-        self.worker_id = worker_id or f"orch-{id(self)}"
+        # Stable process-lifetime worker id (was f"orch-{id(self)}", collided across restarts)
+        self.worker_id = worker_id or settings.app.worker_id or f"worker-{_uuid.uuid4().hex[:8]}"
         self.graph: Optional[StateGraph] = None
         self.compiled_graph = None
 
     async def initialize(self):
         logger.info("Initializing game orchestrator...")
-        workflow = build_game_graph(self.output_cache)
+        try:
+            from .graph_v2 import build_game_graph_v2
+            workflow = build_game_graph_v2(self.output_cache)
+            logger.info("Using graph v2 (react + atomic N4)")
+        except Exception as e:
+            logger.warning(f"Graph v2 unavailable, fallback v1: {e}")
+            workflow = build_game_graph(self.output_cache)
         self.graph = workflow
         self.compiled_graph = workflow.compile()
         logger.info("Game orchestrator initialized")
 
     def _build_initial_state(self, request: GameRequest) -> GameState:
+        import time as _time
+        import uuid as _uuid
         stats = CharacterStats()
 
         world = generate_world(seed=request.uuid)
@@ -91,6 +101,15 @@ class GameOrchestrator:
             "conditional_passes": 0,
             "remaining_steps": settings.app.loop_recursion_limit,
             "__next__": "node4_tool_agent",
+            # Re-imagined generous-local additions
+            "context": "",
+            "chat_log": [{"role": "user", "text": request.prompt, "turn": 0}],
+            "decision_report": None,
+            "budget": {"llm_calls": 0, "tokens_est": 0, "started_at": _time.time()},
+            "next_node": "node4_tool_agent",
+            "router_trace": [],
+            "force_exit_reason": None,
+            "turn_id": f"{request.uuid}:{_uuid.uuid4().hex[:8]}",
         }
 
         if request.images:
@@ -126,9 +145,20 @@ class GameOrchestrator:
             if existing:
                 logger.info(f"Loaded existing game state for {request.uuid}")
                 initial_state = self._build_initial_state(request)
-                for k, v in existing.items():
-                    if k in initial_state:
-                        initial_state[k] = v
+                # Allowlist merge (was full overwrite incl. stale budgets/flags).
+                # Only long-lived fields come from persisted state; fresh request
+                # fields (prompt/images/budget/turn/flags) always win.
+                for k in ("character_stats", "skills", "inventory", "relationships",
+                          "game_data", "context", "chat_log", "context_summary", "decision"):
+                    if k in existing:
+                        initial_state[k] = existing[k]
+                # Append this turn's prompt to rolling chat log (cap generous local 40)
+                try:
+                    log = list(initial_state.get("chat_log", []) or [])
+                    log.append({"role": "user", "text": request.prompt, "turn": len(log)})
+                    initial_state["chat_log"] = log[-settings.app.chat_log_max_turns:]
+                except Exception:
+                    pass
             else:
                 initial_state = self._build_initial_state(request)
                 await self.game_state_mgr.save_initial_state(
@@ -175,28 +205,52 @@ class GameOrchestrator:
 
     async def _run_graph(self, state: GameState, uuid: str) -> Dict[str, Any]:
         """Run the graph with a wall-clock timeout and bounded recursion."""
+        lock_lost: list[bool] = []
 
-        async def _keep_lock_alive():
+        async def _keep_lock_alive(graph_task: asyncio.Task):
             while True:
                 await asyncio.sleep(settings.app.lock_refresh_interval)
+                if graph_task.done():
+                    return
                 if not await self.game_state_mgr.refresh_lock(uuid, self.worker_id):
-                    logger.warning(f"Lost lock ownership for {uuid}, stopping renewal")
+                    logger.warning(f"Lost lock ownership for {uuid}, aborting graph run")
+                    lock_lost.append(True)
+                    graph_task.cancel()
                     return
 
-        keeper = asyncio.create_task(_keep_lock_alive())
+        graph_task: asyncio.Task = asyncio.create_task(
+            self.compiled_graph.ainvoke(
+                state,
+                config={"recursion_limit": settings.app.loop_recursion_limit},
+            )
+        )
+        keeper = asyncio.create_task(_keep_lock_alive(graph_task))
         try:
+            # shield: wait_for timeout cancels the wait, not graph_task itself;
+            # we cancel graph_task explicitly so no orphan run survives lock loss.
             return await asyncio.wait_for(
-                self.compiled_graph.ainvoke(
-                    state,
-                    config={"recursion_limit": settings.app.loop_recursion_limit},
-                ),
+                asyncio.shield(graph_task),
                 timeout=settings.app.request_timeout_seconds,
             )
         except GraphRecursionError as e:
             logger.error(f"Graph recursion limit reached for {uuid}: {e}")
+            if not graph_task.done():
+                graph_task.cancel()
             raise
         except asyncio.TimeoutError:
             logger.error(f"Graph execution timed out for {uuid} after {settings.app.request_timeout_seconds}s")
+            if not graph_task.done():
+                graph_task.cancel()
+            raise
+        except asyncio.CancelledError:
+            if lock_lost:
+                # Lock stolen mid-run: convert to TimeoutError so process_request
+                # returns a graceful story and the ENGINE KEEPS RUNNING.
+                # (Raw CancelledError would bubble to MultiTaskEngine.run and
+                # kill the whole worker loop.)
+                logger.error(f"Graph run aborted (lock lost) for {uuid}")
+                raise asyncio.TimeoutError(f"lock lost for {uuid}")
+            logger.error(f"Graph run cancelled (shutdown) for {uuid}")
             raise
         finally:
             keeper.cancel()

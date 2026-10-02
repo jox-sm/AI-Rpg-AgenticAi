@@ -31,14 +31,20 @@ class GameStateManager:
 
     async def load_state(self, uuid: str) -> Optional[Dict[str, Any]]:
         raw = await self._games.hgetall(uuid)
-        if raw is None:
+        if not raw:
             return None
         state: Dict[str, Any] = {}
         for field, value in raw.items():
             try:
                 state[field] = json.loads(value)
             except (json.JSONDecodeError, TypeError):
-                state[field] = value
+                # Fallback: try decompressed legacy story blob, else raw string
+                try:
+                    from ..utils.compression import decompress_text
+                    dec = decompress_text(value) if field == "story" else None
+                    state[field] = dec if dec is not None else value
+                except Exception:
+                    state[field] = value
         return state
 
     async def save_state(self, uuid: str, state: Dict[str, Any], fields: list[str]):
@@ -47,7 +53,8 @@ class GameStateManager:
             if value is not None:
                 serialized = json.dumps(value, default=str)
                 await self._games.hset(uuid, field, serialized)
-        await self._games.expire(uuid, settings.redis.ttl_seconds)
+        # Refresh both state+counter TTL atomically (fixes skew)
+        await self._games.touch_game_keys(uuid, settings.redis.ttl_seconds)
 
     async def save_initial_state(
         self,
@@ -59,7 +66,8 @@ class GameStateManager:
         if story:
             compressed = compress_text(story)
             await self._games.hset(uuid, "story", compressed)
-        await self._games.hset(uuid, "counter", "0")
+        # Single string counter with TTL (was hash-field split-brain)
+        await self._games.set_counter(uuid, 0)
         await self._games.expire(uuid, settings.redis.ttl_seconds)
 
     async def try_drain(self, uuid: str, story: str, is_major: bool = False):
@@ -67,10 +75,14 @@ class GameStateManager:
 
         Vectors are never deleted on drain — only exported to the game's
         Upstash Vector namespace; the Redis story field is cleared to keep
-        the state hash small.
+        the state hash small. Runs under the per-game lock (Lua-safe), so
+        only one worker drains at a time.
         """
+        threshold = settings.app.drain_threshold
         counter = await self._games.incr(uuid)
-        if counter < DRAIN_THRESHOLD and not is_major and not await self._is_major_action(story):
+        # Keep counter TTL fresh alongside state
+        await self._games.touch_game_keys(uuid, settings.redis.ttl_seconds)
+        if counter < threshold and not is_major and not await self._is_major_action(story):
             return False
         if self._memory is None:
             logger.warning(f"No vector memory configured, keeping story buffer for {uuid}")

@@ -16,12 +16,15 @@ def backoff_delay(retry_count: int) -> float:
 
 
 class QueueManager:
-    def __init__(self, client: InputRedisClient):
+    def __init__(self, client: InputRedisClient, worker_id: str = ""):
+        import uuid as _uuid
         self._client = client
-        self._worker_id = f"worker-{id(self)}"
+        self._worker_id = worker_id or f"worker-{_uuid.uuid4().hex[:8]}"
         self._mover_task: Optional[asyncio.Task] = None
 
     async def start(self):
+        if self._mover_task is not None and not self._mover_task.done():
+            return  # single-mover guard (was duplicate-task race)
         self._mover_task = asyncio.create_task(self._mover_loop())
         logger.info(f"QueueManager started (worker={self._worker_id})")
 

@@ -56,9 +56,14 @@ async def damage_multiplier(
     total_mult = elemental_mult * position_mult
     total_damage = base_damage * total_mult
 
+    try:
+        resolved_damage_type = DamageType(dt)
+    except ValueError:
+        resolved_damage_type = DamageType.BLUDGEONING
+
     calc = DamageCalculation(
         base_damage=base_damage,
-        damage_type=DamageType(dt) if dt in DamageType._value2member_map_ else DamageType.BLUDGEONING,
+        damage_type=resolved_damage_type,
         multiplier=total_mult,
         elemental_advantage=elemental_mult,
         position_advantage=position_mult,
