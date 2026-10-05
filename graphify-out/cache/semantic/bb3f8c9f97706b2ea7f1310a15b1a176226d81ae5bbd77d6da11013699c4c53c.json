@@ -1,0 +1,1 @@
+{"nodes": [{"file_type": "code", "id": "main_main", "kind": "function", "label": "main", "line": 19, "reads": ["settings.app", "settings.redis", "settings.search"], "source_file": "rpg_ai_server/main.py", "writes": []}], "edges": [], "hyperedges": []}

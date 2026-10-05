@@ -634,7 +634,9 @@ The full `games:{sid}:state` JSON blob. On page reload:
 
 ### Lifecycle
 
-**15. Game end — cleanup?**
+**15. Game end — cleanup? (death contract)**
+
+When the player dies, the AI server still uploads the final state (normal save path), and the turn output carries `game_over: true` (mirrored as `game_data.player_dead` and `game_data.character_stats.is_dead`). The frontend closes the game on `game_over` — no polling needed.
 
 On game over (death, victory, or explicit quit), push a special event to SSE: `{ "type": "game_over", "reason": "..." }`. The AI server can signal this via `output:{sid}` containing `"game_over": true`. Cleanup by TTL expiry — don't explicitly DEL keys. The Next.js client shows a "Game Over" screen and the sessionStorage cache is cleared.
 

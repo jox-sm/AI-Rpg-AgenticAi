@@ -7,15 +7,15 @@ from typing import Any, Dict, Optional
 from langgraph.errors import GraphRecursionError
 from langgraph.graph import StateGraph
 
-from ..agents.node4_tool_agent.tools import json_data_maker_and_tracker
 from ..config.settings import settings
 from ..redis.game_state import GameStateManager
 from ..redis.output_cache import OutputCache
 from ..schemas.state import GameState
 from ..schemas.types import CharacterStats, GameRequest, Skill
-from ..scripts.world_generator import generate_world, world_to_grid_data, world_to_meta
+from ..scripts.world_generator import ensure_world, grid_to_grid_data
+from ..utils.coerce import model_list
 from ..utils.logger import logger
-from .graph_builder import build_game_graph
+from .graph_v2 import build_game_graph_v2
 
 GRACEFUL_ERROR_STORY = (
     "A twisting mist swallows the scene before it fully forms. "
@@ -36,13 +36,7 @@ class GameOrchestrator:
 
     async def initialize(self):
         logger.info("Initializing game orchestrator...")
-        try:
-            from .graph_v2 import build_game_graph_v2
-            workflow = build_game_graph_v2(self.output_cache)
-            logger.info("Using graph v2 (react + atomic N4)")
-        except Exception as e:
-            logger.warning(f"Graph v2 unavailable, fallback v1: {e}")
-            workflow = build_game_graph(self.output_cache)
+        workflow = build_game_graph_v2(self.output_cache)
         self.graph = workflow
         self.compiled_graph = workflow.compile()
         logger.info("Game orchestrator initialized")
@@ -52,15 +46,18 @@ class GameOrchestrator:
         import uuid as _uuid
         stats = CharacterStats()
 
-        world = generate_world(seed=request.uuid)
-        grid_data = world_to_grid_data(world)
-        world_meta = world_to_meta(world)
+        # Deterministic infinite world: dense 2D window + origin + player_pos,
+        # all inside game_data so it persists across turns. Client fields in
+        # request.data are preserved; missing world keys are filled in.
+        base_data = dict(request.data) if isinstance(request.data, dict) else {}
+        ensure_world(base_data, request.uuid)
+        grid_data = grid_to_grid_data(base_data.get("grid") or [], base_data.get("origin"))
 
         initial_state: GameState = {
             "uuid": request.uuid,
             "prompt": request.prompt,
             "input_data": request.data or {},
-            "game_data": request.data or {"world": world_meta, "grid": world["grid"]},
+            "game_data": base_data,
             "images": {},
             "grid_data": grid_data,
             "re_description_data": None,
@@ -100,13 +97,13 @@ class GameOrchestrator:
             "game_output": None,
             "conditional_passes": 0,
             "remaining_steps": settings.app.loop_recursion_limit,
-            "__next__": "node4_tool_agent",
+            "__next__": "mechanics",
             # Re-imagined generous-local additions
             "context": "",
             "chat_log": [{"role": "user", "text": request.prompt, "turn": 0}],
             "decision_report": None,
             "budget": {"llm_calls": 0, "tokens_est": 0, "started_at": _time.time()},
-            "next_node": "node4_tool_agent",
+            "next_node": "mechanics",
             "router_trace": [],
             "force_exit_reason": None,
             "turn_id": f"{request.uuid}:{_uuid.uuid4().hex[:8]}",
@@ -163,8 +160,10 @@ class GameOrchestrator:
                 initial_state = self._build_initial_state(request)
                 await self.game_state_mgr.save_initial_state(
                     request.uuid,
-                    request.data or {},
+                    initial_state.get("game_data", {}),
                     initial_state.get("story_output", ""),
+                    chat_log=initial_state.get("chat_log"),
+                    context=initial_state.get("context", ""),
                 )
                 logger.info(f"Saved initial game state for {request.uuid}")
 
@@ -178,9 +177,19 @@ class GameOrchestrator:
                     {"game_data": output.get("game_data", {}),
                      "story": story,
                      "character_stats": output.get("game_data", {}).get("character_stats", {}),
+                     # Top-level live fields (node4/node6 read these, not the
+                     # game_data-embedded copies node7 writes). Without these,
+                     # resumed games silently reset inventory/skills to [].
+                     "inventory": model_list(result.get("inventory")),
+                     "skills": model_list(result.get("skills")),
+                     "relationships": model_list(result.get("relationships")),
                      "context_summary": result.get("context_summary"),
-                     "decision": result.get("decision")},
-                    ["game_data", "story", "character_stats", "context_summary", "decision"],
+                     "decision": result.get("decision"),
+                     "chat_log": initial_state.get("chat_log"),
+                     "context": result.get("context", "")},
+                    ["game_data", "story", "character_stats", "inventory", "skills",
+                     "relationships", "context_summary", "decision",
+                     "chat_log", "context"],
                 )
                 await self.game_state_mgr.try_drain(request.uuid, story)
                 logger.info(f"Request {request.uuid} completed successfully")

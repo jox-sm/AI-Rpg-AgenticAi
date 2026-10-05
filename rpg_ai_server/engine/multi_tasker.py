@@ -5,9 +5,8 @@ import time
 from typing import Any, Dict, Optional
 
 from ..config.settings import settings
-from ..redis.input_queue import InputQueue
 from ..redis.output_cache import OutputCache
-from ..redis.queue import QueueManager
+from ..redis.queue import InputQueue, QueueManager
 from ..schemas.types import GameRequest
 from ..utils.logger import logger
 from .orchestrator import GameOrchestrator

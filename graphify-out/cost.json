@@ -1,0 +1,40 @@
+{
+  "runs": [
+    {
+      "date": "2026-10-05T13:34:17.153275+00:00",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "files": 401
+    },
+    {
+      "date": "2026-10-05T14:33:36.683650+00:00",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "files": 347,
+      "note": "no-items-db rebuild"
+    },
+    {
+      "date": "2026-10-05T14:34:36.212325+00:00",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "files": 347,
+      "note": "no-items-db rebuild"
+    },
+    {
+      "date": "2026-10-05T14:58:37.218508+00:00",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "files": 347,
+      "note": "no-items-db rebuild"
+    },
+    {
+      "date": "2026-10-05T15:16:16.362694+00:00",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "files": 43,
+      "note": "rpg_ai_server langgraph graph"
+    }
+  ],
+  "total_input_tokens": 0,
+  "total_output_tokens": 0
+}

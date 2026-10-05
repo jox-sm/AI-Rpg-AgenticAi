@@ -40,39 +40,44 @@
 rpg_ai_server/
 ├── main.py                         # Entry point, signal handlers
 ├── config/                         # Environment & configuration
-│   ├── settings.py                 # Pydantic config from .env
-│   └── models.py                   # Model factories
+│   └── settings.py                 # Env-driven config (redis/models/search/app)
 ├── schemas/                        # Data contracts
 │   ├── enums.py                    # 8 enums (Terrain, TimeOfDay, EntityType...)
 │   ├── types.py                    # 14 Pydantic models
 │   └── state.py                    # LangGraph GameState TypedDict
 ├── redis/                          # Persistence & queueing (single Upstash, prefixes)
 │   ├── client.py                   # Base RedisClient (upstash_redis AsyncRedis REST) + Input/Output/Games clients (prefixes input:/output:/games:)
-│   ├── queue.py                    # Queue helpers
-│   ├── input_queue.py              # Poll/pop from input: prefix
+│   ├── queue.py                    # QueueManager (retries/delayed/dead) + InputQueue adapter
 │   ├── game_state.py               # Per-game state, locks, story-buffer drain (threshold 25)
 │   ├── vector_memory.py            # Upstash Vector game memory (drain target)
 │   └── output_cache.py             # Push + memory monitoring to output: prefix
-├── agents/                         # AI/LLM business logic
-│   ├── classifier.py               # Entry intent classifier (lfm-2.5, deterministic fast-path + LLM)
+├── agents/                         # AI/LLM business logic (one node per file, no compat shims)
+│   ├── classifier.py               # Entry intent classifier (deterministic fast-path + LLM via chat_json)
+│   ├── node0_worldgen.py           # Deterministic living world (movement/expansion/day clock, no LLM)
 │   ├── node1_web_search.py         # Scrapy lore scrape (httpx + scrapy.Selector, no key)
 │   ├── node2_image_processor.py    # Image → 15×15 grid (Nemotron Nano)
 │   ├── node3_redescriptor.py       # Re-description (gemma-4-26b)
 │   ├── node4_parallel.py           # 6 pure mechanics sub-nodes (parallel fan-out, ordered merge)
-│   ├── node4_tool_agent/           # Legacy 6 D&D tools + create_agent (kept for compat)
+│   ├── flee.py                     # Pack engagement + flee resolution + jev trick adjudication
 │   ├── node5_context_injector.py   # Context summarization (gemma-4-31b)
 │   ├── node6_story_generator.py    # Story generation (qwen3.8-27b)
 │   └── node7_output_pusher.py      # Result → output: prefix
-├── engine/                         # Orchestration
-│   ├── graph_v2.py                 # v2 StateGraph (classifier → react router → mechanics → story → pusher)
-│   ├── graph_builder.py            # Legacy graph builder (compat)
+├── engine/                         # Orchestration (single graph, no v1/v2 duality)
+│   ├── graph_v2.py                 # StateGraph (classifier → worldgen → react router → mechanics → story → pusher)
 │   ├── orchestrator.py             # GameOrchestrator (rolling context/chat_log, allowlist merge)
 │   └── multi_tasker.py             # MultiTaskEngine, backpressure
+├── scripts/                        # Pure game systems (no LLM, no Redis)
+│   ├── world_generator.py          # Seeded infinite world (deterministic cells, border expansion)
+│   ├── combat_system.py            # resolve_attack / dodge / block / armor / statuses
+│   ├── dice_engine.py              # d4–d100, advantage, skill checks
+│   └── xp_loot.py                  # Rarity XP formula, DB loot rolls, adaptive-difficulty scalar
 ├── tests/                          # Hard-test files (graph_v2, orchestrator, atomic redis/engine, loops, queue, locks)
 │   ├── test_graph_v2.py / test_orchestrator_hard.py / test_engine_atomic.py / ...
 ├── utils/                          # Shared utilities
 │   ├── logger.py                   # Structured logging
-│   └── openrouter_client.py        # Direct HTTP client for OpenRouter
+│   ├── openrouter_client.py        # Direct HTTP client for OpenRouter (+ chat_json helper)
+│   ├── coerce.py                   # as_dict/stat_of/to_int — dict-or-model state coercions
+│   └── items_db.py                 # In-memory items database
 ├── requirements.txt
 └── .env.example
 ```
@@ -96,7 +101,7 @@ rpg_ai_server/
 
 **`redis/queue.py`** — queue helpers shared by the poll loop.
 
-**`redis/input_queue.py`** — `InputQueue`: `next_request()` → pops first key under `input:`, returns `GameRequest` or `None`; `queue_size()`.
+**`redis/queue.py`** — `QueueManager` (retries/delayed/dead + single-mover guard) plus the thin `InputQueue` pop/enqueue adapter.
 
 **`redis/game_state.py`** — `GameStateManager`: per-game lock, allowlist state load/save, story-buffer append + `try_drain()` → exports overflow to vector memory every 25 turns (`DRAIN_THRESHOLD`).
 
@@ -109,7 +114,7 @@ rpg_ai_server/
 ## 5. LangGraph Orchestrator
 
 ### Graph Structure (`engine/graph_v2.py`)
-v2 topology: `START → classifier → react_router ⇄ {search | image | redescribe} (≤3 passes) → mechanics → context_refresh → summarizer → story → pusher → END`. (Legacy `graph_builder.py` kept for compat.)
+Topology: `START → classifier → worldgen → react_router ⇄ {search | image | redescribe} (≤3 passes) → mechanics → context_refresh → summarizer → story → pusher → END`.
 
 ### Router Logic (ReAct)
 Entry `classifier_node` writes a `DecisionReport` (intent, monster_move, buffs/debuffs, `needs_search/image/redescribe`) and mirrors legacy `needs_*` flags. `react_router` picks `next_node` among `search | image |redescribe | mechanics | story` (priority search → image → redescribe, re-entrant so image+search both happen across passes). Budget-first terminators force to `story`: passes ≥ `ROUTER_MAX_PASSES` (3), LLM calls ≥ `MAX_LLM_CALLS_PER_TURN` (12), or elapsed ≥ `REQUEST_TIMEOUT_SECONDS` (60s). Tool nodes loop back to the router while flags remain, else fall through to `mechanics`.
@@ -165,7 +170,7 @@ class GameState(TypedDict):
 - `inventory_checker_and_updater(inventory, action, ...)` — currency-aware (gold/silver/copper/platinum)
 - `json_data_maker_and_tracker(action, ...)` — arbitrary structured data, relationship system (−100 to +100)
 
-Agent loop: reduce cooldowns → process combat → check inventory → update relationships → return summary. (Legacy `agents/node4_tool_agent/` LangChain agent kept for compat.)
+Agent loop: reduce cooldowns → process combat → check inventory → update relationships → return summary.
 
 ### Node 5 — Context Injector / Summarizer (Main)
 `agents/node5_context_injector.py` — **Model:** `google/gemma-4-31b-it:free` via OpenRouter. Runs after `context_refresh`. Collects all game state (prompt, input, grid, search, tools), compresses into `ContextSummary` JSON: `active_quests, current_location, party_members, recent_events, inventory_summary, key_items, time_of_day, weather, narrative_context`.
@@ -190,7 +195,7 @@ Agent loop: reduce cooldowns → process combat → check inventory → update r
 | 5 (context) | `google/gemma-4-31b-it:free` | OpenRouter | Direct HTTP | 0.1 | 4,096 |
 | 6 (story) | `qwen/qwen3.8-27b:free` | OpenRouter | Direct HTTP | 0.7 | 16,384 |
 
-**Single API pattern:** all LLM calls go via the direct-HTTP OpenRouter client (`httpx`, `response_format` control, 120s default timeout). No LangChain model wrappers in the hot path, no Gemini SDK, no Google key. (Legacy `create_gemini_model` / `GOOGLE_API_KEY` kept in settings for import compat only.)
+**Single API pattern:** all LLM calls go via the shared `chat_json` helper on the direct-HTTP OpenRouter client (`response_format` control, per-call timeouts). No LangChain wrappers, no Gemini SDK, no Google key.
 
 ---
 
@@ -262,9 +267,9 @@ Settings
 ├── redis: RedisConfig          upstash_rest_url/token (single Upstash, prefixes input:/output:/games:),
 │                               host/port/input_db/output_db/password?/ttl (3600) as unused local fallback
 ├── models: ModelConfig         classifier_model (lfm-2.5), image_model (nemotron-nano),
-│                               redescription_model (gemma-4-26b), tool_agent_model + story_model (qwen3.8-27b),
-│                               context_injector_model (gemma-4-31b), scraper_user_agent/timeout/cache_ttl
-│                               (gemini_model + google_api_key legacy, unused)
+│                               redescription_model (gemma-4-26b), story_model (qwen3.8-27b),
+│                               context_injector_model (gemma-4-31b), jev_model (qwen3.8-27b, trick adjudication),
+│                               scraper_user_agent/timeout/cache_ttl
 ├── search: SearchConfig        upstash_search_url/token?, index_name, top_k, reranking, weights/chunking
 └── app: AppConfig              max_concurrent (16), memory_threshold (90%), backoff (3s),
                                 log_level (INFO), openrouter_api_key?, openrouter_base_url,
@@ -280,7 +285,7 @@ Settings
 
 | Concept | Location | Purpose |
 |---------|----------|---------|
-| `StateGraph` | `graph_v2.py` (`graph_builder.py` legacy) | Graph construction |
+| `StateGraph` | `graph_v2.py` | Graph construction |
 | `TypedDict` state | `schemas/state.py` | Typed shared state |
 | `Annotated[list, operator.add]` | `schemas/state.py` | Accumulating reducers |
 | `add_node()` | `graph_v2.py` | Register classifier + router + 3 conditionals + mechanics + refresh + summarizer + story + pusher |

@@ -9,7 +9,7 @@ from .engine.multi_tasker import MultiTaskEngine
 from .engine.orchestrator import GameOrchestrator
 from .redis.client import InputRedisClient, OutputRedisClient, GamesRedisClient
 from .redis.game_state import GameStateManager
-from .redis.input_queue import InputQueue
+from .redis.queue import InputQueue
 from .redis.output_cache import OutputCache
 from .redis.queue import QueueManager
 from .redis.vector_memory import GameMemory
@@ -56,30 +56,42 @@ async def main():
         logger.info("Shutdown signal received")
         shutdown_event.set()
 
-    loop = asyncio.get_event_loop()
     try:
-        for sig in (signal.SIGINT, signal.SIGTERM):
-            loop.add_signal_handler(sig, _signal_handler)
-    except (NotImplementedError, AttributeError):
-        logger.warning("Signal handlers not supported on this platform, using poll-based shutdown detection")
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+    if loop is not None:
+        sigs = [signal.SIGINT, signal.SIGTERM]
+        if sys.platform == "win32" and hasattr(signal, "SIGBREAK"):
+            sigs.append(signal.SIGBREAK)
+        try:
+            for sig in sigs:
+                loop.add_signal_handler(sig, _signal_handler)
+        except (NotImplementedError, AttributeError, RuntimeError, ValueError):
+            # Windows ProactorEventLoop: no add_signal_handler — Ctrl+C still
+            # arrives as KeyboardInterrupt/CancelledError, handled below.
+            logger.warning("Signal handlers not supported on this platform — Ctrl+C stays graceful via KeyboardInterrupt")
 
+    engine_task = None
     try:
         await engine.start()
         engine_task = asyncio.create_task(engine.run())
 
         await shutdown_event.wait()
 
-        logger.info("Shutting down...")
-        engine_task.cancel()
-        try:
-            await engine_task
-        except asyncio.CancelledError:
-            pass
-
+    except (KeyboardInterrupt, asyncio.CancelledError):
+        logger.info("Shutdown requested (Ctrl+C) — stopping...")
     except Exception as e:
         logger.error(f"Fatal error: {e}")
         sys.exit(1)
     finally:
+        if engine_task is not None and not engine_task.done():
+            logger.info("Shutting down...")
+            engine_task.cancel()
+            try:
+                await engine_task
+            except (asyncio.CancelledError, KeyboardInterrupt):
+                pass
         await input_client.disconnect()
         await output_client.disconnect()
         await games_client.disconnect()
@@ -87,4 +99,7 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        logger.info("Stopped by user (Ctrl+C)")

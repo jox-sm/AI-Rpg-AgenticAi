@@ -49,6 +49,8 @@ class GameOutput(BaseModel):
     story: str = Field(default="", description="Generated story response")
     context_summary: Dict[str, Any] = Field(default_factory=dict)
     timestamp: float = Field(default=0.0)
+    tool_results: List[str] = Field(default_factory=list, description="Mechanics summary lines (dice, damage, stats)")
+    game_over: bool = Field(default=False, description="True when the player is dead: state is final, client should close the game")
 
 
 class DiceRoll(BaseModel):
@@ -81,6 +83,9 @@ class CharacterStats(BaseModel):
     mana: int = Field(default=50)
     max_mana: int = Field(default=50)
     strength: int = Field(default=10, ge=1, description="Strength stat for carry capacity & melee")
+    agility: int = Field(default=10, ge=1, description="Agility stat for speed, turn order & dodge")
+    dexterity: int = Field(default=10, ge=1, description="Dexterity stat for accuracy, armor class & speed")
+    is_dead: bool = Field(default=False, description="True once HP hits 0: the run is over, frontend closes the game")
     skills: Dict[SkillType, int] = Field(default_factory=lambda: {s: 1 for s in SkillType})
     stat_cap: int = Field(default=10, description="Max stat points per level bracket")
     attribute_points: int = Field(default=0)
@@ -165,6 +170,8 @@ class BudgetUsage(BaseModel):
 class DecisionReport(BaseModel):
     intent: str = Field(default="explore", description="attack|defend|cast|flee|social|explore|craft|rest")
     target: str = Field(default="")
+    flee_method: str = Field(default="", description="run|trick when intent is flee: plain sprint vs skill/item gambit")
+    skill_hint: str = Field(default="", description="LLM-nominated skill or item for the attempt (acrobatics, explosives, ...)")
     monster_move: str = Field(default="attack", description="attack|defend|flee|buff|debuff|none")
     buffs: List[str] = Field(default_factory=list)
     debuffs: List[str] = Field(default_factory=list)

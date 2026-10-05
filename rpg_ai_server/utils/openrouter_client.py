@@ -61,26 +61,6 @@ class OpenRouterDirectClient:
             raise RuntimeError("empty LLM content")
         return data
 
-    async def extract_json(
-        self,
-        model: str,
-        system_prompt: str,
-        user_prompt: str,
-    ) -> Dict[str, Any]:
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ]
-        result = await self.chat_completion(
-            model=model,
-            messages=messages,
-            response_format={"type": "json_object"},
-            temperature=0.1,
-        )
-        content = result["choices"][0]["message"]["content"]
-        import json
-        return json.loads(content)
-
     async def close(self):
         if self._http and not self._http.is_closed:
             await self._http.aclose()
@@ -94,3 +74,31 @@ def get_openrouter_direct() -> OpenRouterDirectClient:
     if _openrouter_client is None:
         _openrouter_client = OpenRouterDirectClient()
     return _openrouter_client
+
+
+def _parse_json_content(content: Any) -> Dict[str, Any]:
+    """Tolerate list envelopes, code fences and trailing prose around the JSON."""
+    import json
+    if isinstance(content, list):
+        content = "".join(b.get("text", "") if isinstance(b, dict) else str(b) for b in content)
+    text = str(content).strip().strip("`")
+    if text.startswith("json"):
+        text = text[4:].strip()
+    return json.loads(text[text.index("{"): text.rindex("}") + 1])
+
+
+async def chat_json(model: str, system: str, payload: Any, temperature: float = 0.2,
+                    max_tokens: int = 512, timeout: float = 30.0) -> Dict[str, Any]:
+    """One strict-JSON call: envelope quirks, fences and timeouts handled here."""
+    import asyncio
+    import json
+    client = get_openrouter_direct()
+    raw = await asyncio.wait_for(client.chat_completion(
+        model=model,
+        messages=[{"role": "system", "content": system},
+                  {"role": "user", "content": payload if isinstance(payload, str) else json.dumps(payload)}],
+        response_format={"type": "json_object"},
+        temperature=temperature,
+        max_tokens=max_tokens,
+    ), timeout=timeout)
+    return _parse_json_content(raw["choices"][0]["message"]["content"])

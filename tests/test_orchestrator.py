@@ -50,7 +50,7 @@ class StubStateManager:
     async def load_state(self, uuid):
         return self.existing
 
-    async def save_initial_state(self, uuid, game_data, story=""):
+    async def save_initial_state(self, uuid, game_data, story="", chat_log=None, context=""):
         self.initial_saved.append((uuid, game_data))
 
     async def save_state(self, uuid, state, fields):
@@ -226,3 +226,23 @@ def test_lock_is_refreshed_during_long_run(monkeypatch):
     _run(orch.process_request(StubRequest()))
     assert stub.refreshes >= 1
     assert stub.locked == set()
+
+
+def test_process_request_persists_top_level_inventory():
+    """Regression: inventory/skills lived only inside game_data copy and were
+    lost on resume (top-level state reset to []). They must be saved as fields."""
+    stub = StubStateManager()
+
+    def behavior(state, config):
+        state = dict(state)
+        state["inventory"] = [{"item_id": "sword", "name": "Sword", "quantity": 1}]
+        state["skills"] = [{"name": "Dodge", "skill_type": "defense"}]
+        state["game_output"] = {"story": "done", "game_data": {}}
+        return state
+
+    orch = _orch(stub, behavior)
+    _run(orch.process_request(StubRequest()))
+    saved_state, fields = stub.saved[0][1], stub.saved[0][2]
+    assert "inventory" in fields and "skills" in fields
+    assert saved_state["inventory"] == [{"item_id": "sword", "name": "Sword", "quantity": 1}]
+    assert saved_state["skills"] == [{"name": "Dodge", "skill_type": "defense"}]

@@ -1,0 +1,6 @@
+# graphify ignore rules (gitignore syntax)
+# Toggle: comment out a line to re-include it in the graph.
+
+# Game content database - collapsed to a single "items" node in the graph.
+# Remove this line and re-run to expand items-db back into the graph.
+items-db/

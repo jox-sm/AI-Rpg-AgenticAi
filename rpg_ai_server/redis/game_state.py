@@ -61,11 +61,19 @@ class GameStateManager:
         uuid: str,
         game_data: Dict[str, Any],
         story: str = "",
+        chat_log: Optional[list] = None,
+        context: str = "",
     ):
         await self._games.hset(uuid, "game_data", json.dumps(game_data, default=str))
         if story:
             compressed = compress_text(story)
             await self._games.hset(uuid, "story", compressed)
+        # Rolling memory the allowlist merge reads back — previously never written,
+        # so chat_log/context reset every turn. Both are capped upstream.
+        if chat_log:
+            await self._games.hset(uuid, "chat_log", json.dumps(chat_log, default=str))
+        if context:
+            await self._games.hset(uuid, "context", json.dumps(context, default=str))
         # Single string counter with TTL (was hash-field split-brain)
         await self._games.set_counter(uuid, 0)
         await self._games.expire(uuid, settings.redis.ttl_seconds)

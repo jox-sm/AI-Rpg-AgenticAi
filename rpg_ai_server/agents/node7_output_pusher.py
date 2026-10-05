@@ -5,6 +5,7 @@ from typing import Any, Dict
 from ..schemas.state import GameState
 from ..schemas.types import GameOutput
 from ..redis.output_cache import OutputCache
+from ..utils.coerce import as_dict, model_list
 from ..utils.logger import logger
 
 
@@ -16,17 +17,20 @@ async def node7_output_pusher(state: GameState, output_cache: OutputCache) -> Di
             uuid=state["uuid"],
             game_data={
                 **state.get("game_data", {}),
-                "character_stats": state.get("character_stats").model_dump() if state.get("character_stats") else None,
-                "inventory": [i.model_dump() if hasattr(i, 'model_dump') else i for i in state.get("inventory", [])],
-                "skills": [s.model_dump() if hasattr(s, 'model_dump') else s for s in state.get("skills", [])],
-                "relationships": [r.model_dump() if hasattr(r, 'model_dump') else r for r in state.get("relationships", [])],
-                "grid_data": {
-                    k: [c.model_dump() if hasattr(c, 'model_dump') else c for c in v]
-                    for k, v in state.get("grid_data", {}).items()
-                },
+                # Turn 1 carries models; turn 2+ carries plain Redis dicts.
+                "character_stats": as_dict(state.get("character_stats")),
+                "inventory": model_list(state.get("inventory")),
+                "skills": model_list(state.get("skills")),
+                "relationships": model_list(state.get("relationships")),
+                "grid_data": {k: model_list(v) for k, v in state.get("grid_data", {}).items()},
             },
             story=state.get("story_output", ""),
-            context_summary=state.get("context_summary").model_dump() if state.get("context_summary") else {},
+            context_summary=as_dict(state.get("context_summary")) or {},
+            tool_results=list(state.get("tool_results", []) or [])[-3:],
+            # Death contract: final state is already saved by the orchestrator;
+            # the frontend closes the game when this is True (or equivalently
+            # game_data.character_stats.is_dead / game_data.player_dead).
+            game_over=bool((state.get("game_data", {}) or {}).get("player_dead", False)),
         )
 
         success = await output_cache.store_result(output)

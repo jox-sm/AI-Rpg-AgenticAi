@@ -1,0 +1,1 @@
+{"nodes": [], "edges": [{"confidence": "EXTRACTED", "confidence_score": 1.0, "relation": "conceptually_related_to", "source": "auto_serialization", "source_file": ".agents/skills/upstash-redis-js/performance/data-serialization.md", "source_location": null, "target": "batch_operations", "weight": 0.8}], "hyperedges": []}

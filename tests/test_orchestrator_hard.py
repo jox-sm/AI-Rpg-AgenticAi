@@ -85,9 +85,13 @@ def test_lore_scrape_uses_cacheable_sources_without_network(monkeypatch):
     async def fake_fetch(url, timeout):
         calls.append(url)
         assert "User-Agent" not in url
-        return "Lore text about beholders."
+        return "Lore text about beholders. " * 10  # >= 80 chars: passes quality gate
+
+    async def no_network(url, timeout):
+        raise AssertionError(f"network hit (must stay offline): {url}")
 
     monkeypatch.setattr(n1, "_fetch_and_extract", fake_fetch)
+    monkeypatch.setattr(n1, "_fetch_html", no_network)
     out = _run(n1.node1_web_search({
         "uuid": "u", "prompt": "tell me",
         "decision_report": {"search_query": "beholder"},

@@ -6,6 +6,7 @@ from typing import Any, Dict, Literal
 from langgraph.graph import END, START, StateGraph
 
 from ..agents.classifier import classifier_node
+from ..agents.node0_worldgen import node0_worldgen
 from ..agents.node1_web_search import node1_web_search
 from ..agents.node2_image_processor import node2_image_processor
 from ..agents.node3_redescriptor import node3_redescriptor
@@ -104,12 +105,13 @@ async def context_refresh_node(state: GameState) -> Dict[str, Any]:
 
 def build_game_graph_v2(output_cache: OutputCache) -> StateGraph:
     """Re-imagined topology:
-    START → classifier → react_router ⇄ {search|image|redescribe} (≤3) → mechanics(fan-out)
+    START → classifier → worldgen → react_router ⇄ {search|image|redescribe} (≤3) → mechanics(fan-out)
       → context_refresh → story → pusher → END. Old builder untouched for compat.
     """
     logger.info("Building game graph v2 (react + atomic N4 + terminators)...")
     wf = StateGraph(GameState)
     wf.add_node("classifier", classifier_node)
+    wf.add_node("worldgen", node0_worldgen)
     wf.add_node("react_router", react_router_node)
     wf.add_node("search", node1_web_search)
     wf.add_node("image", node2_image_processor)
@@ -136,7 +138,8 @@ def build_game_graph_v2(output_cache: OutputCache) -> StateGraph:
     wf.add_node("pusher", pusher_wrap)
 
     wf.add_edge(START, "classifier")
-    wf.add_edge("classifier", "react_router")
+    wf.add_edge("classifier", "worldgen")
+    wf.add_edge("worldgen", "react_router")
     wf.add_conditional_edges(
         "react_router", route_react,
         {"search": "search", "image": "image", "redescribe": "redescribe",
