@@ -1,0 +1,26 @@
+# RPG AI server — runtime dependencies (API + LangGraph engine in one process).
+# Pinned to the versions validated live on the dev machine (2026-11).
+
+# Web layer
+fastapi==0.138.0
+uvicorn==0.49.0
+pydantic==2.13.2
+python-dotenv==1.2.2
+httpx==0.28.1
+
+# Engine / LLM orchestration
+langgraph==1.2.6
+langchain==1.3.10
+langchain-core==1.4.8
+langchain-openai==0.3.34
+openai==2.32.0
+
+# Upstash (Redis REST + Search)
+upstash-redis==1.7.0
+upstash-search==0.1.1
+
+# Node 1 (web-search scraping) + text tokens
+scrapy==2.19.0
+nltk==3.9.4
+
+typing_extensions==4.15.0

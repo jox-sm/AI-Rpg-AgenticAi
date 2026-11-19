@@ -1,6 +1,9 @@
 # World Generator Node (`node0_worldgen`) — Spec
 
-Status: SPEC (not yet implemented). Author: agent recon 2026-10-03. Reviewer: owner.
+Status: **IMPLEMENTED** — `agents/node0_worldgen.py`, wired in `engine/graph_v2.py`
+(START → classifier → worldgen → react_router ⇄ …). Seeded worlds are stable per
+`world_seed` (the catalog game id), see `REDIS_API.md` → "Session Seeding from a
+Catalog Game". Original spec below (author: agent recon 2026-10-03).
 
 ## 1. Goal
 

@@ -49,12 +49,12 @@ class ModelConfig:
     image_model: str = field(default_factory=lambda: os.getenv("IMAGE_MODEL", "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"))
     redescription_model: str = field(default_factory=lambda: os.getenv("REDESCRIPTION_MODEL", "google/gemma-4-26b-a4b-it:free"))
     context_injector_model: str = field(default_factory=lambda: os.getenv("CONTEXT_INJECTOR_MODEL", "google/gemma-4-31b-it:free"))
-    story_model: str = field(default_factory=lambda: os.getenv("STORY_MODEL", "qwen/qwen3.8-27b:free"))
+    story_model: str = field(default_factory=lambda: os.getenv("STORY_MODEL", "google/gemma-4-31b-it:free"))
     classifier_model: str = field(default_factory=lambda: os.getenv("CLASSIFIER_MODEL", "liquid/lfm-2.5-2.6b:free"))
     # "jev" slot: the model that adjudicates skill/trick use (flee tricks today).
     # Defaults to the free qwen; point JEV_MODEL at typesafe/jev-router (or any
     # OpenRouter slug) to swap it without touching code.
-    jev_model: str = field(default_factory=lambda: os.getenv("JEV_MODEL", "qwen/qwen3.8-27b:free"))
+    jev_model: str = field(default_factory=lambda: os.getenv("JEV_MODEL", "google/gemma-4-26b-a4b-it:free"))
     scraper_user_agent: str = field(default_factory=lambda: os.getenv("SCRAPER_USER_AGENT", "RPG-AI-Server/1.0 (+local)"))
     scraper_timeout_seconds: float = field(default_factory=lambda: float(os.getenv("SCRAPER_TIMEOUT_SECONDS", "15.0")))
     scraper_cache_ttl_seconds: int = field(default_factory=lambda: int(os.getenv("SCRAPER_CACHE_TTL_SECONDS", "86400")))

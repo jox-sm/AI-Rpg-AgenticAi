@@ -1,0 +1,29 @@
+# Never bake secrets or dev artifacts into the build context/image.
+# (compose injects env vars via env_file instead)
+.env
+rpg_ai_server/.env
+*.env
+
+# VCS + caches
+.git
+.gitattributes
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Dev-only tooling/artifacts (not needed at runtime)
+.agents/
+.kilo/
+skills/
+graphify-out/
+.mock-state/
+need-to-solve/
+plan/
+_graphify_run.py
+tests/
+*.md
+
+# Docker scaffolding itself
+Dockerfile
+.dockerignore
+docker-compose.yml
