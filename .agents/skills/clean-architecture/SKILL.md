@@ -76,7 +76,7 @@ Known hotspots (split targets, in priority order):
 
 ## 5. Refactor procedure (safety)
 
-1. **Baseline**: `pytest -q` (known baseline: 229 passed / 3 pre-existing failures in `test_orchestrator_hard`, `test_turn_system`, `test_xp_loot`). Record the exact failures before touching code.
+1. **Baseline**: `pytest -q` — observed 2026-11-19: **224 passed / 8 failed** (1 each in `test_orchestrator_hard`, `test_turn_system`, `test_xp_loot` + 5 memory tests still asserting pre-503 behavior). Record exact failures before touching code.
 2. One module per step; no behavior change; compatibility re-exports.
 3. Run the module's tests, then the full suite; compare to baseline. Any NEW failure → revert that step.
 4. Review `git diff --stat` — each step should be small and explainable.
