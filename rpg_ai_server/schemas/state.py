@@ -30,8 +30,8 @@ class GameState(TypedDict, total=False):
     re_description_data: Optional[ReDescriptionData]
     context_summary: Optional[ContextSummary]
     character_stats: Optional[CharacterStats]
-    skills: Annotated[List[Skill], operator.add]
-    inventory: Annotated[List[InventoryItem], operator.add]
+    skills: List[Skill]
+    inventory: List[InventoryItem]
     relationships: Annotated[List[Relationship], operator.add]
     story_output: str
     decision: Optional[NodeDecision]

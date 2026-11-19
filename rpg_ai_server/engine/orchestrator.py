@@ -11,7 +11,7 @@ from ..config.settings import settings
 from ..redis.game_state import GameStateManager
 from ..redis.output_cache import OutputCache
 from ..schemas.state import GameState
-from ..schemas.types import CharacterStats, GameRequest, Skill
+from ..schemas.types import CharacterStats, ChatMessage, GameRequest, InventoryItem, NodeDecision, Relationship, Skill, ContextSummary
 from ..scripts.world_generator import ensure_world, grid_to_grid_data
 from ..utils.coerce import model_list
 from ..utils.logger import logger
@@ -41,6 +41,46 @@ class GameOrchestrator:
         self.compiled_graph = workflow.compile()
         logger.info("Game orchestrator initialized")
 
+    @staticmethod
+    def _hydrate_models(initial_state: GameState) -> None:
+        """Restore model objects after a Redis round-trip.
+
+        ``character_stats``/``skills``/``inventory``/etc. are stored as JSON
+        dict(-list)s; nodes downstream expect model objects again.
+        """
+        model_map = {
+            "character_stats": CharacterStats,
+            "context_summary": ContextSummary,
+            "decision": NodeDecision,
+        }
+        for key, model in model_map.items():
+            value = initial_state.get(key)
+            if value is not None and isinstance(value, dict):
+                try:
+                    initial_state[key] = model.model_validate(value)
+                except Exception:
+                    pass
+
+        for key, model in (
+            ("skills", Skill),
+            ("inventory", InventoryItem),
+            ("relationships", Relationship),
+            ("chat_log", ChatMessage),
+        ):
+            items = initial_state.get(key)
+            if isinstance(items, list):
+                hydrated = []
+                for item in items:
+                    if isinstance(item, dict):
+                        try:
+                            hydrated.append(model.model_validate(item))
+                            continue
+                        except Exception:
+                            pass
+                    hydrated.append(item)
+                if hydrated != items:
+                    initial_state[key] = hydrated
+
     def _build_initial_state(self, request: GameRequest) -> GameState:
         import time as _time
         import uuid as _uuid
@@ -50,7 +90,10 @@ class GameOrchestrator:
         # all inside game_data so it persists across turns. Client fields in
         # request.data are preserved; missing world keys are filled in.
         base_data = dict(request.data) if isinstance(request.data, dict) else {}
-        ensure_world(base_data, request.uuid)
+        # Seed precedence: an explicit client seed wins (the web derives it from
+        # the catalog game id, so every session of the same game lands in the
+        # same world); the session id keeps per-scenario worlds otherwise.
+        ensure_world(base_data, base_data.get("world_seed") or request.uuid)
         grid_data = grid_to_grid_data(base_data.get("grid") or [], base_data.get("origin"))
 
         initial_state: GameState = {
@@ -149,6 +192,7 @@ class GameOrchestrator:
                           "game_data", "context", "chat_log", "context_summary", "decision"):
                     if k in existing:
                         initial_state[k] = existing[k]
+                self._hydrate_models(initial_state)
                 # Append this turn's prompt to rolling chat log (cap generous local 40)
                 try:
                     log = list(initial_state.get("chat_log", []) or [])

@@ -189,11 +189,27 @@ def resolve_loot_entry(kind: str, spec: str, fallback_rarity: str = "common") ->
     except Exception:
         found = None
     if isinstance(found, dict) and found.get("name"):
-        return {"item_id": _slug(str(found.get("_src_id") or found.get("name"))),
+        item = {"item_id": _slug(str(found.get("_src_id") or found.get("name"))),
                 "name": str(found.get("name")),
                 "quantity": 1,
                 "description": str(found.get("Description", ""))[:200],
                 "properties": {"rarity": str(found.get("Rarity", fallback_rarity)).lower()}}
+        # Carry the DB weapon data into properties (the only inventory keys
+        # that survive the model/Redis round-trip). Without this, loot lost
+        # its damage/speed/effect forever and equipping had nothing to read.
+        dmg = str(found.get("Damage", "") or "").strip()
+        if dmg:
+            effect = str(found.get("Special Effect", "") or "").strip()
+            item["properties"].update({
+                "weapon_type": str(found.get("Type", "") or "").strip()[:40].lower(),
+                "damage": dmg,
+                "speed": str(found.get("Speed", "") or "").strip()[:20].lower(),
+                "effect": effect[:80] if effect and effect.lower() != "none" else "",
+                "required_level": to_int(found.get("Required Level", 0), 0),
+                "required_stats": str(found.get("Required Stats", "") or "").strip()[:60],
+                "durability": to_int(found.get("Durability", 0), 0),
+            })
+        return item
     return {"item_id": _slug(spec), "name": spec, "quantity": 1,
             "description": "Taken from a fallen foe.",
             "properties": {"rarity": fallback_rarity, "scrap": True}}

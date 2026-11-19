@@ -1,0 +1,47 @@
+# docker-compose.yml — glue for the two project folders.
+#
+#   ai-server : THIS repo (FastAPI gameplay API + LangGraph engine, port 8000)
+#   web       : ../deepslate dungeons (Next.js 16, port 3000)
+#
+# Redis / Postgres / MongoDB stay cloud-hosted (Upstash / Neon / Atlas) —
+# intentionally NO containers for them.
+#
+#   docker compose up --build
+#     web  → http://localhost:3000   (relay uses AI_SERVER_URL=http://ai-server:8000)
+#     api  → http://localhost:8000/health
+#
+# Keep both folders side by side as on this machine:
+#   D:\AI agent            (this file)
+#   D:\deepslate dungeons  (sibling)
+#
+# Memory/saves endpoints: uncomment the second env_file below after creating
+# an Upstash Search index and adding UPSTASH_SEARCH_REST_URL / _TOKEN
+# (see REDIS_API.md → "Memory configuration note").
+
+services:
+  ai-server:
+    build: .
+    container_name: rpg-ai-server
+    env_file:
+      - rpg_ai_server/.env
+      # - rpg_ai_server/.env.search   # UPSTASH_SEARCH_REST_URL / UPSTASH_SEARCH_REST_TOKEN
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ../deepslate dungeons
+    container_name: deepslate-web
+    environment:
+      # overrides the AI_SERVER_URL from the web .env files (which points at
+      # localhost — wrong from inside a container)
+      AI_SERVER_URL: http://ai-server:8000
+    env_file:
+      - ../deepslate dungeons/.env
+      - ../deepslate dungeons/.env.local
+    ports:
+      - "3000:3000"
+    depends_on:
+      - ai-server
+    restart: unless-stopped

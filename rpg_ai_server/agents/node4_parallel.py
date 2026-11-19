@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import copy
-from typing import Any, Dict
+import re
+from typing import Any, Dict, List, Optional
 
 from ..schemas.state import GameState
-from ..utils.coerce import as_dict, stat_int, stat_of, to_int
+from ..schemas.types import CharacterStats, InventoryItem, Relationship, Skill
+from ..utils.coerce import as_dict, clamp_int, stat_int, stat_of, to_int
 from ..utils.logger import logger
 
 
@@ -218,6 +220,12 @@ async def _damage_patch(snap: Dict[str, Any]) -> Dict[str, Any]:
         if fn is None:
             raise AttributeError("no resolve_attack in combat_system")
 
+        # Player weapon: loot items carry their DB damage string (e.g. '1d4+2')
+        # in properties; armed strikes roll that instead of the raw fists.
+        weapon = _equipped_weapon(snap.get("inventory"))
+        w_sides, w_count, w_bonus = _weapon_damage(
+            (weapon or {}).get("properties", {}).get("damage"))
+
         # Pack fight: attacking engages every live hostile (cap); each engaged
         # monster retaliates with its own speed-driven strikes. Single-monster
         # fights behave exactly as before.
@@ -254,7 +262,7 @@ async def _damage_patch(snap: Dict[str, Any]) -> Dict[str, Any]:
                 res = fn(
                     attacker_attack=8, attacker_accuracy=attack_bonus,
                     target_armor_class=to_int(foe.get("ac"), 12),
-                    damage_dice=Dice.D6, damage_count=1, damage_bonus=2,
+                    damage_dice=w_sides, damage_count=w_count, damage_bonus=w_bonus,
                 )
                 dmg = to_int(res.get("damage", 0))
                 foe["hp"] = max(0, to_int(foe.get("hp", 0)) - dmg)
@@ -325,6 +333,7 @@ async def _damage_patch(snap: Dict[str, Any]) -> Dict[str, Any]:
 
         detail = {
             "target": monster.get("name"),
+            "weapon": str((weapon or {}).get("name", "") or "fists"),
             "spawned": spawned,
             "order": list(order),
             "player_strikes": p_strikes,
@@ -382,12 +391,119 @@ async def _skill_patch(snap: Dict[str, Any]) -> Dict[str, Any]:
         return {"skills": [], "error": str(e), "usage": {"llm_calls": 0, "tokens_est": 0}}
 
 
+EQUIP_RE = re.compile(
+    r"\bequip(?:ing|ment)?\s+(?:the\s+|my\s+|a\s+|an\s+)?(?P<target>[a-z][a-z' \-]{1,60})",
+    re.IGNORECASE)
+UNEQUIP_RE = re.compile(r"\b(?:unequip|stow|sheathe|holster|put\s+away)\b", re.IGNORECASE)
+_DMG_RE = re.compile(r"^\s*(\d{1,2})\s*d\s*(\d{1,3})\s*([+-]\s*\d{1,3})?\s*$")
+
+
+def _item_dict(item: Any) -> Dict[str, Any]:
+    """Inventory slot -> plain dict (models only read like models)."""
+    return item if isinstance(item, dict) else (as_dict(item) or {})
+
+
+def _weapon_damage(spec: Any) -> tuple[int, int, int]:
+    """'1d4+2' -> (sides, count, bonus); unparseable -> unarmed (6, 1, 2)."""
+    m = _DMG_RE.match(str(spec or "").strip())
+    if not m:
+        return (6, 1, 2)
+    count = clamp_int(m.group(1), 1, 12, 1)
+    sides = clamp_int(m.group(2), 4, 100, 6)
+    bonus = to_int((m.group(3) or "0").replace(" ", ""), 0)
+    return (sides, count, bonus)
+
+
+def _equipped_weapon(inv: Any) -> Optional[Dict[str, Any]]:
+    """First actively equipped weapon — combat reads its damage dice from here.
+
+    The equipped flag lives in ``properties``: unknown model keys are dropped
+    on the model/Redis round-trip, but ``properties`` is a real model field.
+    """
+    for raw in inv or []:
+        item = _item_dict(raw)
+        props = item.get("properties") or {}
+        if not isinstance(props, dict):
+            continue
+        if props.get("weapon_type") and props.get("equipped") and props.get("damage"):
+            return item
+    return None
+
+
+def _weapon_stats_note(weapon: Dict[str, Any]) -> Dict[str, Any]:
+    """Human-readable loadout line for the mechanics summary."""
+    props = weapon.get("properties") or {}
+    parts = [str(props.get("weapon_type", "") or "").strip(),
+             str(props.get("damage", "?") or "").strip(),
+             str(props.get("speed", "") or "").strip()]
+    if props.get("effect"):
+        parts.append(f"effect {str(props['effect']).lower().strip()}")
+    return {"name": str(weapon.get("name", "?")),
+            "spec": ", ".join(p for p in parts if p),
+            "required_level": to_int(props.get("required_level", 0), 0)}
+
+
+def _pick_equip_target(items: List[Dict[str, Any]], wanted: str) -> Optional[Dict[str, Any]]:
+    """First weapon matching the request; a lone unequipped weapon if generic."""
+    has_name = wanted and wanted != "weapon"
+    if has_name:
+        for item in items:
+            props = item.get("properties") or {}
+            name = str(item.get("name", "")).lower()
+            if props.get("weapon_type") and (wanted in name or name in wanted):
+                return item
+        for item in items:
+            props = item.get("properties") or {}
+            wtype = str(props.get("weapon_type", "")).lower()
+            if wtype and (wanted in wtype or wtype in wanted):
+                return item
+        return None
+    loose = [item for item in items
+             if (item.get("properties") or {}).get("weapon_type")
+             and not (item.get("properties") or {}).get("equipped")]
+    return loose[0] if len(loose) == 1 else None
+
+
 async def _inventory_patch(snap: Dict[str, Any]) -> Dict[str, Any]:
+    """Inventory pass: snapshot, plus one real behavior — the equip action.
+
+    'equip <item>' flips the weapon's equipped flag (unequipping other
+    weapons); combat then rolls the weapon's damage instead of fists.
+    """
     try:
-        inv = snap.get("inventory", []) or []
-        return {"inventory": inv, "usage": {"llm_calls": 0, "tokens_est": 0}}
+        items: List[Dict[str, Any]] = [_item_dict(i) for i in (snap.get("inventory", []) or [])]
+        prompt = str(snap.get("prompt", "") or "").lower()
+        equipped_note: Dict[str, Any] | None = None
+
+        equip_match = EQUIP_RE.search(prompt)
+        unequip_match = UNEQUIP_RE.search(prompt)
+        if equip_match and not unequip_match:
+            wanted = equip_match.group("target").strip().lower()
+            wanted = re.sub(r"^(the|my|a|an)\s+", "", wanted).strip()
+            target = _pick_equip_target(items, wanted)
+            if target is not None:
+                # One-weapon slot: mark the pick, stow everything else.
+                for item in items:
+                    props = item.setdefault("properties", {})
+                    if isinstance(props, dict) and props.get("weapon_type"):
+                        props["equipped"] = item is target
+                target["properties"]["equipped"] = True
+                equipped_note = _weapon_stats_note(target)
+        elif unequip_match and not equip_match:
+            for item in items:
+                props = item.get("properties") or {}
+                if props.get("weapon_type"):
+                    props["equipped"] = False
+            equipped_note = {"stowed": [str(i.get("name", "?")) for i in items
+                                        if (i.get("properties") or {}).get("weapon_type")]}
+
+        return {"inventory": items,
+                "equipped": equipped_note,
+                "usage": {"llm_calls": 0, "tokens_est": 0}}
     except Exception as e:
         return {"inventory": [], "error": str(e), "usage": {"llm_calls": 0, "tokens_est": 0}}
+
+
 
 
 async def _json_patch(snap: Dict[str, Any]) -> Dict[str, Any]:
@@ -413,6 +529,31 @@ _SUBNODES = {
     "inventory": _inventory_patch,
     "json": _json_patch,
 }
+
+
+def _to_model(model_cls: Any, value: Any) -> Any:
+    """Coerce a persisted dict back to its typed model, else pass through."""
+    if not isinstance(value, dict):
+        return value
+    try:
+        return model_cls.model_validate(value)
+    except Exception:
+        return value
+
+
+def _hydrate_merged_models(merged: Dict[str, Any]) -> None:
+    """Restore shade/model keys after the ordered mechanics merge.
+
+    ``character_stats``/``skills``/``inventory`` often arrive as JSON dicts from
+    Redis. Persisted turns are dictified; downstream expects models again.
+    """
+    merged["character_stats"] = _to_model(CharacterStats, merged.get("character_stats"))
+    for key, model in (("skills", Skill),
+                       ("inventory", InventoryItem),
+                       ("relationships", Relationship)):
+        if isinstance(merged.get(key), list):
+            merged[key] = [_to_model(model, item) for item in merged[key]]
+
 
 
 async def node4_parallel(state: GameState) -> Dict[str, Any]:
@@ -496,6 +637,7 @@ async def node4_parallel(state: GameState) -> Dict[str, Any]:
                 order = "->".join(d.get("order", []))
                 lines.append(
                     f"- damage: attack {d.get('target')}{spawn} "
+                    f"with {d.get('weapon', 'fists')} "
                     f"[order {order}, you x{d.get('player_strikes')} vs foe x{d.get('monster_strikes')}, "
                     f"spd {d.get('player_speed')} vs {d.get('monster_speed')}]"
                 )
@@ -556,7 +698,17 @@ async def node4_parallel(state: GameState) -> Dict[str, Any]:
         elif name == "skill" and "skills" in p:
             lines.append(f"- skills ticked: {len(p['skills'])}")
         elif name == "inventory":
-            lines.append(f"- inventory held: {len(p.get('inventory', []))}")
+            eq = p.get("equipped") or {}
+            kept = len(p.get("inventory", []))
+            if eq.get("name"):
+                lvl = eq.get("required_level") or 0
+                req = f" (requires lvl {lvl})" if lvl else ""
+                lines.append(f"- inventory held: {kept} — EQUIPPED {eq.get('name')}: {eq.get('spec', '')}{req}")
+            elif "stowed" in eq:
+                names = ", ".join(eq.get("stowed") or []) or "nothing"
+                lines.append(f"- inventory held: {kept} — stowed {names}")
+            else:
+                lines.append(f"- inventory held: {kept}")
         elif name == "json" and p.get("notes"):
             lines.append(f"- notes: {', '.join(p['notes'])}")
     summary = "\n".join(lines)
@@ -574,8 +726,19 @@ async def node4_parallel(state: GameState) -> Dict[str, Any]:
         merged["game_data"] = patches["damage"]["game_data"]
     if isinstance(patches.get("damage", {}).get("character_stats"), dict):
         merged["character_stats"] = patches["damage"]["character_stats"]
-    loot = patches.get("damage", {}).get("loot") or []
+    # Loot lives one level deeper than the subpatch: inside the damage
+    # detail ({..killed/loot..}) for attacks, or inside the flee detail.
+    # Reading it from the subpatch itself always yielded [] — kills granted
+    # XP/prints but never actually reached the inventory.
+    _dmg_sub = patches.get("damage", {}) or {}
+    if isinstance(_dmg_sub.get("damage"), dict):
+        loot = _dmg_sub["damage"].get("loot") or []
+    elif isinstance(_dmg_sub.get("flee"), dict):
+        loot = _dmg_sub["flee"].get("loot") or []
+    else:
+        loot = []
     if loot:
         from ..scripts.xp_loot import merge_loot
         merged["inventory"] = merge_loot(merged.get("inventory", state.get("inventory")), loot)
+    _hydrate_merged_models(merged)
     return merged

@@ -9,23 +9,31 @@ Two systems talk through **shared Redis** (Upstash). The AI server is a Python F
 ```
 # DB 0 — Queue & Coordination
 input:queue                List   { uuid: session_id, prompt: string }
-trigger:last               Str    unix timestamp of last FastAPI trigger
-trigger:busy               Str    "1" while FastAPI is processing (TTL 30s)
+                                  (engine polls this continuously; no trigger key needed)
+input:queue:delayed        ZSet   retry-scheduled items (score = due timestamp)
+input:queue:dead           List   poison/exhausted items (inspect manually)
 
 # DB 1 — Game State (Hash, per plan §1)
 games:{sid}:state          Hash   fields: player, allies, monsters,
                                   current_chunk, buildings, story (gzip),
-                                  incidents (gzip), context_summary, etc.
+                                  incidents (gzip), context_summary,
+                                  game_data, character_stats, etc.
 games:{sid}:counter        Str    action count (INCR, RESET on drain)
 games:{sid}:lock           Str    distributed lock (SET NX EX, plan C3)
 
-# Output (DB 1, separate key per session)
+# Output (DB 1, separate key per session, TTL 1h)
 output:{sid}               Str    AI output for current turn
-                                  { story, tool_results, game_over? }
+                                  { uuid, game_data, story, context_summary,
+                                    tool_results, game_over, timestamp }
+                                  `timestamp` = server write time — primary
+                                  turn-change marker for web polling
 ```
 
 All `games:{sid}:*` keys get TTL reset to 1h on each user action.
 State is a **Hash** (not a plain string) per the existing plan — Next.js must use HSET/HGETALL/HGET, not SET/GET. See plan/redisIntegration.md for canonical schema.
+
+> The legacy `trigger:last` / `trigger:busy` keys are no longer part of the
+> contract — the engine owns the queue via polling (see Trigger System).
 
 ---
 
@@ -83,101 +91,106 @@ context = "\n---\n".join(h.content["text"] for h in hits)
 
 ## Scenario Lifecycle — Named Save Slots
 
-A **scenario** = one user-chosen name + one game id (`sid`, embedded in every memory document). The player manages scenarios like save slots; memory survives the Redis 1h TTL because it lives locally. (Web app lives at `D:\deepslate dungeons` — client flow below is the contract it implements.)
+A **scenario** = one user-chosen name + one game id (`sid`, embedded in every memory document). The player manages scenarios like save slots; memory survives the Redis 1h TTL because the AI side keeps it in the shared `game-memory` index. (Web app lives at `D:\deepslate dungeons` — client flow below is the contract it implements.)
 
-**Client-side registry (localStorage):**
+**Client-side vault (in-memory zustand, `stores/game-saves.ts`) — NOT localStorage:**
 ```
-key:   rpg:scenarios
-value: [ { id: "<uuid>", name: "My Dungeon Crawl", created_at, last_played_at } ]
-key:   rpg:memory:{id}   → exported search-memory blob for that scenario
+scenarios: [ { id, name, created_at, last_played_at } ]     // save slots
+memories:  { [sid]: { sid, saved_at, last_turn, chunks } }  // exported blobs
+turns:     { [sid]: number }                                // turn counters
 ```
 
+- The vault lives for the **lifetime of the tab** (deliberately un-persisted). Durability is explicit and user-driven via the **Save button** (below), which downloads a whole-vault JSON snapshot; the scenario list imports files back.
 - The `sid` (scenario uuid) is the per-game scope in the shared `game-memory` index — the user-chosen name is only a label, so renaming never touches the documents.
 - The exported blob is plain text (`id, content, metadata`) — restore re-embeds server-side on upsert, no clientside model.
 
+**Turn-1 note:** turn counters reset to 0 in a fresh tab (no file imported). This is advisory — the engine keeps its own turn/state in `games:{sid}:state`; only the client-side "Turn N" display and per-turn payload restart.
+
 **Entry flow (user enters the game):**
 ```
-1. App reads rpg:scenarios from localStorage
-2. Search by scenario id (uuid):
+1. Scenario list reads the zustand vault (live subscription)
+2. Play/{sid} gate resolves the scenario id (uuid):
      a. Found + Redis state alive (within 1h) → resume live state directly
-     b. Found + state expired   → recognize via uuid, then
-        POST /memory/restore → upsert saved chunks into the namespace
+     b. Found + vault has saved chunks → push them back:
+        POST /memory/restore → upsert(saved chunks into the namespace)
         → AI server starts fresh state skeleton; memory works from turn 1
-     c. Not found → "New game" screen → prompt for a name → create scenario
-        (new uuid, empty namespace) → play
-3. "New scenario" button (any time) → step 2c again — adds a new slot with a new sid
+     c. Not found → catalog "Play" CTA creates the slot client-side
+        (uuidv7 sid, seed carried via sessionStorage → GameRequest.data)
+3. Import from file (any time): scenario list loads a save file →
+   vault merge (known sids overwritten, unknown added, capped to 20 slots)
 ```
 
 **Exit flow (player leaves):**
 ```
-1. Player clicks Exit → modal popup: "Save this game?"  [Save] [Don't save]
-2. Save        → GET /memory/export/{sid} → write rpg:memory:{id}
-                 → update rpg:scenarios (last_played_at) → toast "Game saved"
-3. Don't save  → optional DELETE /memory/clear (wipe namespace) — slot stays,
-                 advances are lost
+1. Player clicks Exit → modal: "Save this adventure?"  [Save & Exit] [Don't Save] [Keep Playing]
+2. Save & Exit → GET /memory/export/{sid} → vault.memories[sid] refresh
+                → touch slot (last_played_at) → memory lives on in the AI index
+3. Don't Save  → DELETE /memory/clear (wipe namespace) + vault blob dropped
 4. Documents are never destroyed on exit — only on real game_over (or explicit delete)
 ```
 
-**Autosave — every 25 messages:**
-- The drain already fires at `counter ≥ 25`; it sets `autosave` flag in the drained state. The client reads it after the action → auto-exports → refreshes `rpg:memory:{id}` in the background. Worst case on crash: 25 messages lost.
-- The same `rpg:memory:{id}` blob is used by the resume flow (2b), so autosave and manual save never diverge.
+**The Save button (file snapshot) — `lib/saveFile.ts`:**
+```
+PlayScreen "Save":
+  1. GET /memory/export/{sid} → refresh vault.memories[sid]  (freshest AI memory)
+  2. buildSavesSnapshot() → { kind: "deepslate-saves", version: 1, exported_at,
+     scenarios, memories (array), turns }  ← whole vault in one file
+  3. Browser download: deepslate-saves-YYYYMMDD-HHmmss.json
+Scenario list "Have a save file? Import it":
+  readSavesFile(File) → validate kind/version → importSnapshot into the vault
+  → imported runs resume normally (restore path above works from the vault)
+```
 
-- **Size check:** ~200 chunks × ~1KB JSON (text + metadata, no vectors) ≈ 200KB — fits localStorage (5MB) comfortably.
+**Autosave — every 10 turns:**
+- PlayScreen auto-exports every 10 turns into the vault (`AUTOSAVE_EVERY_TURNS`), so the Save button is never the only copy while playing. Autosave and manual save never diverge — both write the same vault blobs; the AI-side index always holds the ground truth until the file is downloaded.
+
+- **Size check:** ~200 chunks × ~1KB JSON (text + metadata, no vectors) ≈ 200KB per run — the snapshot file scales with run count; no local quota concerns anymore.
 - **Why no vectors in the blob?** Upstash Search embeds server-side; restore = plain upsert of text, no model/cost on resume.
 
 ---
 
-## Data Flow
+## Data Flow (as implemented)
 
 ```
-Client (browser)            Next.js                          AI Server (FastAPI)
-      │                        │                                    │
-      │  Enter game            │                                    │
-      │───────────────────────►│                                    │
-      │                        │  generate session_uuid             │
-      │                        │  write initial state via HSET      │
-      │                        │  HSET games:{sid}:state            │
-      │                        │    player   → '{...}'              │
-      │                        │    story    → ''                   │
-      │                        │    (EXPIRE 1h)                     │
-      │                        │                                    │
-      │  Send action           │                                    │
-      │  POST /api/games/[uuid]/play {prompt, sid}   │
-      │───────────────────────►│                                    │
-      │                        │  RPUSH input:queue {uuid:sid,prompt}
-      │                        │  EXPIRE games:{sid}:state 3600     │
-      │                        │                                    │
-      │                        │  checkTrigger() — queue≥5 OR 1s?  │
-      │                        │  ┌── NO → return 202               │
-      │                        │  └── YES → POST /trigger ────────►│
-      │                        │           (NX lock trigger:busy)   │
-      │                        │                                    │
-      │                        │          RENAME input:queue → :processing
-      │                        │          for each item:
-      │                        │            HGETALL games:{sid}:state
-      │                        │            decompress story
-      │                        │            memory retrieval (Upstash Search)
-      │                        │            agent workflow
-      │                        │            HSET patched fields
-      │                        │            SET output:{sid} = delta
-      │                        │          DEL input:queue:processing
-      │                        │          DEL trigger:busy
-      │                        │                                    │
-      │                        │  POST /api/games/worker ◄─────────│
-      │                        │    { uuid: sid }                  │
-      │                        │                                    │
-      │                        │  SSE push to open connection      │
-      │                        │  (no Redis event key, no polling) │
-      │                        │                                    │
-      │  SSE ◄─────────────────│                                    │
-      │  (open connection,     │                                    │
-      │   real-time push)      │                                    │
-      │                        │                                    │
-      │  GET output:{sid}      │                                    │
-      │  merge delta, render   │                                    │
-      │  snapshot sessionStorage│                                   │
-      │  every 10min           │                                    │
+Browser              Next.js (relays)                AI Server (FastAPI + engine)
+   │                        │                                    │
+   │  /game/[uuid] page     │                                    │
+   │── "Play" ─────────────►│                                    │
+   │                        │  (client) uuidv7 → sid, scenario    │
+   │                        │  registered, GameSeed → sessionStorage
+   │                        │                                    │
+   │  /play/{sid}           │                                    │
+   │── send(prompt) ───────►│                                    │
+   │                        │  POST /api/ai-server/queue/push     │
+   │                        │    uuid=<sid>, prompt, data         │
+   │                        │    {turn, world_seed?, campaign?}   │
+   │                        │          │ (Clerk session + allowlist)
+   │                        │          ▼                          │
+   │                        │          POST /queue/push ─────────►│
+   │                        │          RPUSH input:queue          │
+   │                        │                                    │
+   │                        │                                    │  MultiTaskEngine polls
+   │                        │                                    │  input:queue → lock →
+   │                        │                                    │  load-or-seed state →
+   │                        │                                    │  LangGraph v2 run →
+   │                        │                                    │  save_state → SET output:{sid}
+   │                        │                                    │  (story, game_data, game_over,
+   │                        │                                    │   timestamp) — TTL 1h
+   │                        │                                    │
+   │  poll (2s interval)    │                                    │
+   │── GET output/{sid} ───►│── GET /output/{sid} ──────────────►│
+   │◄─ {story, timestamp} ──│◄───────────────────────────────────│
+   │                        │                                    │
+   │  render story          │                                    │
+   │  autosave every 10     │  GET /api/games/[id]/memory        │
+   │  turns via memory      │  → AI /memory/export → Upstash Search
 ```
+
+Turn-change detection: the poller compares `output.timestamp` against the last
+consumed one (mount-local refs, no persistence); on a fresh mount nothing was
+consumed yet, so any output older than the client's send epoch is treated as a
+stale leftover from a previous run (2s clock-skew slack). If an output has no
+timestamp it falls back to comparing the story string.
 
 ---
 
@@ -187,106 +200,138 @@ Client (browser)            Next.js                          AI Server (FastAPI)
 1. User clicks play on a game → `GET /game/{game_uuid}`
 2. Frontend checks `sessionStorage` for cached session
 3. If miss → generate `session_uuid` (crypto.randomUUID())
-4. Fetch game data from DB (chars, maps, items)
-5. `SET games:{sid}:state` with initial JSON blob (TTL 1h)
-6. Store `{ sid, game_uuid }` in sessionStorage
+4. Fetch game data from DB (chars, maps, items) — kept, not written to Redis
+5. First turn's `GameRequest.data` carries the seed (see Session Seeding below);
+   the **engine seeds `games:{sid}:state` itself on turn 1** (allowlist merge)
+6. Store slot in the zustand vault (`stores/game-saves.ts` — in-memory; durable
+   copies exist via the Save button file or the AI-side index)
 
 ### Existing Session
-1. `sessionStorage` has `{ sid, game_uuid }`
+1. The zustand vault has the scenario slot (or a save file was imported)
 2. `GET games:{sid}:state` from Redis via Upstash
 3. If exists → resume game
-4. If expired/not found → treat as new game
+4. If expired/not found → treat as new game (restore memory first: POST /memory/restore)
 
 ### TTL Refresh
 Every user action resets TTL to 1h on `games:{sid}:*` keys.
 After 1h inactivity → session auto-cleans from Redis.
 
----
-
-## Trigger System
+### Session Seeding from a Catalog Game
+A play session started from a game page (`/game/[uuid]` → Play button) injects
+the game's creative payload into turn 1; the engine preserves it verbatim into
+`game_data` (client fields in `request.data` are kept):
 
 ```
-onPlayerAction():
-  1. RPUSH input:queue {uuid, prompt}
-  2. touchTTL(sid)
-  3. checkTrigger()
-
-checkTrigger():
-  1. len = LLEN input:queue
-  2. if len == 0 → return
-  3. busy = GET trigger:busy
-  4. if busy == "1" → return (already processing)
-  5. last = GET trigger:last (unix seconds)
-  6. now = Date.now() / 1000
-  7. shouldFire = (len >= 5) OR (now - last >= 1)
-  8. if shouldFire → fireTrigger()
-
-fireTrigger():
-  1. SET trigger:busy = "1" (EX 30) — prevent double-trigger
-  2. POST http://ai-server:8000/trigger
-  3. SET trigger:last = now
+Browser                          AI engine (turn 1, _build_initial_state)
+─────────────────────────────────────────────────────────────────────────
+sessionStorage rpg:seed:{sid} →  GameRequest.data = {
+  { game_id, name,                  turn: 1,
+    description, characters,        world_seed: <game_id>,      ← same world for
+    maps, items }  (slimmed —       campaign: { name,             every session of
+  no image blobs)                      description,               the same game
+                                       characters, maps, items }
+                                 }
 ```
 
----
-
-## Next.js API Routes
-
-### POST /api/games/[uuid]/play
-- Accepts: `{ prompt: string, sid: string }`
-- Pushes to `input:queue`
-- Calls `checkTrigger()`
-- Returns 202
-
-### GET /api/games/[uuid]/stream
-- SSE endpoint
-- Polls `games:{sid}:event` every 200ms
-- Pushes events to client
-- Closes on error/disconnect
-
-### POST /api/games/worker
-- FastAPI callback
-- Accepts: `{ uuid: session_id }`
-- Writes to `games:{sid}:event`
-- SSE picks it up
+- `world_seed` precedence: `data.world_seed || request.uuid` — a catalog game
+  seeds a stable shared world; a plain scenario session seeds its own world
+  from the sid.
+- The seed is one-shot: `sessionStorage rpg:seed:{sid}` is consumed on the
+  first `send()` only.
+- `data.campaign` is a map/prompts hint (characters/maps/items with names +
+  descriptions); the engine's mechanics/grid still run on their own data model.
+- Transport: sessionStorage (`rpg:seed:{sid}`), written by the game page
+  (`lib/gameSeed.ts`), read+consumed by PlayScreen before the first push.
 
 ---
 
-## Next.js Client Library
+## Trigger System (retired — engine-owned queue)
 
-### hooks/useGamePlay.ts
-```
-useGamePlay(uuid):
-  sendAction(prompt) → POST /api/games/{uuid}/play
-  state ← SSE /api/games/{uuid}/stream
-  snapshot to sessionStorage every 10min
-```
+The trigger machinery (`trigger:busy` NX lock, `/trigger` drain, `lib/game-trigger.ts`,
+webhook callback) is **retired**. The engine (`MultiTaskEngine.run`) polls
+`input:queue` continuously (~100 ms idle cadence), so a push is picked up
+without any client-side trigger. This removes the one race the old design
+could not fix: a drain racing the engine and stealing real player turns.
 
-### lib/ai-redis.ts
-```
-pushPlayerAction(sid, prompt)
-readGameState(sid)
-touchSessionTTL(sid)
-readOutput(sid)
-incrActionCounter(sid)
-```
+`POST /trigger` still exists as an **advisory status probe** (back-compat): it
+returns queue/dead-letter lengths and consumes nothing:
 
-### lib/game-trigger.ts
 ```
-checkTrigger()   → queue >=5? 1s passed?
-fireTrigger()    → POST /trigger to FastAPI
+POST /trigger →
+  {
+    "ok": true,
+    "queued": len(input:queue),
+    "dead_lettered": len(input:queue:dead),
+    "note": "engine polls input:queue directly; no items consumed here"
+  }
 ```
 
 ---
 
-## Implementation Order
+## Next.js API & Client (as implemented)
 
-1. `lib/ai-redis.ts` — Redis operations (uses existing Upstash client)
-2. `lib/game-trigger.ts` — Trigger logic
-3. `app/api/games/[uuid]/play/route.ts` — Player action endpoint
-4. `app/api/games/[uuid]/stream/route.ts` — SSE endpoint
-5. `app/api/games/worker/route.ts` — FastAPI callback
-6. `hooks/useGamePlay.ts` — Client hook
-7. `types/play.ts` — Types
+### AI-server relay — `app/api/ai-server/[...path]/route.ts`
+Generic server-only relay to the FastAPI gameplay surface. Requires a signed-in
+Clerk session (re-checked server-side via `validateJWTMiddleware`) and only
+forwards the gameplay allowlist; everything else → 403:
+
+```
+allowed:
+  GET   /health
+  POST  /trigger                 (advisory probe)
+  POST  /queue/push
+  GET   /queue/length
+  GET   /output/count
+  GET   /output/{sid}
+  GET|PUT /games/{sid}/state/{field}
+  POST  /games/{sid}/counter/incr
+
+blocked (admin/destructive/queue internals): /keys, /dbsize, /delete/keys/*,
+  /queue/pop, /queue/delayed/*, /queue/dead/*, /games/{sid}/lock,
+  /games/{sid}/expire, PUT /output/{sid}, …
+```
+
+### Memory relay — `app/api/games/[id]/memory/route.ts`
+`GET` → `/memory/export/{sid}`, `POST {chunks}` → `/memory/restore`,
+`DELETE` → `/memory/clear?namespace=sid`. Same Clerk-session requirement.
+
+### Memory configuration note
+`/memory/*` and the engine's memory drain need `UPSTASH_SEARCH_REST_URL` /
+`UPSTASH_SEARCH_REST_TOKEN` in `rpg_ai_server/.env` (Upstash console → Search
+→ index). Without them the API answers `503 {"detail": "Game memory is not
+configured…"}` on those endpoints (gameplay itself is unaffected; story
+generation works, memory/saves are disabled).
+
+### Admin delete semantics (gotcha)
+`GET /keys?pattern&prefix` and `DELETE /keys/{key:path}?prefix` select the
+client by `prefix` (`input` / `games` / `output`) — the client adds its own
+namespace, so **the key path must NOT include it**: the state hash lives in
+Redis as `games:{sid}:state`, but the API call is
+`DELETE /keys/{sid}:state?prefix=games`. Passing `games:{sid}:state` deletes a
+non-existent `games:games:{sid}:state` (harmless `ok:false`).
+
+### Session routes (web's own catalog APIs)
+`/api/games`, `/api/games/[id]` (+`/patches`, `/memory`), `/api/push`,
+`/api/push/pushGames`, `/api/drain`, `/api/workers` — the game-creation/fetch
+pipeline below ("Game Architecture"); unrelated to the AI turn flow.
+
+### Play client — `lib/playClient.ts`
+```
+queuePush(sid, GameRequest)   → POST /api/ai-server/queue/push
+outputGet(sid)                → GET  /api/ai-server/output/{sid}  (404 → null)
+stateSetField(sid, field, v)  → PUT  /api/ai-server/games/{sid}/state/{field}
+counterIncr(sid)              → POST /api/ai-server/games/{sid}/counter/incr
+memoryExport(sid)             → GET  /api/games/{sid}/memory
+memoryRestore(sid, chunks)    → POST /api/games/{sid}/memory
+memoryClear(sid)              → DELETE /api/games/{sid}/memory
+```
+UI consumer: `components/game/PlayScreen.tsx` (send → push + counterIncr →
+poll every 2 s for `output:{sid}` → render story; game_over still delivered via
+`output.game_over`).
+
+### Entry point — `app/game/[uuid]/game-detail.tsx`
+Play button → `uuidv7` sid + `createScenarioWithId` (scenario registry slot) +
+`saveGameSeed` (sessionStorage) → navigate to `/play/{sid}` (see Session Seeding).
 
 ---
 
@@ -296,16 +341,23 @@ fireTrigger()    → POST /trigger to FastAPI
 Health:
   GET  /health               → {"status":"ok"}
 
-Trigger (NEW — atomic drain per plan §5):
-  POST /trigger              → RENAME input:queue → :processing
-                               for each: HGETALL → agent → HSET → output
-                               POST /worker callback to Next.js
-                               DEL :processing + trigger:busy
+Trigger (advisory probe — the engine consumes input:queue itself):
+  POST /trigger              → {"ok": true, "queued": n, "dead_lettered": n,
+                                 "note": "engine polls input:queue directly;
+                                          no items consumed here"}
+  Retired drain semantics (RENAME → per-item processing → webhook) removed:
+  they raced the engine and stole real player turns.
 
 Queue (input:):
   POST /queue/push         → RPUSH (Next.js writes directly to Redis, not this)
   GET  /queue/pop          → LPOP (used by /trigger internally)
   GET  /queue/length       → LLEN
+
+  Queue items are Pydantic `GameRequest` objects:
+    { uuid, prompt, data, images, timestamp }
+  `uuid` is the session id (same key as the `games:{uuid}:state` hash).
+  `sid` is accepted as a read-compatible alias of `uuid`.
+  Missing both → poison request → dead-letter + retry path.
 
 Game State (games:{sid}:state — HASH per plan §1):
   GET  /{sid}/state        → HGETALL (read full state)
@@ -331,14 +383,17 @@ Memory (Upstash Search, shared index filtered by sid):
 ## Error Handling
 
 ```
-- Queue push fails       → return 500, prompt lost (retry on client)
-- Trigger POST fails     → trigger:busy auto-expires in 30s, retries on next action
-- Worker POST fails      → FastAPI retries (3 attempts, backoff)
-- SSE connection drops   → client reconnects, polls last known event
+- Queue push fails       → relay returns 5xx, client surfaces error (retry on user)
+- Poll timeout           → client gives up after ~2 min: "AI server didn't respond
+                           — check it's running on :8000"
+- Engine item fails      → QueueManager.handle_failure: retry → input:queue:delayed,
+                           poison/exhausted → input:queue:dead (dead letter)
 - Graph loop runaway     → guarded: router passes=3, 60s wall, budget/LLM-call force-exit to story
                            → see engine/graph_v2.py (`_budget_exhausted`, `react_router_node`)
                           → GraphRecursionError → graceful "the story grows quiet" output
                           → see plan/loops.md
+- Death                  → engine saves final state; output.game_over=true;
+                           web closes the game (death contract below)
 ```
 
 ---
@@ -411,6 +466,12 @@ Drain Pattern:
 
 ## Resolved Issues (based on plan/redisIntegration.md)
 
+> ⚠️ **Historical design record.** Items 1–4, 6–7 and the SSE/webhook Q&A below
+> describe the *original* trigger+SSE design. That design was never shipped in
+> the web app; the implemented turn flow is push-to-queue + engine polling +
+> 2 s output polling (see "Data Flow (as implemented)"). `/trigger` semantics
+> changed to an advisory probe — see "Trigger System" and item 5 below.
+
 ### 1. State type — Hash not String ✔
 
 Per `plan/redisIntegration.md` §1: `games:{uuid}:state` is definitively a **Hash** (HGETALL/HSET/HDEL). The AI server already uses Hash. Next.js must also use Hash:
@@ -470,36 +531,31 @@ Solved by #3 — no Redis event key, no polling, no overwrite. Each worker callb
 
 ### 5. `/trigger` endpoint — implemented (see `redis_api.py`)
 
-Current behavior (atomic rename drain):
+⚠️ Semantics changed (2026-10): the atomic rename drain was **removed** — it
+raced the engine loop for `input:queue` and could eat real player turns while
+writing placeholder `"(processed)"` stories. Current behavior is a passive
+status probe:
 
 ```python
-@app.post("/trigger")
+@router.post("/trigger")
 async def trigger():
-    busy = await raw.get("trigger:busy")
-    if not busy:
-        raise HTTPException(status_code=409, detail="not triggered")  # raise, not tuple
-    try:
-        await raw.rename("input:queue", "input:queue:processing")
-    except Exception:
-        return {"ok": True, "items": 0}  # queue empty
-    items, failed = [], 0
-    while (raw_item := await raw.lpop("input:queue:processing")) is not None:
-        try:
-            items.append(json.loads(raw_item))
-        except (json.JSONDecodeError, TypeError, ValueError):
-            failed += 1  # poison guard: skip bad item, keep draining
-            continue
-    ...  # per item: HGETALL state → output → Next.js webhook
-    await raw.delete("input:queue:processing")  # cleanup only after all items
-    await raw.delete("trigger:busy")
-    return {"ok": True, "items": len(processed), "processed": processed, "failed": failed}
+    c = await _get_input()
+    queued = await c.queue_length()
+    dead = await c.client.llen("input:queue:dead")
+    return {
+        "ok": True,
+        "queued": queued,
+        "dead_lettered": dead,
+        "note": "engine polls input:queue directly; no items consumed here",
+    }
 ```
 
-### 6. FastAPI callback URL — env var ✔
+### 6. FastAPI callback URL — env var ✔ (retired — dead code)
 
-`NEXTJS_WEBHOOK_URL` env var on the AI server (`http://nextjs-server:3000/api/games/worker`).
+`NEXTJS_WEBHOOK_URL` pointed at `/api/games/worker`, a route that never existed
+in the web app. The webhook post was removed together with the drain trigger.
 
-### 7. Next.js trigger URL — env var ✔
+### 7. Next.js trigger URL — env var ✔ (retired)
 
 `AI_SERVER_URL` env var on Next.js (`http://ai-server:8000`). Only referenced in `fireTrigger()`.
 
@@ -511,9 +567,11 @@ New sessions get their initial state written *before* the first action is queued
 
 ~50-200KB per snapshot is fine for 2MB Safari limit. Multiple saves accumulate only while `sessionStorage` lives (tab open). 10min snapshot = 1 save in storage at a time.
 
-### 10. `/trigger` endpoint ✔
+### 10. `/trigger` endpoint ✔ (superseded)
 
-Done — `POST /trigger` exists in `redis_api.py` with the atomic rename drain pattern (raises 409 when `trigger:busy` unset, per-item poison guard with `failed` count, cleanup after all items). Next.js sets `trigger:busy` (SET NX EX 30) and calls the AI server.
+Originally the atomic rename drain (409 without `trigger:busy`, per-item poison
+guard, cleanup). Replaced by the advisory probe — see item 5 and "Trigger System".
+The web never calls it; the engine owns the queue.
 
 ### State & Data
 

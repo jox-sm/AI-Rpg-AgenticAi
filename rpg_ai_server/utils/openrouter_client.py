@@ -45,6 +45,11 @@ class OpenRouterDirectClient:
         }
         if response_format:
             body["response_format"] = response_format
+        # Probed on NIM 2026-11-18: reasoning models burn most of their token budget
+        # thinking before writing (kimi: 15.8s → 3.8s with identical prose).
+        # Applied to kimi only — minimax's switch probed *slower* with it.
+        if "kimi" in model:
+            body["chat_template_kwargs"] = {"thinking": False}
 
         # NOTE: no leading slash — httpx replaces base_url path on absolute paths,
         # which dropped /api/v1 and caused 404s on every direct call.

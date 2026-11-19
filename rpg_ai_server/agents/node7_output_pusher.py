@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from typing import Any, Dict
 
 from ..schemas.state import GameState
@@ -31,6 +32,10 @@ async def node7_output_pusher(state: GameState, output_cache: OutputCache) -> Di
             # the frontend closes the game when this is True (or equivalently
             # game_data.character_stats.is_dead / game_data.player_dead).
             game_over=bool((state.get("game_data", {}) or {}).get("player_dead", False)),
+            # Monotonic-ish freshness marker: lets the web detect a new turn
+            # even when two consecutive stories are identical (string dedupe
+            # would otherwise hang the client).
+            timestamp=time.time(),
         )
 
         success = await output_cache.store_result(output)

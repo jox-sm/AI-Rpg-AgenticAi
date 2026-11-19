@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+
+from pydantic import BaseModel, Field, model_validator
 
 from .enums import (
     DamageType,
@@ -41,6 +42,21 @@ class GameRequest(BaseModel):
     data: Dict[str, Any] = Field(default_factory=dict, description="Additional game data")
     images: List[Dict[str, Any]] = Field(default_factory=list)
     timestamp: float = Field(default=0.0)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_sid_to_uuid(cls, values: Any) -> Any:
+        """Accept the session id under `sid` as an alias of the required `uuid`.
+
+        The web client historically pushed `{sid, prompt, turn}` (the session id
+        under `sid`); the canonical shape is `{uuid, prompt, data, images, timestamp}`.
+        Coercing here keeps both producer shapes working instead of dead-lettering
+        every turn as a poison request.
+        """
+        if isinstance(values, dict) and not values.get("uuid") and values.get("sid"):
+            values["uuid"] = values["sid"]
+            values.pop("sid", None)
+        return values
 
 
 class GameOutput(BaseModel):

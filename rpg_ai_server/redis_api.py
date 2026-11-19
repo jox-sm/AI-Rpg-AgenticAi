@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import os
 import sys
 import time
 from pathlib import Path
@@ -11,16 +10,15 @@ _root = str(Path(__file__).resolve().parents[1])
 if _root not in sys.path:
     sys.path.insert(0, _root)
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import APIRouter, FastAPI, HTTPException, Query
 from pydantic import BaseModel
-
-try:
-    import aiohttp
-except ImportError:
-    aiohttp = None
 
 from rpg_ai_server.redis.client import InputRedisClient, GamesRedisClient, OutputRedisClient
 from rpg_ai_server.redis.vector_memory import GameMemory
+
+# Routes live on a router so the gameplay API can be mounted by more than one
+# app: `redis_api:app` (API only, tests) and `api:app` (API + in-process engine).
+router = APIRouter()
 
 app = FastAPI(title="RPG AI Redis API")
 
@@ -77,6 +75,28 @@ def _get_memory() -> GameMemory:
     return _memory
 
 
+def _memory_or_503() -> GameMemory:
+    """Memory endpoints degrade gracefully when Upstash Search is not configured.
+
+    Gameplay (queue/state/output) runs fine without Search creds — the engine
+    skips memory enrichment — but memory/query|upsert|export|restore|clear need
+    them. Return a clear 503 instead of an opaque 500.
+    """
+    from rpg_ai_server.config.settings import settings
+
+    if not settings.search.configured:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Game memory is not configured: set UPSTASH_SEARCH_REST_URL and "
+                "UPSTASH_SEARCH_REST_TOKEN in rpg_ai_server/.env (Upstash console "
+                "→ Search → create index). Gameplay works without it; the "
+                "memory/saves features are disabled until then."
+            ),
+        )
+    return _get_memory()
+
+
 # ── Startup / Shutdown ──
 
 
@@ -94,77 +114,38 @@ async def shutdown():
             await c.disconnect()
 
 
-# ── Trigger (atomic drain per plan §5) ──
+# ── Trigger (advisory only — the engine consumes input:queue itself) ──
+# MultiTaskEngine.run polls input:queue continuously (~100ms idle cadence), so
+# pushes do NOT need a trigger to be processed. Calling this endpoint never
+# drains or consumes anything: any consumer racing the engine would steal real
+# player turns. Kept for back-compat as a push-landed status probe.
 
-NEXTJS_WEBHOOK = os.getenv("NEXTJS_WEBHOOK_URL")
 
-
-@app.post("/trigger")
+@router.post("/trigger")
 async def trigger():
     c = await _get_input()
-    g = await _get_games()
-    o = await _get_output()
-    raw = c.client
-
-    # 1. Verify trigger:busy is set (Next.js locked before calling)
-    busy = await raw.get("trigger:busy")
-    if not busy:
-        raise HTTPException(status_code=409, detail="not triggered")
-
-    # 2. Atomic drain — RENAME to processing queue
+    queued = await c.queue_length()
+    # Dead letter is a ZSET in the current implementation (queue:dead), but
+    # tolerate other shapes from older runs instead of 500-ing the probe.
     try:
-        await raw.rename("input:queue", "input:queue:processing")
+        dead = await c.client.zcard("input:queue:dead")
     except Exception:
-        return {"ok": True, "items": 0}
-
-    # 3. LPOP all items
-    items = []
-    failed = 0
-    while True:
-        raw_item = await raw.lpop("input:queue:processing")
-        if raw_item is None:
-            break
         try:
-            items.append(json.loads(raw_item))
-        except (json.JSONDecodeError, TypeError, ValueError):
-            failed += 1
-            continue
-
-    # 4. Process each item
-    processed = []
-    for item in items:
-        sid = item.get("uuid")
-        if not sid:
-            continue
-        try:
-            state = await g.hgetall(sid)
-            if not state:
-                continue
-            output = {"sid": sid, "story": "(processed)", "tool_results": []}
-            await o.push_result(sid, output)
-            await g.expire(sid, 3600)
-            if NEXTJS_WEBHOOK and aiohttp:
-                async with aiohttp.ClientSession() as session:
-                    await session.post(
-                        NEXTJS_WEBHOOK,
-                        json={"uuid": sid},
-                        timeout=aiohttp.ClientTimeout(total=5),
-                    )
-            processed.append(sid)
-        except Exception as e:
-            processed.append(f"{sid}:error:{e}")
-
-    # 5. Cleanup (only after attempting all items)
-    await raw.delete("input:queue:processing")
-    await raw.delete("trigger:busy")
-
-    return {"ok": True, "items": len(processed), "processed": processed, "failed": failed}
+            dead = await c.client.llen("input:queue:dead")
+        except Exception:
+            dead = None
+    return {
+        "ok": True,
+        "queued": queued,
+        "dead_lettered": dead,
+        "note": "engine polls input:queue directly; no items consumed here",
+    }
 
 
 # ── Health ──
 
 
-@app.get("/health")
+@router.get("/health")
 async def health():
     return {"status": "ok"}
 
@@ -172,7 +153,7 @@ async def health():
 # ── Queue (input:queue, input:queue:delayed, input:queue:dead) ──
 
 
-@app.post("/queue/push")
+@router.post("/queue/push")
 async def queue_push(uuid: str = Query(...), data: str = Query(...)):
     c = await _get_input()
     try:
@@ -183,7 +164,7 @@ async def queue_push(uuid: str = Query(...), data: str = Query(...)):
     return {"ok": True, "uuid": uuid}
 
 
-@app.get("/queue/pop")
+@router.get("/queue/pop")
 async def queue_pop():
     c = await _get_input()
     item = await c.pop_request()
@@ -192,28 +173,28 @@ async def queue_pop():
     return {"ok": True, "item": item}
 
 
-@app.get("/queue/length")
+@router.get("/queue/length")
 async def queue_length():
     c = await _get_input()
     n = await c.queue_length()
     return {"length": n}
 
 
-@app.post("/queue/delayed/push")
+@router.post("/queue/delayed/push")
 async def queue_delayed_push(item: dict, score: float = Query(...)):
     c = await _get_input()
     await c.push_delayed(item, score)
     return {"ok": True}
 
 
-@app.get("/queue/delayed/pop")
+@router.get("/queue/delayed/pop")
 async def queue_delayed_pop(max_score: float = Query(...)):
     c = await _get_input()
     items = await c.pop_delayed_due(max_score)
     return {"count": len(items), "items": items}
 
 
-@app.post("/queue/dead/push")
+@router.post("/queue/dead/push")
 async def queue_dead_push(item: dict):
     c = await _get_input()
     await c.push_dead(item)
@@ -223,7 +204,7 @@ async def queue_dead_push(item: dict):
 # ── Game State (games:{uuid}:state) ──
 
 
-@app.get("/games/{uuid}/state")
+@router.get("/games/{uuid}/state")
 async def game_state_get(uuid: str):
     c = await _get_games()
     raw = await c.hgetall(uuid)
@@ -238,7 +219,7 @@ async def game_state_get(uuid: str):
     return decoded
 
 
-@app.get("/games/{uuid}/state/{field}")
+@router.get("/games/{uuid}/state/{field}")
 async def game_state_get_field(uuid: str, field: str):
     c = await _get_games()
     value = await c.hget(uuid, field)
@@ -250,49 +231,49 @@ async def game_state_get_field(uuid: str, field: str):
         return {"value": value}
 
 
-@app.put("/games/{uuid}/state/{field}")
+@router.put("/games/{uuid}/state/{field}")
 async def game_state_set_field(uuid: str, field: str, value: str = Query(...)):
     c = await _get_games()
     await c.hset(uuid, field, value)
     return {"ok": True}
 
 
-@app.delete("/games/{uuid}/state/{field}")
+@router.delete("/games/{uuid}/state/{field}")
 async def game_state_del_field(uuid: str, field: str):
     c = await _get_games()
     ok = await c.hdel(uuid, field)
     return {"ok": ok}
 
 
-@app.post("/games/{uuid}/counter/incr")
+@router.post("/games/{uuid}/counter/incr")
 async def game_counter_incr(uuid: str):
     c = await _get_games()
     n = await c.incr(uuid)
     return {"counter": n}
 
 
-@app.put("/games/{uuid}/counter")
+@router.put("/games/{uuid}/counter")
 async def game_counter_set(uuid: str, value: int = Query(...)):
     c = await _get_games()
     await c.set_counter(uuid, value)
     return {"ok": True}
 
 
-@app.get("/games/{uuid}/lock")
+@router.get("/games/{uuid}/lock")
 async def game_lock_acquire(uuid: str, worker_id: str = Query(...), ttl: int = Query(default=30)):
     c = await _get_games()
     acquired = await c.acquire_lock(uuid, worker_id, ttl)
     return {"acquired": acquired}
 
 
-@app.delete("/games/{uuid}/lock")
+@router.delete("/games/{uuid}/lock")
 async def game_lock_release(uuid: str, worker_id: str = Query(...)):
     c = await _get_games()
     released = await c.release_lock(uuid, worker_id)
     return {"released": released}
 
 
-@app.post("/games/{uuid}/expire")
+@router.post("/games/{uuid}/expire")
 async def game_expire(uuid: str, ttl: int = Query(...)):
     c = await _get_games()
     ok = await c.expire(uuid, ttl)
@@ -321,21 +302,21 @@ class MemoryRestoreRequest(BaseModel):
     chunks: list[dict]
 
 
-@app.post("/memory/query")
+@router.post("/memory/query")
 async def memory_query(req: MemoryQueryRequest):
-    hits = await _get_memory().query(req.namespace, req.query, top_k=req.top_k)
+    hits = await _memory_or_503().query(req.namespace, req.query, top_k=req.top_k)
     return {"hits": hits}
 
 
-@app.post("/memory/upsert")
+@router.post("/memory/upsert")
 async def memory_upsert(req: MemoryUpsertRequest):
-    count = await _get_memory().upsert(req.namespace, req.documents)
+    count = await _memory_or_503().upsert(req.namespace, req.documents)
     return {"ok": True, "chunks": count}
 
 
-@app.get("/memory/export/{sid}")
+@router.get("/memory/export/{sid}")
 async def memory_export(sid: str):
-    chunks = await _get_memory().export(sid)
+    chunks = await _memory_or_503().export(sid)
     return {
         "sid": sid,
         "saved_at": int(time.time() * 1000),
@@ -344,29 +325,29 @@ async def memory_export(sid: str):
     }
 
 
-@app.post("/memory/restore")
+@router.post("/memory/restore")
 async def memory_restore(req: MemoryRestoreRequest):
-    count = await _get_memory().restore(req.namespace, req.chunks)
+    count = await _memory_or_503().restore(req.namespace, req.chunks)
     return {"ok": True, "restored": count}
 
 
-@app.delete("/memory/clear")
+@router.delete("/memory/clear")
 async def memory_clear(namespace: str = Query(...)):
-    await _get_memory().clear(namespace)
+    await _memory_or_503().clear(namespace)
     return {"ok": True}
 
 
 # ── Output Cache (output:{uuid}) ──
 
 
-@app.get("/output/count")
+@router.get("/output/count")
 async def output_count():
     c = await _get_output()
     n = await c.count()
     return {"count": n}
 
 
-@app.get("/output/{uuid}")
+@router.get("/output/{uuid}")
 async def output_get(uuid: str):
     c = await _get_output()
     data = await c.get_json(uuid)
@@ -375,7 +356,7 @@ async def output_get(uuid: str):
     return data
 
 
-@app.put("/output/{uuid}")
+@router.put("/output/{uuid}")
 async def output_set(uuid: str, data: dict):
     c = await _get_output()
     await c.push_result(uuid, data)
@@ -385,35 +366,42 @@ async def output_set(uuid: str, data: dict):
 # ── General ──
 
 
-@app.get("/keys")
+@router.get("/keys")
 async def get_keys(pattern: str = Query(default="*"), prefix: str = Query(default="")):
-    prefix_map = {"input": _input, "games": _games, "output": _output}
-    c = prefix_map.get(prefix)
-    if c is None:
+    getters = {"input": _get_input, "games": _get_games, "output": _get_output}
+    getter = getters.get(prefix)
+    if getter is None:
         cl = await _get_input()
         return await cl.keys(pattern)
-    return await c.keys(pattern)
+    return await (await getter()).keys(pattern)
 
 
-@app.get("/dbsize")
+@router.get("/dbsize")
 async def dbsize(prefix: str = Query(default="")):
-    prefix_map = {"input": _input, "games": _games, "output": _output}
-    c = prefix_map.get(prefix)
-    if c is None:
+    getters = {"input": _get_input, "games": _get_games, "output": _get_output}
+    getter = getters.get(prefix)
+    if getter is None:
         all_keys = []
-        for getter in (_get_input, _get_games, _get_output):
-            cl = await getter()
+        for g in (_get_input, _get_games, _get_output):
+            cl = await g()
             ks = await cl.keys("*")
             all_keys.extend(ks)
         return {"dbsize": len(all_keys)}
-    return {"dbsize": await c.dbsize()}
+    return {"dbsize": await (await getter()).dbsize()}
 
 
-@app.delete("/keys/{key:path}")
+@router.delete("/keys/{key:path}")
 async def delete_key(key: str, prefix: str = Query(default="")):
-    prefix_map = {"input": _input, "games": _games, "output": _output}
-    c = prefix_map.get(prefix)
-    if c is None:
+    getters = {"input": _get_input, "games": _get_games, "output": _get_output}
+    getter = getters.get(prefix)
+    if getter is None:
         raise HTTPException(400, "prefix required (input/games/output)")
+    c = await getter()
     ok = await c.delete(key)
     return {"ok": ok}
+
+
+# All gameplay routes live on `router`; `app` mounts them (this include runs at
+# module import — `api.py` reuses the same `app` instance rather than building
+# a second app so the router is only ever included once).
+app.include_router(router)
