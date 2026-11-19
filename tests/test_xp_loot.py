@@ -10,6 +10,7 @@ import random
 
 from rpg_ai_server.agents.node4_parallel import _damage_patch, _ensure_target, node4_parallel
 from rpg_ai_server.schemas.types import GameOutput
+from rpg_ai_server.utils.coerce import stat_of
 from rpg_ai_server.scripts.xp_loot import (
     STAT_MAX,
     STAT_MIN,
@@ -190,8 +191,8 @@ def test_dead_flag_persists_and_game_over_set():
     snap = _snap(game_data={"monsters": [sheet]},
                  decision_report={"intent": "attack", "target": "ogre", "monster_move": "attack"})
     out = _run(node4_parallel(snap))
-    assert out["character_stats"]["is_dead"] is True
-    assert out["character_stats"]["health"] == 0
+    assert stat_of(out["character_stats"], "is_dead", False) is True
+    assert stat_of(out["character_stats"], "health", -1) == 0
     assert out["game_data"]["player_dead"] is True
     assert any("YOU ARE DOWN" in t for t in out["tool_results"][0].splitlines())
 

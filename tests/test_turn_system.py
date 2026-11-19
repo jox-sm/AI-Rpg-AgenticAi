@@ -14,6 +14,7 @@ from rpg_ai_server.agents.node4_parallel import (
     _strikes_for,
     node4_parallel,
 )
+from rpg_ai_server.utils.coerce import stat_of
 
 
 def _run(coro):
@@ -148,7 +149,7 @@ def test_player_down_stops_and_no_xp():
 def test_node4_merge_carries_health_and_round_lines():
     state = _snap(decision_report={"intent": "attack", "target": "spider", "monster_move": "attack"})
     out = _run(node4_parallel(state))
-    assert out["character_stats"]["health"] <= 100
+    assert stat_of(out["character_stats"], "health", 101) <= 100
     text = out["tool_results"][0]
     assert "spd 20 vs 40" in text
     assert text.count("strikes you") == 3

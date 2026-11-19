@@ -7,7 +7,7 @@ AI server `D:\AI agent` (Python FastAPI + LangGraph v2). Web-app contract lives 
 - Models: all LLM calls go through one OpenAI-compatible direct HTTP client (`utils/openrouter_client.py`); provider is switchable via `OPENROUTER_BASE_URL` — **currently NVIDIA NIM** (`https://integrate.api.nvidia.com/v1`): kimi-k3.1-pro (story/redescription/context), minimax-m3.1-flash (classifier/jev), nemotron-3-nano-omni (image). `REQUEST_TIMEOUT_SECONDS=110`. Node1 web search via Scrapy (no Google key).
 - Redis: Lua atomic ops (`redis/client.py` — locks, delayed-pop, touch, counter); `QueueManager` uuid worker + single-mover guard; `GameStateManager` allowlist merge, drain threshold 25.
 - Memory: Upstash Search `game-memory` index (server-side embeddings), sid-scoped; node4 read path injects `rag_context`. **Currently unconfigured live** → `/memory/*` answer 503 with guidance (gameplay unaffected).
-- Tests: 229 pass / 3 pre-existing failures (`pytest -q`), incl. contract tests.
+- Tests: 227 pass / 5 pre-existing failures (`pytest -q`) — the 5 memory tests assert 200 while `/memory/*` returns 503 until `UPSTASH_SEARCH_*` is configured; incl. contract tests.
 
 ## Verified LIVE 2026-11-18 (NVIDIA NIM)
 - OpenRouter → NVIDIA swap done with **zero code changes** (env only: base URL, key, 6 model slugs, `REQUEST_TIMEOUT_SECONDS=110`).

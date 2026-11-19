@@ -10,6 +10,7 @@ from rpg_ai_server.config.settings import settings
 from rpg_ai_server.engine.orchestrator import GRACEFUL_ERROR_STORY, GameOrchestrator
 from rpg_ai_server.redis.game_state import GameStateManager
 from rpg_ai_server.schemas.types import GameRequest
+from rpg_ai_server.utils.coerce import stat_of
 from tests.fakes import FakeGamesClient, FakeOutputClient
 
 
@@ -55,7 +56,7 @@ def test_merge_keeps_persisted_stats_but_fresh_budget_and_prompt():
     assert seen["prompt"] == "new prompt"                       # fresh wins
     assert seen["remaining_steps"] == settings.app.loop_recursion_limit  # not 11
     assert seen["needs_search"] is False                        # not stale True
-    assert seen["character_stats"] == {"level": 9}               # persisted kept
+    assert stat_of(seen["character_stats"], "level", 0) == 9               # persisted kept (model or dict)
     assert seen["turn_id"].startswith("u9:")                    # idempotency key
 
 

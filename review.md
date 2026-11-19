@@ -2,7 +2,7 @@
 
 **Project:** `D:\AI agent` (Python FastAPI + LangGraph), branch `refactor/compact-ai-backend`.
 **Goal:** compact the codebase into small files with **zero behavior change** (clean architecture / OOP / DRY — see `.agents/skills/clean-architecture/SKILL.md`).
-**Rule honored:** one module per step, compatibility facades re-exporting the *same* objects, full suite matched **224 passed / 8 failed** (same eight known failures, zero new ones) after every batch.
+**Rule honored:** one module per step, compatibility facades re-exporting the *same* objects, full suite matched **224 passed / 8 failed** (same eight known failures, zero new ones) after every batch. After compaction, the 3 dict-vs-model test bugs were fixed → current baseline **227 passed / 5 failed** (memory-503 tests only).
 
 > The subagents wrote their raw notes into `review.d/*.md`. This file is the merged conversation: each agent's findings, surprises, and verification below.
 
@@ -69,4 +69,4 @@ refactor/compact-ai-backend      (all compaction commits)
 
 ## Merge notes (orchestrator)
 
-All agent reports consolidated above; no conflicts between disjoint file sets. Transient failures observed by agents were caused by other agents' in-progress edits and cleared after completion. Authoritative final full-suite result: `8 failed, 224 passed in 23.70s` — identical to the pre-refactor baseline.
+All agent reports consolidated above; no conflicts between disjoint file sets. Transient failures observed by agents were caused by other agents' in-progress edits and cleared after completion. Authoritative result at compaction completion: `8 failed, 224 passed in 23.70s` — identical to the pre-refactor baseline. **Follow-up (same day):** fixed the 3 legacy dict-vs-model assertions (`stat_of` helper in tests) → `5 failed, 227 passed in 26.53s`; remaining 5 are memory tests asserting pre-503 behavior.
