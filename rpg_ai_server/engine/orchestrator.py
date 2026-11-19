@@ -1,27 +1,27 @@
+"""Compatibility facade — orchestration helpers moved into engine/orchestration/.
+
+The GameOrchestrator class (and its method names, which tests monkeypatch on
+instances) stays here; heavy pure helpers live in small focused modules.
+"""
 from __future__ import annotations
 
-import asyncio
-import time
 from typing import Any, Dict, Optional
 
-from langgraph.errors import GraphRecursionError
 from langgraph.graph import StateGraph
 
 from ..config.settings import settings
 from ..redis.game_state import GameStateManager
 from ..redis.output_cache import OutputCache
 from ..schemas.state import GameState
-from ..schemas.types import CharacterStats, ChatMessage, GameRequest, InventoryItem, NodeDecision, Relationship, Skill, ContextSummary
-from ..scripts.world_generator import ensure_world, grid_to_grid_data
+from ..schemas.types import GameRequest
 from ..utils.coerce import model_list
 from ..utils.logger import logger
 from .graph_v2 import build_game_graph_v2
+from .orchestration.constants import GRACEFUL_ERROR_STORY
+from .orchestration.graph_run import run_graph
+from .orchestration.state import build_initial_state, hydrate_models
 
-GRACEFUL_ERROR_STORY = (
-    "A twisting mist swallows the scene before it fully forms. "
-    "The world shudders, glitches, and resets — as if the dungeon itself "
-    "rejected the attempt. Try again."
-)
+__all__ = ["GameOrchestrator", "GRACEFUL_ERROR_STORY"]
 
 
 class GameOrchestrator:
@@ -43,131 +43,10 @@ class GameOrchestrator:
 
     @staticmethod
     def _hydrate_models(initial_state: GameState) -> None:
-        """Restore model objects after a Redis round-trip.
-
-        ``character_stats``/``skills``/``inventory``/etc. are stored as JSON
-        dict(-list)s; nodes downstream expect model objects again.
-        """
-        model_map = {
-            "character_stats": CharacterStats,
-            "context_summary": ContextSummary,
-            "decision": NodeDecision,
-        }
-        for key, model in model_map.items():
-            value = initial_state.get(key)
-            if value is not None and isinstance(value, dict):
-                try:
-                    initial_state[key] = model.model_validate(value)
-                except Exception:
-                    pass
-
-        for key, model in (
-            ("skills", Skill),
-            ("inventory", InventoryItem),
-            ("relationships", Relationship),
-            ("chat_log", ChatMessage),
-        ):
-            items = initial_state.get(key)
-            if isinstance(items, list):
-                hydrated = []
-                for item in items:
-                    if isinstance(item, dict):
-                        try:
-                            hydrated.append(model.model_validate(item))
-                            continue
-                        except Exception:
-                            pass
-                    hydrated.append(item)
-                if hydrated != items:
-                    initial_state[key] = hydrated
+        hydrate_models(initial_state)
 
     def _build_initial_state(self, request: GameRequest) -> GameState:
-        import time as _time
-        import uuid as _uuid
-        stats = CharacterStats()
-
-        # Deterministic infinite world: dense 2D window + origin + player_pos,
-        # all inside game_data so it persists across turns. Client fields in
-        # request.data are preserved; missing world keys are filled in.
-        base_data = dict(request.data) if isinstance(request.data, dict) else {}
-        # Seed precedence: an explicit client seed wins (the web derives it from
-        # the catalog game id, so every session of the same game lands in the
-        # same world); the session id keeps per-scenario worlds otherwise.
-        ensure_world(base_data, base_data.get("world_seed") or request.uuid)
-        grid_data = grid_to_grid_data(base_data.get("grid") or [], base_data.get("origin"))
-
-        initial_state: GameState = {
-            "uuid": request.uuid,
-            "prompt": request.prompt,
-            "input_data": request.data or {},
-            "game_data": base_data,
-            "images": {},
-            "grid_data": grid_data,
-            "re_description_data": None,
-            "context_summary": None,
-            "character_stats": stats,
-            "skills": [
-                Skill(
-                    name="Basic Attack",
-                    skill_type="attack",
-                    cooldown=0,
-                    max_cooldown=1,
-                    level=1,
-                    description="A basic melee or ranged attack",
-                ),
-                Skill(
-                    name="Dodge",
-                    skill_type="defense",
-                    cooldown=0,
-                    max_cooldown=2,
-                    level=1,
-                    description="Dodge incoming attack",
-                    is_passive=False,
-                ),
-            ],
-            "inventory": [],
-            "relationships": [],
-            "story_output": "",
-            "decision": None,
-            "needs_search": False,
-            "needs_image_processing": False,
-            "needs_re_description": False,
-            "processed": False,
-            "error": None,
-            "search_results": "",
-            "rag_context": "",
-            "tool_results": [],
-            "game_output": None,
-            "conditional_passes": 0,
-            "remaining_steps": settings.app.loop_recursion_limit,
-            "__next__": "mechanics",
-            # Re-imagined generous-local additions
-            "context": "",
-            "chat_log": [{"role": "user", "text": request.prompt, "turn": 0}],
-            "decision_report": None,
-            "budget": {"llm_calls": 0, "tokens_est": 0, "started_at": _time.time()},
-            "next_node": "mechanics",
-            "router_trace": [],
-            "force_exit_reason": None,
-            "turn_id": f"{request.uuid}:{_uuid.uuid4().hex[:8]}",
-        }
-
-        if request.images:
-            from uuid import uuid4
-            from ..schemas.types import ImageData
-            import time
-            for img in request.images:
-                img_uuid = str(uuid4())
-                initial_state["images"][img_uuid] = ImageData(
-                    image_uuid=img_uuid,
-                    game_uuid=request.uuid,
-                    url=img.get("url", ""),
-                    format=img.get("format", "webp"),
-                    timestamp=time.time(),
-                )
-            initial_state["needs_image_processing"] = True
-
-        return initial_state
+        return build_initial_state(request)
 
     async def process_request(self, request: GameRequest) -> Optional[Dict[str, Any]]:
         logger.info(f"Processing request UUID {request.uuid}")
@@ -257,57 +136,6 @@ class GameOrchestrator:
             await self.game_state_mgr.release_lock(request.uuid, self.worker_id)
 
     async def _run_graph(self, state: GameState, uuid: str) -> Dict[str, Any]:
-        """Run the graph with a wall-clock timeout and bounded recursion."""
-        lock_lost: list[bool] = []
-
-        async def _keep_lock_alive(graph_task: asyncio.Task):
-            while True:
-                await asyncio.sleep(settings.app.lock_refresh_interval)
-                if graph_task.done():
-                    return
-                if not await self.game_state_mgr.refresh_lock(uuid, self.worker_id):
-                    logger.warning(f"Lost lock ownership for {uuid}, aborting graph run")
-                    lock_lost.append(True)
-                    graph_task.cancel()
-                    return
-
-        graph_task: asyncio.Task = asyncio.create_task(
-            self.compiled_graph.ainvoke(
-                state,
-                config={"recursion_limit": settings.app.loop_recursion_limit},
-            )
+        return await run_graph(
+            self.compiled_graph, self.game_state_mgr, state, uuid, self.worker_id
         )
-        keeper = asyncio.create_task(_keep_lock_alive(graph_task))
-        try:
-            # shield: wait_for timeout cancels the wait, not graph_task itself;
-            # we cancel graph_task explicitly so no orphan run survives lock loss.
-            return await asyncio.wait_for(
-                asyncio.shield(graph_task),
-                timeout=settings.app.request_timeout_seconds,
-            )
-        except GraphRecursionError as e:
-            logger.error(f"Graph recursion limit reached for {uuid}: {e}")
-            if not graph_task.done():
-                graph_task.cancel()
-            raise
-        except asyncio.TimeoutError:
-            logger.error(f"Graph execution timed out for {uuid} after {settings.app.request_timeout_seconds}s")
-            if not graph_task.done():
-                graph_task.cancel()
-            raise
-        except asyncio.CancelledError:
-            if lock_lost:
-                # Lock stolen mid-run: convert to TimeoutError so process_request
-                # returns a graceful story and the ENGINE KEEPS RUNNING.
-                # (Raw CancelledError would bubble to MultiTaskEngine.run and
-                # kill the whole worker loop.)
-                logger.error(f"Graph run aborted (lock lost) for {uuid}")
-                raise asyncio.TimeoutError(f"lock lost for {uuid}")
-            logger.error(f"Graph run cancelled (shutdown) for {uuid}")
-            raise
-        finally:
-            keeper.cancel()
-            try:
-                await keeper
-            except asyncio.CancelledError:
-                pass
